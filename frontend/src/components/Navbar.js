@@ -119,7 +119,9 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
       ),
       submenu: [
         { id: 'admin-users', label: 'Utilisateurs', adminOnly: true },
+        { id: 'utilisateurs-create', label: 'Créer un Utilisateur', adminOnly: true },
         { id: 'admin-roles', label: 'Rôles', adminOnly: true },
+        { id: 'roles-create', label: 'Créer un Rôle', adminOnly: true },
         { id: 'admin-hierarchie', label: 'Hiérarchie (Unité/Centre/Agence)', adminOnly: true },
         { id: 'unites-create', label: 'Créer une Unité', adminOnly: true },
         { id: 'centres-create', label: 'Créer un Centre', adminOnly: true },

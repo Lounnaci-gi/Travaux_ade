@@ -116,6 +116,27 @@ export const updateAgence = async (id, payload) => {
   return response.data;
 };
 
+// Utilisateurs et rôles
+export const getRoles = async () => {
+  const response = await api.get('/roles');
+  return response.data;
+};
+
+export const createRole = async (payload) => {
+  const response = await api.post('/roles', payload);
+  return response.data;
+};
+
+export const getUtilisateurs = async () => {
+  const response = await api.get('/utilisateurs');
+  return response.data;
+};
+
+export const createUtilisateur = async (payload) => {
+  const response = await api.post('/utilisateurs', payload);
+  return response.data;
+};
+
 export const getDemandeTypes = async () => {
   const response = await api.get('/demandes/types');
   return response.data;

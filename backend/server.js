@@ -1051,6 +1051,7 @@ app.get('/api/agences', async (req, res) => {
     const result = await pool.request().query(`
       SELECT TOP 200
         a.IdAgence,
+        a.IdCentre,
         a.CodeAgence,
         a.NomAgence
       FROM AgenceCommerciale a
@@ -1180,6 +1181,224 @@ app.put('/api/agences/:id', verifyToken, async (req, res) => {
     res.json(update.recordset[0]);
   } catch (error) {
     console.error('Erreur lors de la mise à jour de l\'agence:', error);
+    res.status(500).json({ error: error.message || 'Erreur serveur' });
+  }
+});
+
+// ============================================================================
+// UTILISATEURS ET RÔLES
+// ============================================================================
+
+// Liste des rôles
+app.get('/api/roles', async (req, res) => {
+  try {
+    const result = await pool.request().query(`
+      SELECT IdRole, CodeRole, LibelleRole, Description, Actif
+      FROM Role
+      WHERE Actif = 1
+      ORDER BY LibelleRole
+    `);
+    res.json(result.recordset);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des rôles:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Création d'un rôle
+app.post('/api/roles', verifyToken, async (req, res) => {
+  try {
+    const {
+      CodeRole,
+      LibelleRole,
+      Description,
+      Actif
+    } = req.body;
+
+    const required = ['CodeRole', 'LibelleRole'];
+    const missing = required.filter(f => !req.body[f]);
+    if (missing.length) {
+      return res.status(400).json({ error: `Champs obligatoires manquants: ${missing.join(', ')}` });
+    }
+
+    // Vérifier l'unicité du CodeRole
+    const checkRequest = pool.request();
+    checkRequest.input('codeRole', sql.NVarChar(50), CodeRole);
+    const checkResult = await checkRequest.query(`
+      SELECT CodeRole
+      FROM Role
+      WHERE CodeRole = @codeRole
+    `);
+
+    if (checkResult.recordset.length > 0) {
+      return res.status(400).json({ error: 'Ce code de rôle est déjà utilisé' });
+    }
+
+    const insert = await pool.request()
+      .input('CodeRole', sql.NVarChar(50), CodeRole.trim().toUpperCase())
+      .input('LibelleRole', sql.NVarChar(100), LibelleRole.trim())
+      .input('Description', sql.NVarChar(255), Description || null)
+      .input('Actif', sql.Bit, Actif !== undefined ? Actif : 1)
+      .query(`
+        INSERT INTO Role (
+          CodeRole, LibelleRole, Description, Actif, DateCreation
+        )
+        OUTPUT INSERTED.*
+        VALUES (
+          @CodeRole, @LibelleRole, @Description, @Actif, GETDATE()
+        )
+      `);
+
+    return res.status(201).json(insert.recordset[0]);
+  } catch (error) {
+    console.error('Erreur lors de la création du rôle:', error);
+    console.error('Détails:', error.message);
+    console.error('Stack:', error.stack);
+    res.status(500).json({ error: error.message || 'Erreur serveur' });
+  }
+});
+
+// Liste des utilisateurs
+app.get('/api/utilisateurs', verifyToken, async (req, res) => {
+  try {
+    const result = await pool.request().query(`
+      SELECT TOP 200
+        u.IdUtilisateur,
+        u.Matricule,
+        u.Nom,
+        u.Prenom,
+        u.Email,
+        u.Telephone,
+        u.Actif,
+        u.DateCreation,
+        u.DerniereConnexion,
+        u.IdRole,
+        r.CodeRole,
+        r.LibelleRole,
+        u.IdUnite,
+        un.NomUnite,
+        u.IdCentre,
+        c.NomCentre,
+        u.IdAgence,
+        a.NomAgence
+      FROM Utilisateur u
+      INNER JOIN Role r ON u.IdRole = r.IdRole
+      LEFT JOIN Unite un ON u.IdUnite = un.IdUnite
+      LEFT JOIN Centre c ON u.IdCentre = c.IdCentre
+      LEFT JOIN AgenceCommerciale a ON u.IdAgence = a.IdAgence
+      ORDER BY u.Nom, u.Prenom
+    `);
+    res.json(result.recordset);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des utilisateurs:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Création d'un utilisateur (Matricule auto UTI-XXXX)
+app.post('/api/utilisateurs', verifyToken, async (req, res) => {
+  try {
+    const {
+      IdRole,
+      IdUnite,
+      IdCentre,
+      IdAgence,
+      Nom,
+      Prenom,
+      Email,
+      Telephone,
+      MotDePasse,
+      Actif
+    } = req.body;
+
+    const required = ['IdRole', 'Nom', 'Prenom', 'Email', 'MotDePasse'];
+    const missing = required.filter(f => !req.body[f]);
+    if (missing.length) {
+      return res.status(400).json({ error: `Champs obligatoires manquants: ${missing.join(', ')}` });
+    }
+
+    // Vérifier l'unicité de l'email
+    const checkRequest = pool.request();
+    checkRequest.input('email', sql.NVarChar(100), Email);
+    const checkResult = await checkRequest.query(`
+      SELECT Email
+      FROM Utilisateur
+      WHERE Email = @email
+    `);
+
+    if (checkResult.recordset.length > 0) {
+      return res.status(400).json({ error: 'Cet email est déjà utilisé' });
+    }
+
+    // Générer Matricule format UTI-XXXX
+    const maxResult = await pool.request().query(`
+      SELECT ISNULL(MAX(CAST(SUBSTRING(Matricule, 5, LEN(Matricule)) AS INT)), 0) as MaxNum
+      FROM Utilisateur
+      WHERE Matricule LIKE 'UTI-%' AND ISNUMERIC(SUBSTRING(Matricule, 5, LEN(Matricule))) = 1
+    `);
+    const nextNumber = (maxResult.recordset[0].MaxNum || 0) + 1;
+    const Matricule = `UTI-${String(nextNumber).padStart(4, '0')}`;
+
+    const insert = await pool.request()
+      .input('IdRole', sql.Int, IdRole)
+      .input('IdUnite', sql.Int, IdUnite || null)
+      .input('IdCentre', sql.Int, IdCentre || null)
+      .input('IdAgence', sql.Int, IdAgence || null)
+      .input('Matricule', sql.NVarChar(20), Matricule)
+      .input('Nom', sql.NVarChar(100), Nom)
+      .input('Prenom', sql.NVarChar(100), Prenom)
+      .input('Email', sql.NVarChar(100), Email)
+      .input('Telephone', sql.NVarChar(20), Telephone || null)
+      .input('MotDePasse', sql.NVarChar(255), MotDePasse)
+      .input('Actif', sql.Bit, Actif !== undefined ? Actif : 1)
+      .query(`
+        INSERT INTO Utilisateur (
+          IdRole, IdUnite, IdCentre, IdAgence, Matricule, Nom, Prenom,
+          Email, Telephone, MotDePasse, Actif, DateCreation
+        )
+        OUTPUT INSERTED.*
+        VALUES (
+          @IdRole, @IdUnite, @IdCentre, @IdAgence, @Matricule, @Nom, @Prenom,
+          @Email, @Telephone, @MotDePasse, @Actif, GETDATE()
+        )
+      `);
+
+    // Retourner l'utilisateur créé avec les informations de rôle et affectation
+    const newUser = insert.recordset[0];
+    const userInfo = await pool.request()
+      .input('id', sql.Int, newUser.IdUtilisateur)
+      .query(`
+        SELECT 
+          u.IdUtilisateur,
+          u.Matricule,
+          u.Nom,
+          u.Prenom,
+          u.Email,
+          u.Telephone,
+          u.Actif,
+          u.DateCreation,
+          u.IdRole,
+          r.CodeRole,
+          r.LibelleRole,
+          u.IdUnite,
+          un.NomUnite,
+          u.IdCentre,
+          c.NomCentre,
+          u.IdAgence,
+          a.NomAgence
+        FROM Utilisateur u
+        INNER JOIN Role r ON u.IdRole = r.IdRole
+        LEFT JOIN Unite un ON u.IdUnite = un.IdUnite
+        LEFT JOIN Centre c ON u.IdCentre = c.IdCentre
+        LEFT JOIN AgenceCommerciale a ON u.IdAgence = a.IdAgence
+        WHERE u.IdUtilisateur = @id
+      `);
+
+    return res.status(201).json(userInfo.recordset[0]);
+  } catch (error) {
+    console.error('Erreur lors de la création de l\'utilisateur:', error);
+    console.error('Détails:', error.message);
+    console.error('Stack:', error.stack);
     res.status(500).json({ error: error.message || 'Erreur serveur' });
   }
 });

@@ -10,6 +10,8 @@ import ClientTypeForm from './components/ClientTypeForm';
 import CentreForm from './components/CentreForm';
 import AgenceForm from './components/AgenceForm';
 import UniteForm from './components/UniteForm';
+import UtilisateurForm from './components/UtilisateurForm';
+import RoleForm from './components/RoleForm';
 
 function App() {
   const [currentView, setCurrentView] = useState('dashboard');
@@ -82,6 +84,10 @@ function App() {
         return <CentreForm user={user} onUnauthorized={() => setCurrentView('dashboard')} />;
       case 'agences-create':
         return <AgenceForm user={user} onUnauthorized={() => setCurrentView('dashboard')} />;
+      case 'utilisateurs-create':
+        return <UtilisateurForm user={user} onUnauthorized={() => setCurrentView('dashboard')} />;
+      case 'roles-create':
+        return <RoleForm user={user} onUnauthorized={() => setCurrentView('dashboard')} />;
       default:
         // Placeholder pour les autres vues
         return (
