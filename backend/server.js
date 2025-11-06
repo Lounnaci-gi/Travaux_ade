@@ -1261,7 +1261,26 @@ app.post('/api/roles', verifyToken, async (req, res) => {
 // Liste des utilisateurs
 app.get('/api/utilisateurs', verifyToken, async (req, res) => {
   try {
-    const result = await pool.request().query(`
+    const actorRoleLower = (req.user?.role || '').toLowerCase();
+    const isChefCentreRole = actorRoleLower.includes('chef') && actorRoleLower.includes('centre');
+
+    let whereClause = '';
+    let request = pool.request();
+
+    if (isChefCentreRole) {
+      // Récupérer le centre du créateur
+      const resCentre = await pool.request()
+        .input('id', sql.Int, req.user?.id)
+        .query(`SELECT IdCentre FROM Utilisateur WHERE IdUtilisateur = @id`);
+      const actorCentreId = resCentre.recordset[0]?.IdCentre || null;
+      if (!actorCentreId) {
+        return res.status(403).json({ error: "Droit insuffisant: centre de l'utilisateur introuvable" });
+      }
+      whereClause = 'WHERE u.IdCentre = @actorCentreId';
+      request.input('actorCentreId', sql.Int, actorCentreId);
+    }
+
+    const query = `
       SELECT TOP 200
         u.IdUtilisateur,
         u.Matricule,
@@ -1286,8 +1305,11 @@ app.get('/api/utilisateurs', verifyToken, async (req, res) => {
       LEFT JOIN Unite un ON u.IdUnite = un.IdUnite
       LEFT JOIN Centre c ON u.IdCentre = c.IdCentre
       LEFT JOIN AgenceCommerciale a ON u.IdAgence = a.IdAgence
+      ${whereClause}
       ORDER BY u.Nom, u.Prenom
-    `);
+    `;
+
+    const result = await request.query(query);
     res.json(result.recordset);
   } catch (error) {
     console.error('Erreur lors de la récupération des utilisateurs:', error);
@@ -1330,6 +1352,30 @@ app.post('/api/utilisateurs', verifyToken, async (req, res) => {
       return res.status(400).json({ error: 'Cet email est déjà utilisé' });
     }
 
+    // Si l'utilisateur authentifié est CHEF DE CENTRE, il ne peut créer
+    // des utilisateurs que dans son propre centre. On force IdCentre.
+    const actorRoleRaw = (req.user?.role || '');
+    const actorRoleLower = actorRoleRaw.toLowerCase();
+    const isChefCentreRole = actorRoleLower.includes('chef') && actorRoleLower.includes('centre');
+    let enforcedIdCentre = IdCentre || null;
+    if (isChefCentreRole) {
+      try {
+        const resCentre = await pool.request()
+          .input('id', sql.Int, req.user?.id)
+          .query(`SELECT IdCentre FROM Utilisateur WHERE IdUtilisateur = @id`);
+        const actorCentreId = resCentre.recordset[0]?.IdCentre || null;
+        if (!actorCentreId) {
+          return res.status(403).json({ error: "Droit insuffisant: centre de l'utilisateur introuvable" });
+        }
+        if (IdCentre && Number(IdCentre) !== Number(actorCentreId)) {
+          return res.status(403).json({ error: 'Vous ne pouvez créer des utilisateurs que pour votre centre' });
+        }
+        enforcedIdCentre = actorCentreId;
+      } catch (e) {
+        return res.status(500).json({ error: 'Erreur lors de la vérification du centre de l\'utilisateur' });
+      }
+    }
+
     // Générer Matricule format UTI-XXXX
     const maxResult = await pool.request().query(`
       SELECT ISNULL(MAX(CAST(SUBSTRING(Matricule, 5, LEN(Matricule)) AS INT)), 0) as MaxNum
@@ -1342,7 +1388,7 @@ app.post('/api/utilisateurs', verifyToken, async (req, res) => {
     const insert = await pool.request()
       .input('IdRole', sql.Int, IdRole)
       .input('IdUnite', sql.Int, IdUnite || null)
-      .input('IdCentre', sql.Int, IdCentre || null)
+      .input('IdCentre', sql.Int, enforcedIdCentre || null)
       .input('IdAgence', sql.Int, IdAgence || null)
       .input('Matricule', sql.NVarChar(20), Matricule)
       .input('Nom', sql.NVarChar(100), Nom)

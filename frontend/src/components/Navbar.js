@@ -3,6 +3,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { isAdmin } from '../utils/auth';
 
 const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
+  const isChefCentre = !!(user && user.codeRole && (user.codeRole.toLowerCase().includes('chef') && user.codeRole.toLowerCase().includes('centre')));
   const { theme, toggleTheme, isDark } = useTheme();
   const [openMenu, setOpenMenu] = useState(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -167,8 +168,8 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
           <div className="hidden md:flex items-center gap-1.5">
             {Object.keys(menuItems)
               .filter((menuId) => {
-                // Masquer le menu Administration si l'utilisateur n'est pas admin
-                if (menuId === 'administration' && !isAdmin(user)) {
+                // Afficher Administration pour admin ou chef de centre
+                if (menuId === 'administration' && !(isAdmin(user) || isChefCentre)) {
                   return false;
                 }
                 return true;
@@ -206,7 +207,7 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
                   {item.submenu && isOpen && (
                     <div className="absolute top-full left-0 mt-1.5 w-48 glass-card p-1.5 animate-fadeIn">
                       {item.submenu
-                        .filter((submenu) => !submenu.adminOnly || isAdmin(user))
+                        .filter((submenu) => !submenu.adminOnly || isAdmin(user) || (isChefCentre && submenu.id === 'utilisateurs-create'))
                         .map((submenu) => (
                         <button
                           key={submenu.id}
@@ -331,8 +332,8 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
             
             {Object.keys(menuItems)
               .filter((menuId) => {
-                // Masquer le menu Administration si l'utilisateur n'est pas admin
-                if (menuId === 'administration' && !isAdmin(user)) {
+                // Afficher Administration pour admin ou chef de centre
+                if (menuId === 'administration' && !(isAdmin(user) || isChefCentre)) {
                   return false;
                 }
                 return true;
@@ -362,7 +363,7 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
                   {item.submenu && isActive && (
                     <div className="mt-1.5 ml-6 space-y-1">
                       {item.submenu
-                        .filter((submenu) => !submenu.adminOnly || isAdmin(user))
+                        .filter((submenu) => !submenu.adminOnly || isAdmin(user) || (isChefCentre && submenu.id === 'utilisateurs-create'))
                         .map((submenu) => (
                         <button
                           key={submenu.id}

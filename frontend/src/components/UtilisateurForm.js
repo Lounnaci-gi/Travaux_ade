@@ -27,8 +27,10 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
     Actif: true,
   });
 
+  const isChefCentre = !!(user && user.codeRole && (user.codeRole.toLowerCase().includes('chef') && user.codeRole.toLowerCase().includes('centre')))
+
   useEffect(() => {
-    if (!isAdmin(user)) {
+    if (!isAdmin(user) && !isChefCentre) {
       if (onUnauthorized) {
         onUnauthorized();
       } else {
@@ -38,7 +40,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
   }, [user, onUnauthorized]);
 
   useEffect(() => {
-    if (!isAdmin(user)) return;
+    if (!isAdmin(user) && !isChefCentre) return;
     const load = async () => {
       try {
         setLoading(true);
@@ -54,6 +56,16 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
         setCentres(centresList || []);
         setAgences(agencesList || []);
         setUtilisateurs(utilisateursList || []);
+
+        // Si chef de centre, pré-remplir et verrouiller centre (et l'unité associée)
+        if (isChefCentre && user?.idCentre) {
+          const centreObj = (centresList || []).find((c) => c.IdCentre === Number(user.idCentre));
+          setForm((prev) => ({
+            ...prev,
+            IdCentre: String(user.idCentre),
+            IdUnite: centreObj ? String(centreObj.IdUnite) : prev.IdUnite,
+          }));
+        }
       } catch (e) {
         setError('Erreur lors du chargement des données');
         console.error(e);
@@ -64,7 +76,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
     load();
   }, [user]);
 
-  if (!isAdmin(user)) {
+  if (!isAdmin(user) && !isChefCentre) {
     return (
       <div className="min-h-screen p-6 flex items-center justify-center">
         <div className="glass-card p-8 text-center max-w-md">
@@ -72,7 +84,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
             Accès refusé
           </h2>
           <p className="text-gray-400">
-            Seuls les administrateurs peuvent créer des utilisateurs.
+            Seuls les administrateurs ou chefs de centre autorisés peuvent créer des utilisateurs.
           </p>
         </div>
       </div>
@@ -90,9 +102,12 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
   };
 
   // Filtrer les centres selon l'unité sélectionnée
-  const filteredCentres = form.IdUnite
+  const centresByUnite = form.IdUnite
     ? centres.filter((c) => c.IdUnite === Number(form.IdUnite))
-    : [];
+    : centres;
+  const filteredCentres = isChefCentre && user?.idCentre
+    ? centresByUnite.filter((c) => c.IdCentre === Number(user.idCentre))
+    : centresByUnite;
 
   // Filtrer les agences selon le centre sélectionné
   const filteredAgences = form.IdCentre
@@ -292,7 +307,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                 <h3 className="text-lg font-semibold mb-4 dark:text-white text-gray-900">Affectation hiérarchique</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Unité</label>
+                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Unité</label>
                     <select
                       name="IdUnite"
                       value={form.IdUnite}
@@ -307,9 +322,10 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                         }));
                       }}
                       className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                      disabled={isChefCentre}
                     >
                       <option value="">Aucune</option>
-                      {unites.map((u) => (
+                    {(isChefCentre ? unites.filter((u) => String(u.IdUnite) === String(form.IdUnite)) : unites).map((u) => (
                         <option key={u.IdUnite} value={u.IdUnite} className="text-black">
                           {u.CodeUnite} - {u.NomUnite}
                         </option>
@@ -331,7 +347,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                         }));
                       }}
                       className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
-                      disabled={!form.IdUnite}
+                      disabled={!form.IdUnite || isChefCentre}
                     >
                       <option value="">Aucun</option>
                       {filteredCentres.map((c) => (
