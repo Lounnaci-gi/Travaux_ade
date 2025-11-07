@@ -5,8 +5,59 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const app = express();
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const SERVER_BOOT_TIME = Math.floor(Date.now() / 1000);
+
+const MAX_LOGIN_ATTEMPTS = parseInt(process.env.MAX_LOGIN_ATTEMPTS, 10) || 3;
+const LOGIN_LOCK_DURATION_MS = (parseInt(process.env.LOGIN_LOCK_DURATION_MINUTES, 10) || 15) * 60 * 1000;
+const loginAttemptStore = new Map();
+
+const MIN_SUBSTRING_MATCH_LENGTH = 4;
+
+const normalizeName = (value = '') => {
+  if (!value || typeof value !== 'string') {
+    return '';
+  }
+
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
+};
+
+const getClientIp = (req) => {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (forwarded) {
+    return forwarded.split(',')[0].trim();
+  }
+  return req.ip || req.connection?.remoteAddress || 'unknown';
+};
+
+const cleanupAttemptRecord = (key) => {
+  const record = loginAttemptStore.get(key);
+  if (!record) {
+    return null;
+  }
+
+  if (record.lockUntil && record.lockUntil <= Date.now()) {
+    loginAttemptStore.delete(key);
+    return null;
+  }
+
+  return record;
+};
+
+const getRemainingLockMessage = (lockUntil) => {
+  const remainingMs = Math.max(0, lockUntil - Date.now());
+  const remainingMinutes = Math.ceil(remainingMs / 60000);
+  if (remainingMinutes <= 1) {
+    return "Veuillez réessayer dans 1 minute.";
+  }
+  return `Veuillez réessayer dans ${remainingMinutes} minutes.`;
+};
 
 // Middleware
 app.use(cors());
@@ -254,6 +305,15 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(400).json({ error: 'Email et mot de passe requis' });
     }
 
+    const clientIp = getClientIp(req);
+    const attemptKey = clientIp;
+
+    const existingRecord = cleanupAttemptRecord(attemptKey);
+    if (existingRecord && existingRecord.lockUntil && existingRecord.lockUntil > Date.now()) {
+      const message = `Trop de tentatives de connexion infructueuses. ${getRemainingLockMessage(existingRecord.lockUntil)}`;
+      return res.status(429).json({ error: message, lockUntil: existingRecord.lockUntil });
+    }
+
     const request = pool.request();
     request.input('email', sql.NVarChar, email);
     
@@ -280,7 +340,28 @@ app.post('/api/auth/login', async (req, res) => {
     `);
 
     if (result.recordset.length === 0) {
-      return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
+      const attempts = existingRecord ? existingRecord.count + 1 : 1;
+      if (attempts >= MAX_LOGIN_ATTEMPTS) {
+        const lockUntil = Date.now() + LOGIN_LOCK_DURATION_MS;
+        loginAttemptStore.set(attemptKey, {
+          count: attempts,
+          lockUntil,
+        });
+        return res.status(429).json({
+          error: `Trop de tentatives de connexion infructueuses. ${getRemainingLockMessage(lockUntil)}`,
+          lockUntil,
+        });
+      }
+
+      loginAttemptStore.set(attemptKey, {
+        count: attempts,
+        lockUntil: null,
+      });
+
+      const remaining = MAX_LOGIN_ATTEMPTS - attempts;
+      return res.status(401).json({
+        error: `Identifiants incorrects. Il vous reste ${remaining} tentative${remaining > 1 ? 's' : ''}.`,
+      });
     }
 
     const user = result.recordset[0];
@@ -288,7 +369,33 @@ app.post('/api/auth/login', async (req, res) => {
     // Note: Dans un vrai système, vous devriez comparer avec bcrypt
     // Pour l'instant, comparaison simple (à changer en production)
     if (user.MotDePasse !== password) {
-      return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
+      const attempts = existingRecord ? existingRecord.count + 1 : 1;
+      if (attempts >= MAX_LOGIN_ATTEMPTS) {
+        const lockUntil = Date.now() + LOGIN_LOCK_DURATION_MS;
+        loginAttemptStore.set(attemptKey, {
+          count: attempts,
+          lockUntil,
+        });
+        return res.status(429).json({
+          error: `Trop de tentatives de connexion infructueuses. ${getRemainingLockMessage(lockUntil)}`,
+          lockUntil,
+        });
+      }
+
+      loginAttemptStore.set(attemptKey, {
+        count: attempts,
+        lockUntil: null,
+      });
+
+      const remaining = MAX_LOGIN_ATTEMPTS - attempts;
+      return res.status(401).json({
+        error: `Identifiants incorrects. Il vous reste ${remaining} tentative${remaining > 1 ? 's' : ''}.`,
+      });
+    }
+
+    // Successful login resets attempts
+    if (loginAttemptStore.has(attemptKey)) {
+      loginAttemptStore.delete(attemptKey);
     }
 
     // Mettre à jour la dernière connexion
@@ -354,6 +461,9 @@ const verifyToken = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
+    if (decoded.iat && decoded.iat < SERVER_BOOT_TIME) {
+      return res.status(401).json({ error: 'Session expirée. Veuillez vous reconnecter.' });
+    }
     req.user = decoded;
     next();
   } catch (error) {
@@ -683,8 +793,42 @@ app.post('/api/unites', verifyToken, async (req, res) => {
       NumeroComptePostal
     } = req.body;
 
-    if (!NomUnite) {
+    const trimmedNomUnite = NomUnite?.trim();
+
+    if (!trimmedNomUnite) {
       return res.status(400).json({ error: 'NomUnite est requis' });
+    }
+
+    const normalizedNomUnite = normalizeName(trimmedNomUnite);
+
+    const existingUnits = await pool.request().query(`
+      SELECT IdUnite, NomUnite
+      FROM Unite
+    `);
+
+    const duplicate = existingUnits.recordset.find((unit) => {
+      const normalizedExisting = normalizeName(unit.NomUnite || '');
+      if (!normalizedExisting) {
+        return false;
+      }
+
+      if (normalizedExisting === normalizedNomUnite) {
+        return true;
+      }
+
+      if (
+        normalizedExisting.length >= MIN_SUBSTRING_MATCH_LENGTH &&
+        normalizedNomUnite.length >= MIN_SUBSTRING_MATCH_LENGTH &&
+        (normalizedExisting.includes(normalizedNomUnite) || normalizedNomUnite.includes(normalizedExisting))
+      ) {
+        return true;
+      }
+
+      return false;
+    });
+
+    if (duplicate) {
+      return res.status(409).json({ error: 'Une unité avec un nom similaire existe déjà.' });
     }
 
     // Générer CodeUnite format UNITE-XXX
@@ -698,7 +842,7 @@ app.post('/api/unites', verifyToken, async (req, res) => {
 
     const insert = await pool.request()
       .input('CodeUnite', sql.NVarChar(20), CodeUnite)
-      .input('NomUnite', sql.NVarChar(100), NomUnite)
+      .input('NomUnite', sql.NVarChar(100), trimmedNomUnite)
       .input('Adresse', sql.NVarChar(200), Adresse || null)
       .input('Commune', sql.NVarChar(60), Commune || null)
       .input('CodePostal', sql.NVarChar(10), CodePostal || null)
@@ -758,13 +902,50 @@ app.put('/api/unites/:id', verifyToken, async (req, res) => {
       NumeroComptePostal
     } = req.body;
 
-    if (!NomUnite) {
+    const trimmedNomUnite = NomUnite?.trim();
+
+    if (!trimmedNomUnite) {
       return res.status(400).json({ error: 'NomUnite est requis' });
+    }
+
+    const normalizedNomUnite = normalizeName(trimmedNomUnite);
+
+    const existingUnits = await pool.request()
+      .input('id', sql.Int, id)
+      .query(`
+        SELECT IdUnite, NomUnite
+        FROM Unite
+        WHERE IdUnite <> @id
+      `);
+
+    const duplicate = existingUnits.recordset.find((unit) => {
+      const normalizedExisting = normalizeName(unit.NomUnite || '');
+      if (!normalizedExisting) {
+        return false;
+      }
+
+      if (normalizedExisting === normalizedNomUnite) {
+        return true;
+      }
+
+      if (
+        normalizedExisting.length >= MIN_SUBSTRING_MATCH_LENGTH &&
+        normalizedNomUnite.length >= MIN_SUBSTRING_MATCH_LENGTH &&
+        (normalizedExisting.includes(normalizedNomUnite) || normalizedNomUnite.includes(normalizedExisting))
+      ) {
+        return true;
+      }
+
+      return false;
+    });
+
+    if (duplicate) {
+      return res.status(409).json({ error: 'Une unité avec un nom similaire existe déjà.' });
     }
 
     const update = await pool.request()
       .input('id', sql.Int, id)
-      .input('NomUnite', sql.NVarChar(100), NomUnite)
+      .input('NomUnite', sql.NVarChar(100), trimmedNomUnite)
       .input('Adresse', sql.NVarChar(200), Adresse || null)
       .input('Commune', sql.NVarChar(60), Commune || null)
       .input('CodePostal', sql.NVarChar(10), CodePostal || null)

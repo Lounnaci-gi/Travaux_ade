@@ -2,8 +2,35 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { isAdmin } from '../utils/auth';
 
+const MAX_USER_LABEL_LENGTH = 14;
+
+const formatUserDisplayName = (user) => {
+  if (!user) {
+    return '';
+  }
+
+  const prenom = user.prenom?.trim() || '';
+  const nomInitial = user.nom?.trim()?.[0]?.toUpperCase() || '';
+
+  let baseLabel = '';
+  if (prenom && nomInitial) {
+    baseLabel = `${prenom} ${nomInitial}.`;
+  } else if (prenom) {
+    baseLabel = prenom;
+  } else if (user.nom) {
+    baseLabel = user.nom.trim();
+  }
+
+  if (baseLabel.length > MAX_USER_LABEL_LENGTH) {
+    return `${baseLabel.slice(0, MAX_USER_LABEL_LENGTH - 1)}…`;
+  }
+
+  return baseLabel;
+};
+
 const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
   const isChefCentre = !!(user && user.codeRole && (user.codeRole.toLowerCase().includes('chef') && user.codeRole.toLowerCase().includes('centre')));
+  const userDisplayName = formatUserDisplayName(user);
   const { theme, toggleTheme, isDark } = useTheme();
   const [openMenu, setOpenMenu] = useState(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -253,8 +280,12 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
                     {user.prenom?.[0]?.toUpperCase() || user.nom?.[0]?.toUpperCase() || 'U'}
                   </div>
-                  <span className="hidden lg:block">
-                    {user.prenom} {user.nom}
+                  <span className="hidden lg:flex items-center gap-1 text-xs font-medium text-gray-600 dark:text-gray-300">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5z" />
+                    </svg>
+                    <span>{userDisplayName || 'Profil'}</span>
                   </span>
                   <svg className={`w-4 h-4 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />

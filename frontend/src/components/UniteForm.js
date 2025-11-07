@@ -3,6 +3,20 @@ import { alertSuccess, alertError, confirmDialog } from '../ui/alerts';
 import { getUnites, getUniteById, createUnite, updateUnite } from '../services/api';
 import { isAdmin } from '../utils/auth';
 
+const MIN_SUBSTRING_MATCH_LENGTH = 4;
+
+const normalizeName = (value = '') => {
+  if (!value || typeof value !== 'string') {
+    return '';
+  }
+
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
+};
+
 const UniteForm = ({ user, onUnauthorized }) => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -100,6 +114,37 @@ const UniteForm = ({ user, onUnauthorized }) => {
         setError('Veuillez renseigner le Nom de l\'Unité.');
         setSubmitting(false);
         return;
+      }
+
+      const normalizedTarget = normalizeName(form.NomUnite);
+      if (normalizedTarget && normalizedTarget.length >= MIN_SUBSTRING_MATCH_LENGTH) {
+        const duplicate = unites.find((unite) => {
+          if (editingId && unite.IdUnite === editingId) {
+            return false;
+          }
+          const normalizedExisting = normalizeName(unite.NomUnite || '');
+          if (!normalizedExisting) {
+            return false;
+          }
+          if (normalizedExisting === normalizedTarget) {
+            return true;
+          }
+          if (
+            normalizedExisting.length >= MIN_SUBSTRING_MATCH_LENGTH &&
+            (normalizedExisting.includes(normalizedTarget) || normalizedTarget.includes(normalizedExisting))
+          ) {
+            return true;
+          }
+          return false;
+        });
+
+        if (duplicate) {
+          const message = 'Une unité avec un nom similaire existe déjà.';
+          setError(message);
+          alertError('Erreur', message);
+          setSubmitting(false);
+          return;
+        }
       }
 
       const lengthConstraints = [

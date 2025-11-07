@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 
 const Login = ({ onLogin }) => {
@@ -10,6 +10,42 @@ const Login = ({ onLogin }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [lockTimer, setLockTimer] = useState(null);
+
+  const lockedUntil = lockTimer?.lockedUntil || null;
+
+  useEffect(() => {
+    if (!lockedUntil) {
+      return undefined;
+    }
+
+    const tick = () => {
+      const remaining = lockedUntil - Date.now();
+      if (remaining <= 0) {
+        setLockTimer(null);
+      } else {
+        setLockTimer((prev) => (prev ? { lockedUntil, remainingMs: remaining } : prev));
+      }
+    };
+
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [lockedUntil]);
+
+  const formatRemainingTime = (ms) => {
+    if (!ms || ms <= 0) {
+      return '00:00';
+    }
+    const totalSeconds = Math.ceil(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60)
+      .toString()
+      .padStart(2, '0');
+    const seconds = (totalSeconds % 60)
+      .toString()
+      .padStart(2, '0');
+    return `${minutes}:${seconds}`;
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -21,6 +57,10 @@ const Login = ({ onLogin }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (lockTimer) {
+      return;
+    }
+
     setError('');
     setLoading(true);
 
@@ -41,7 +81,13 @@ const Login = ({ onLogin }) => {
         localStorage.setItem('user', JSON.stringify(data.user));
         onLogin(data.user);
       } else {
-        setError(data.error || 'Erreur de connexion');
+        if (response.status === 429) {
+          const lockUntil = data.lockUntil || Date.now() + 15 * 60 * 1000;
+          setLockTimer({ lockedUntil: lockUntil, remainingMs: lockUntil - Date.now() });
+          setError('');
+        } else {
+          setError(data.error || 'Erreur de connexion');
+        }
       }
     } catch (err) {
       setError('Erreur de connexion au serveur');
@@ -53,6 +99,30 @@ const Login = ({ onLogin }) => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative">
+      {lockTimer && lockTimer.remainingMs > 0 && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity">
+          <div className="glass-card max-w-md w-full mx-4 p-8 text-center space-y-4 animate-fadeIn shadow-2xl border border-white/10">
+            <div className="flex justify-center">
+              <div className="p-3 rounded-2xl bg-gradient-to-br from-red-500 via-purple-500 to-blue-500 shadow-lg shadow-red-500/30">
+                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-semibold text-white">Connexion temporairement verrouillée</h2>
+              <p className="text-sm text-gray-200/90">
+                Trop de tentatives infructueuses ont été détectées. Veuillez patienter avant de réessayer.
+              </p>
+            </div>
+            <div className="mt-4">
+              <p className="text-sm uppercase tracking-widest text-gray-300">Temps restant</p>
+              <div className="mt-2 text-5xl font-bold text-white tabular-nums">{formatRemainingTime(lockTimer.remainingMs)}</div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Theme Toggle Button */}
       <button
         onClick={toggleTheme}
