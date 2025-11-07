@@ -101,21 +101,43 @@ const UniteForm = ({ user, onUnauthorized }) => {
         setSubmitting(false);
         return;
       }
+
+      const lengthConstraints = [
+        { field: 'TelephonePrincipal', label: 'Téléphone Principal', max: 10 },
+        { field: 'TelephoneSecondaire', label: 'Téléphone Secondaire', max: 10 },
+        { field: 'NumeroIdentifiantFiscal', label: 'N° Identifiant Fiscal', max: 18 },
+        { field: 'NumeroIdentificationStatistique', label: 'N° Identification Statistique', max: 15 },
+        { field: 'NumeroRegistreCommerce', label: 'N° Registre de Commerce', max: 15 },
+        { field: 'NumerocompteBancaire', label: 'N° Compte Bancaire', max: 20 },
+        { field: 'NumeroComptePostal', label: 'N° Compte Postal', max: 11 },
+      ];
+
+      for (const { field, label, max } of lengthConstraints) {
+        const value = typeof form[field] === 'string' ? form[field].trim() : form[field];
+        if (value && value.length > max) {
+          setError(`Le champ ${label} ne doit pas dépasser ${max} caractères.`);
+          setSubmitting(false);
+          return;
+        }
+      }
+
+      const trimValue = (value) => (typeof value === 'string' ? value.trim() : value);
+
       const payload = {
         NomUnite: form.NomUnite.trim(),
-        Adresse: form.Adresse || null,
-        Commune: form.Commune || null,
-        CodePostal: form.CodePostal || null,
-        TelephonePrincipal: form.TelephonePrincipal || null,
-        TelephoneSecondaire: form.TelephoneSecondaire || null,
-        Fax: form.Fax || null,
-        Email: form.Email || null,
-        SiteWeb: form.SiteWeb || null,
-        NumeroIdentifiantFiscal: form.NumeroIdentifiantFiscal || null,
-        NumeroIdentificationStatistique: form.NumeroIdentificationStatistique || null,
-        NumeroRegistreCommerce: form.NumeroRegistreCommerce || null,
-        NumerocompteBancaire: form.NumerocompteBancaire || null,
-        NumeroComptePostal: form.NumeroComptePostal || null,
+        Adresse: trimValue(form.Adresse) || null,
+        Commune: trimValue(form.Commune) || null,
+        CodePostal: trimValue(form.CodePostal) || null,
+        TelephonePrincipal: trimValue(form.TelephonePrincipal) || null,
+        TelephoneSecondaire: trimValue(form.TelephoneSecondaire) || null,
+        Fax: trimValue(form.Fax) || null,
+        Email: trimValue(form.Email) || null,
+        SiteWeb: trimValue(form.SiteWeb) || null,
+        NumeroIdentifiantFiscal: trimValue(form.NumeroIdentifiantFiscal) || null,
+        NumeroIdentificationStatistique: trimValue(form.NumeroIdentificationStatistique) || null,
+        NumeroRegistreCommerce: trimValue(form.NumeroRegistreCommerce) || null,
+        NumerocompteBancaire: trimValue(form.NumerocompteBancaire) || null,
+        NumeroComptePostal: trimValue(form.NumeroComptePostal) || null,
       };
       
       let result;
@@ -243,11 +265,11 @@ const UniteForm = ({ user, onUnauthorized }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Téléphone Principal</label>
-                    <input name="TelephonePrincipal" value={form.TelephonePrincipal} onChange={handleChange} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
+                    <input name="TelephonePrincipal" value={form.TelephonePrincipal} onChange={handleChange} maxLength={10} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
                   </div>
                   <div>
                     <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Téléphone Secondaire</label>
-                    <input name="TelephoneSecondaire" value={form.TelephoneSecondaire} onChange={handleChange} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
+                    <input name="TelephoneSecondaire" value={form.TelephoneSecondaire} onChange={handleChange} maxLength={10} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
                   </div>
                   <div>
                     <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Fax</label>
@@ -269,23 +291,23 @@ const UniteForm = ({ user, onUnauthorized }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">N° Identifiant Fiscal</label>
-                    <input name="NumeroIdentifiantFiscal" value={form.NumeroIdentifiantFiscal} onChange={handleChange} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
+                    <input name="NumeroIdentifiantFiscal" value={form.NumeroIdentifiantFiscal} onChange={handleChange} maxLength={18} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
                   </div>
                   <div>
                     <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">N° Identification Statistique</label>
-                    <input name="NumeroIdentificationStatistique" value={form.NumeroIdentificationStatistique} onChange={handleChange} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
+                    <input name="NumeroIdentificationStatistique" value={form.NumeroIdentificationStatistique} onChange={handleChange} maxLength={15} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
                   </div>
                   <div>
                     <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">N° Registre de Commerce</label>
-                    <input name="NumeroRegistreCommerce" value={form.NumeroRegistreCommerce} onChange={handleChange} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
+                    <input name="NumeroRegistreCommerce" value={form.NumeroRegistreCommerce} onChange={handleChange} maxLength={15} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
                   </div>
                   <div>
                     <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">N° Compte Bancaire</label>
-                    <input name="NumerocompteBancaire" value={form.NumerocompteBancaire} onChange={handleChange} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
+                    <input name="NumerocompteBancaire" value={form.NumerocompteBancaire} onChange={handleChange} maxLength={20} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
                   </div>
                   <div>
                     <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">N° Compte Postal</label>
-                    <input name="NumeroComptePostal" value={form.NumeroComptePostal} onChange={handleChange} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
+                    <input name="NumeroComptePostal" value={form.NumeroComptePostal} onChange={handleChange} maxLength={11} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
                   </div>
                 </div>
               </div>
@@ -319,15 +341,11 @@ const UniteForm = ({ user, onUnauthorized }) => {
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Nom</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Adresse</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Commune</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Code Postal</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Tél. Principal</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Tél. Secondaire</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Fax</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Email</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Site Web</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">N° Identifiant Fiscal</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">N° Identif. Statistique</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">N° Registre Commerce</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">N° Compte Bancaire</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">N° Compte Postal</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Actions</th>
@@ -340,15 +358,11 @@ const UniteForm = ({ user, onUnauthorized }) => {
                       <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{unite.NomUnite}</td>
                       <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{unite.Adresse || '—'}</td>
                       <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{unite.Commune || '—'}</td>
-                      <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{unite.CodePostal || '—'}</td>
                       <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{unite.TelephonePrincipal || '—'}</td>
                       <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{unite.TelephoneSecondaire || '—'}</td>
                       <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{unite.Fax || '—'}</td>
                       <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{unite.Email || '—'}</td>
                       <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{unite.SiteWeb || '—'}</td>
-                      <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{unite.NumeroIdentifiantFiscal || '—'}</td>
-                      <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{unite.NumeroIdentificationStatistique || '—'}</td>
-                      <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{unite.NumeroRegistreCommerce || '—'}</td>
                       <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{unite.NumerocompteBancaire || '—'}</td>
                       <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{unite.NumeroComptePostal || '—'}</td>
                       <td className="py-3 px-4">

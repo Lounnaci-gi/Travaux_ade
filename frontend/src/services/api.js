@@ -127,6 +127,16 @@ export const createRole = async (payload) => {
   return response.data;
 };
 
+export const updateRole = async (id, payload) => {
+  const response = await api.put(`/roles/${id}`, payload);
+  return response.data;
+};
+
+export const deleteRole = async (id) => {
+  const response = await api.delete(`/roles/${id}`);
+  return response.data;
+};
+
 export const getUtilisateurs = async () => {
   const response = await api.get('/utilisateurs');
   return response.data;

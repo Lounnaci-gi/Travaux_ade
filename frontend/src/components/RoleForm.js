@@ -1,20 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { alertSuccess, alertError, confirmDialog } from '../ui/alerts';
-import { getRoles, createRole } from '../services/api';
+import { getRoles, createRole, updateRole, deleteRole } from '../services/api';
 import { isAdmin } from '../utils/auth';
 
 const RoleForm = ({ user, onUnauthorized }) => {
+  const initialFormState = {
+    CodeRole: '',
+    LibelleRole: '',
+    Description: '',
+    Actif: true,
+  };
+
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [form, setForm] = useState({
-    CodeRole: '',
-    LibelleRole: '',
-    Description: '',
-    Actif: true,
-  });
+  const [form, setForm] = useState({ ...initialFormState });
+  const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
     if (!isAdmin(user)) {
@@ -68,53 +71,106 @@ const RoleForm = ({ user, onUnauthorized }) => {
     setSuccess('');
   };
 
+  const resetForm = () => {
+    setForm({ ...initialFormState });
+    setEditingId(null);
+    setError('');
+    setSuccess('');
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
 
-    // Validation
-    const required = ['CodeRole', 'LibelleRole'];
-    const missing = required.filter((f) => !form[f]);
-    if (missing.length) {
-      setError(`Veuillez remplir tous les champs obligatoires: ${missing.join(', ')}`);
+    const codeValue = (form.CodeRole || '').trim();
+    const labelValue = (form.LibelleRole || '').trim();
+
+    if (!codeValue || !labelValue) {
+      setError('Veuillez renseigner le code et le libellé du rôle.');
       return;
     }
 
     // Validation du format du code (lettres, chiffres, underscore, tiret)
     const codeRegex = /^[A-Z0-9_-]+$/i;
-    if (!codeRegex.test(form.CodeRole)) {
+    if (!codeRegex.test(codeValue)) {
       setError('Le code du rôle ne peut contenir que des lettres, chiffres, tirets et underscores');
       return;
     }
 
-    const confirmed = await confirmDialog('Confirmer', 'Créer ce rôle ?');
+    const confirmMessage = editingId ? 'Modifier ce rôle ?' : 'Créer ce rôle ?';
+    const confirmed = await confirmDialog('Confirmer', confirmMessage);
     if (!confirmed) return;
 
     try {
       setSubmitting(true);
+      const descriptionValue = form.Description ? form.Description.trim() : '';
       const payload = {
-        CodeRole: form.CodeRole.trim().toUpperCase(),
-        LibelleRole: form.LibelleRole.trim(),
-        Description: form.Description.trim() || null,
-        Actif: form.Actif,
+        CodeRole: codeValue.toUpperCase(),
+        LibelleRole: labelValue,
+        Description: descriptionValue ? descriptionValue : null,
+        Actif: !!form.Actif,
       };
 
-      const created = await createRole(payload);
-      alertSuccess('Succès', `Rôle créé: ${created.CodeRole}`);
-      setSuccess('Rôle créé avec succès');
-      setForm({
-        CodeRole: '',
-        LibelleRole: '',
-        Description: '',
-        Actif: true,
-      });
-      
+      let result;
+      if (editingId) {
+        result = await updateRole(editingId, payload);
+        alertSuccess('Succès', `Rôle modifié: ${result.CodeRole}`);
+        setSuccess('Rôle modifié avec succès');
+      } else {
+        result = await createRole(payload);
+        alertSuccess('Succès', `Rôle créé: ${result.CodeRole}`);
+        setSuccess('Rôle créé avec succès');
+      }
+
+      resetForm();
+
       // Recharger la liste
       const rolesList = await getRoles();
       setRoles(rolesList || []);
     } catch (e) {
-      const msg = e.response?.data?.error || 'Erreur lors de la création du rôle';
+      const defaultMessage = editingId ? 'Erreur lors de la modification du rôle' : 'Erreur lors de la création du rôle';
+      const msg = e.response?.data?.error || defaultMessage;
+      alertError('Erreur', msg);
+      setError(msg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleEdit = (role) => {
+    setForm({
+      CodeRole: role.CodeRole || '',
+      LibelleRole: role.LibelleRole || '',
+      Description: role.Description || '',
+      Actif: role.Actif ?? true,
+    });
+    setEditingId(role.IdRole);
+    setError('');
+    setSuccess('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDelete = async (role) => {
+    if ((role.CodeRole || '').toUpperCase() === 'ADMIN') {
+      alertError('Action impossible', 'Le rôle ADMIN ne peut pas être supprimé.');
+      return;
+    }
+
+    const confirmed = await confirmDialog('Confirmer la suppression', `Supprimer le rôle ${role.CodeRole} ?`);
+    if (!confirmed) return;
+
+    try {
+      setSubmitting(true);
+      await deleteRole(role.IdRole);
+      alertSuccess('Succès', `Rôle supprimé: ${role.CodeRole}`);
+      if (editingId === role.IdRole) {
+        resetForm();
+      }
+      const rolesList = await getRoles();
+      setRoles(rolesList || []);
+    } catch (e) {
+      const msg = e.response?.data?.error || 'Erreur lors de la suppression du rôle';
       alertError('Erreur', msg);
       setError(msg);
     } finally {
@@ -142,7 +198,20 @@ const RoleForm = ({ user, onUnauthorized }) => {
 
         {/* Formulaire de création */}
         <div className="glass-card p-6 space-y-6 mb-6">
-          <h2 className="text-xl font-semibold dark:text-white text-gray-900 mb-4">Créer un nouveau Rôle</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold dark:text-white text-gray-900">
+              {editingId ? 'Modifier le Rôle' : 'Créer un nouveau Rôle'}
+            </h2>
+            {editingId && (
+              <button
+                type="button"
+                onClick={resetForm}
+                className="px-4 py-2 rounded-lg bg-gray-500 hover:bg-gray-600 text-white transition-colors"
+              >
+                Annuler
+              </button>
+            )}
+          </div>
           <form onSubmit={handleSubmit}>
             {error && (
               <div className="p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-300 text-sm mb-4">{error}</div>
@@ -214,7 +283,7 @@ const RoleForm = ({ user, onUnauthorized }) => {
                 disabled={submitting}
                 className="px-6 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold shadow-lg shadow-blue-500/50 hover:shadow-xl hover:shadow-blue-500/60 transition-all disabled:opacity-50"
               >
-                {submitting ? 'Enregistrement...' : 'Créer le Rôle'}
+                {submitting ? 'Enregistrement...' : editingId ? 'Modifier le Rôle' : 'Créer le Rôle'}
               </button>
             </div>
           </form>
@@ -236,6 +305,7 @@ const RoleForm = ({ user, onUnauthorized }) => {
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Libellé</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Description</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Statut</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -250,6 +320,32 @@ const RoleForm = ({ user, onUnauthorized }) => {
                         ) : (
                           <span className="px-2 py-1 rounded-full bg-red-500/20 text-red-400 text-xs">Inactif</span>
                         )}
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleEdit(role)}
+                            disabled={submitting}
+                            className="p-2 rounded-lg hover:bg-blue-500/20 text-blue-400 hover:text-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Modifier"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(role)}
+                            disabled={submitting}
+                            className="p-2 rounded-lg hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Supprimer"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

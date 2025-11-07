@@ -1189,6 +1189,61 @@ app.put('/api/agences/:id', verifyToken, async (req, res) => {
 // UTILISATEURS ET RÔLES
 // ============================================================================
 
+const normalizeRoleValue = (value) => {
+  if (!value) return '';
+  return value
+    .toString()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
+};
+
+const findSimilarActiveRole = async (codeRole, libelleRole, excludeId = null) => {
+  const candidates = [];
+  if (codeRole) {
+    candidates.push(normalizeRoleValue(codeRole));
+  }
+  if (libelleRole) {
+    candidates.push(normalizeRoleValue(libelleRole));
+  }
+
+  const normalizedCandidates = candidates.filter(Boolean);
+  if (normalizedCandidates.length === 0) {
+    return { conflict: false };
+  }
+
+  const request = pool.request();
+  let query = `
+    SELECT IdRole, CodeRole, LibelleRole
+    FROM Role
+    WHERE Actif = 1
+  `;
+
+  if (excludeId) {
+    request.input('excludeId', sql.Int, excludeId);
+    query += ' AND IdRole != @excludeId';
+  }
+
+  const result = await request.query(query);
+
+  for (const existing of result.recordset) {
+    const existingValues = [existing.CodeRole, existing.LibelleRole];
+    for (const val of existingValues) {
+      const normalizedExisting = normalizeRoleValue(val);
+      if (normalizedExisting && normalizedCandidates.includes(normalizedExisting)) {
+        const labelParts = [existing.CodeRole, existing.LibelleRole].filter(Boolean);
+        return {
+          conflict: true,
+          message: `Un rôle similaire existe déjà (${labelParts.join(' - ')})`,
+        };
+      }
+    }
+  }
+
+  return { conflict: false };
+};
+
 // Liste des rôles
 app.get('/api/roles', async (req, res) => {
   try {
@@ -1215,15 +1270,23 @@ app.post('/api/roles', verifyToken, async (req, res) => {
       Actif
     } = req.body;
 
-    const required = ['CodeRole', 'LibelleRole'];
-    const missing = required.filter(f => !req.body[f]);
-    if (missing.length) {
-      return res.status(400).json({ error: `Champs obligatoires manquants: ${missing.join(', ')}` });
+    const trimmedCodeRole = (CodeRole || '').trim();
+    const trimmedLibelleRole = (LibelleRole || '').trim();
+
+    if (!trimmedCodeRole || !trimmedLibelleRole) {
+      return res.status(400).json({ error: 'CodeRole et LibelleRole sont obligatoires' });
     }
+
+    const similarityCheck = await findSimilarActiveRole(trimmedCodeRole, trimmedLibelleRole);
+    if (similarityCheck.conflict) {
+      return res.status(400).json({ error: similarityCheck.message });
+    }
+
+    const normalizedCodeRole = trimmedCodeRole.toUpperCase();
 
     // Vérifier l'unicité du CodeRole
     const checkRequest = pool.request();
-    checkRequest.input('codeRole', sql.NVarChar(50), CodeRole);
+    checkRequest.input('codeRole', sql.NVarChar(50), normalizedCodeRole);
     const checkResult = await checkRequest.query(`
       SELECT CodeRole
       FROM Role
@@ -1234,11 +1297,14 @@ app.post('/api/roles', verifyToken, async (req, res) => {
       return res.status(400).json({ error: 'Ce code de rôle est déjà utilisé' });
     }
 
+    const descriptionValue = Description ? Description.toString().trim() : null;
+    const isActive = Actif !== undefined ? (Actif ? 1 : 0) : 1;
+
     const insert = await pool.request()
-      .input('CodeRole', sql.NVarChar(50), CodeRole.trim().toUpperCase())
-      .input('LibelleRole', sql.NVarChar(100), LibelleRole.trim())
-      .input('Description', sql.NVarChar(255), Description || null)
-      .input('Actif', sql.Bit, Actif !== undefined ? Actif : 1)
+      .input('CodeRole', sql.NVarChar(50), normalizedCodeRole)
+      .input('LibelleRole', sql.NVarChar(100), trimmedLibelleRole)
+      .input('Description', sql.NVarChar(255), descriptionValue)
+      .input('Actif', sql.Bit, isActive)
       .query(`
         INSERT INTO Role (
           CodeRole, LibelleRole, Description, Actif, DateCreation
@@ -1257,6 +1323,312 @@ app.post('/api/roles', verifyToken, async (req, res) => {
     res.status(500).json({ error: error.message || 'Erreur serveur' });
   }
 });
+
+// Mise à jour d'un rôle
+app.put('/api/roles/:id', verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const roleId = parseInt(id, 10);
+    if (Number.isNaN(roleId)) {
+      return res.status(400).json({ error: 'Identifiant de rôle invalide' });
+    }
+
+    const {
+      CodeRole,
+      LibelleRole,
+      Description,
+      Actif
+    } = req.body;
+
+    const trimmedCodeRole = (CodeRole || '').trim();
+    const trimmedLibelleRole = (LibelleRole || '').trim();
+
+    if (!trimmedCodeRole || !trimmedLibelleRole) {
+      return res.status(400).json({ error: 'CodeRole et LibelleRole sont obligatoires' });
+    }
+
+    // Vérifier l'existence du rôle
+    const existingRoleResult = await pool.request()
+      .input('id', sql.Int, roleId)
+      .query(`
+        SELECT IdRole, CodeRole, LibelleRole, Description, Actif
+        FROM Role
+        WHERE IdRole = @id
+      `);
+
+    if (existingRoleResult.recordset.length === 0) {
+      return res.status(404).json({ error: 'Rôle introuvable' });
+    }
+
+    const similarityCheck = await findSimilarActiveRole(trimmedCodeRole, trimmedLibelleRole, roleId);
+    if (similarityCheck.conflict) {
+      return res.status(400).json({ error: similarityCheck.message });
+    }
+
+    const normalizedCodeRole = trimmedCodeRole.toUpperCase();
+
+    // Vérifier l'unicité du CodeRole pour les autres rôles
+    const codeCheck = await pool.request()
+      .input('codeRole', sql.NVarChar(50), normalizedCodeRole)
+      .input('id', sql.Int, roleId)
+      .query(`
+        SELECT IdRole
+        FROM Role
+        WHERE CodeRole = @codeRole AND IdRole != @id
+      `);
+
+    if (codeCheck.recordset.length > 0) {
+      return res.status(400).json({ error: 'Ce code de rôle est déjà utilisé par un autre rôle' });
+    }
+
+    const descriptionValue = Description ? Description.toString().trim() : null;
+    const isActive = Actif !== undefined ? (Actif ? 1 : 0) : existingRoleResult.recordset[0].Actif;
+
+    const update = await pool.request()
+      .input('id', sql.Int, roleId)
+      .input('CodeRole', sql.NVarChar(50), normalizedCodeRole)
+      .input('LibelleRole', sql.NVarChar(100), trimmedLibelleRole)
+      .input('Description', sql.NVarChar(255), descriptionValue)
+      .input('Actif', sql.Bit, isActive)
+      .query(`
+        UPDATE Role
+        SET CodeRole = @CodeRole,
+            LibelleRole = @LibelleRole,
+            Description = @Description,
+            Actif = @Actif,
+            DateModification = GETDATE()
+        OUTPUT INSERTED.*
+        WHERE IdRole = @id
+      `);
+
+    return res.json(update.recordset[0]);
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour du rôle:', error);
+    res.status(500).json({ error: error.message || 'Erreur serveur' });
+  }
+});
+
+// Suppression (désactivation) d'un rôle
+app.delete('/api/roles/:id', verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const roleId = parseInt(id, 10);
+    if (Number.isNaN(roleId)) {
+      return res.status(400).json({ error: 'Identifiant de rôle invalide' });
+    }
+
+    const existingRoleResult = await pool.request()
+      .input('id', sql.Int, roleId)
+      .query(`
+        SELECT IdRole, Actif
+        FROM Role
+        WHERE IdRole = @id
+      `);
+
+    if (existingRoleResult.recordset.length === 0) {
+      return res.status(404).json({ error: 'Rôle introuvable' });
+    }
+
+    if (!existingRoleResult.recordset[0].Actif) {
+      return res.json({ message: 'Le rôle est déjà désactivé' });
+    }
+
+    await pool.request()
+      .input('id', sql.Int, roleId)
+      .query(`
+        UPDATE Role
+        SET Actif = 0,
+            DateModification = GETDATE()
+        WHERE IdRole = @id
+      `);
+
+    return res.json({ message: 'Rôle supprimé avec succès' });
+  } catch (error) {
+    console.error('Erreur lors de la suppression du rôle:', error);
+    res.status(500).json({ error: error.message || 'Erreur serveur' });
+  }
+});
+
+// Fonction de validation des contraintes d'unicité selon le rôle
+// Retourne { valid: false, error: 'message' } si une contrainte est violée, sinon { valid: true }
+const validateUniquenessConstraints = async (IdRole, IdCentre, IdAgence, IdUtilisateur = null) => {
+  try {
+    // Récupérer le CodeRole du rôle
+    const roleRequest = pool.request();
+    roleRequest.input('idRole', sql.Int, IdRole);
+    const roleResult = await roleRequest.query(`
+      SELECT CodeRole FROM Role WHERE IdRole = @idRole
+    `);
+    
+    if (roleResult.recordset.length === 0) {
+      return { valid: false, error: 'Rôle introuvable' };
+    }
+    
+    const codeRole = (roleResult.recordset[0].CodeRole || '').toUpperCase();
+    
+    // ADMIN : un seul dans tout le système
+    if (codeRole === 'ADMIN') {
+      const checkRequest = pool.request();
+      let query = `
+        SELECT IdUtilisateur 
+        FROM Utilisateur u
+        INNER JOIN Role r ON u.IdRole = r.IdRole
+        WHERE r.CodeRole = 'ADMIN' AND u.Actif = 1
+      `;
+      if (IdUtilisateur) {
+        checkRequest.input('idUtilisateur', sql.Int, IdUtilisateur);
+        query += ' AND u.IdUtilisateur != @idUtilisateur';
+      }
+      const checkResult = await checkRequest.query(query);
+      
+      if (checkResult.recordset.length > 0) {
+        return { valid: false, error: 'Il ne peut y avoir qu\'un seul utilisateur admin dans le système' };
+      }
+    }
+    
+    // CHEF_CENTRE : un seul par centre
+    if (codeRole === 'CHEF_CENTRE' || (codeRole.includes('CHEF') && codeRole.includes('CENTRE'))) {
+      if (!IdCentre) {
+        return { valid: false, error: 'Le chef de centre doit être associé à un centre' };
+      }
+      
+      const checkRequest = pool.request();
+      checkRequest.input('idCentre', sql.Int, IdCentre);
+      let query = `
+        SELECT u.IdUtilisateur 
+        FROM Utilisateur u
+        INNER JOIN Role r ON u.IdRole = r.IdRole
+        WHERE (r.CodeRole = 'CHEF_CENTRE' OR (r.CodeRole LIKE '%CHEF%' AND r.CodeRole LIKE '%CENTRE%'))
+        AND u.IdCentre = @idCentre 
+        AND u.Actif = 1
+      `;
+      if (IdUtilisateur) {
+        checkRequest.input('idUtilisateur', sql.Int, IdUtilisateur);
+        query += ' AND u.IdUtilisateur != @idUtilisateur';
+      }
+      const checkResult = await checkRequest.query(query);
+      
+      if (checkResult.recordset.length > 0) {
+        return { valid: false, error: 'Il ne peut y avoir qu\'un seul chef de centre par centre' };
+      }
+    }
+    
+    // CHEF_AGENCE : un seul par agence
+    if (codeRole === 'CHEF_AGENCE' || (codeRole.includes('CHEF') && codeRole.includes('AGENCE'))) {
+      if (!IdAgence) {
+        return { valid: false, error: 'Le chef d\'agence doit être associé à une agence' };
+      }
+      
+      const checkRequest = pool.request();
+      checkRequest.input('idAgence', sql.Int, IdAgence);
+      let query = `
+        SELECT u.IdUtilisateur 
+        FROM Utilisateur u
+        INNER JOIN Role r ON u.IdRole = r.IdRole
+        WHERE (r.CodeRole = 'CHEF_AGENCE' OR (r.CodeRole LIKE '%CHEF%' AND r.CodeRole LIKE '%AGENCE%'))
+        AND u.IdAgence = @idAgence 
+        AND u.Actif = 1
+      `;
+      if (IdUtilisateur) {
+        checkRequest.input('idUtilisateur', sql.Int, IdUtilisateur);
+        query += ' AND u.IdUtilisateur != @idUtilisateur';
+      }
+      const checkResult = await checkRequest.query(query);
+      
+      if (checkResult.recordset.length > 0) {
+        return { valid: false, error: 'Il ne peut y avoir qu\'un seul chef d\'agence par agence' };
+      }
+    }
+    
+    // JURIDIQUE ou CONTENTIEUX : un seul par centre
+    if (codeRole === 'JURIDIQUE' || codeRole === 'CONTENTIEUX' || 
+        codeRole.includes('JURIDIQUE') || codeRole.includes('CONTENTIEUX')) {
+      if (!IdCentre) {
+        return { valid: false, error: 'Le juriste doit être associé à un centre' };
+      }
+      
+      const checkRequest = pool.request();
+      checkRequest.input('idCentre', sql.Int, IdCentre);
+      let query = `
+        SELECT u.IdUtilisateur 
+        FROM Utilisateur u
+        INNER JOIN Role r ON u.IdRole = r.IdRole
+        WHERE (r.CodeRole = 'JURIDIQUE' OR r.CodeRole = 'CONTENTIEUX' 
+               OR r.CodeRole LIKE '%JURIDIQUE%' OR r.CodeRole LIKE '%CONTENTIEUX%')
+        AND u.IdCentre = @idCentre 
+        AND u.Actif = 1
+      `;
+      if (IdUtilisateur) {
+        checkRequest.input('idUtilisateur', sql.Int, IdUtilisateur);
+        query += ' AND u.IdUtilisateur != @idUtilisateur';
+      }
+      const checkResult = await checkRequest.query(query);
+      
+      if (checkResult.recordset.length > 0) {
+        return { valid: false, error: 'Il ne peut y avoir qu\'un seul juriste (service juridique ou contentieux) par centre' };
+      }
+    }
+    
+    // RELATION_CLIENTELE : un seul par agence
+    if (codeRole === 'RELATION_CLIENTELE' || (codeRole.includes('RELATION') && codeRole.includes('CLIENTELE'))) {
+      if (!IdAgence) {
+        return { valid: false, error: 'Le relation clientèle doit être associé à une agence' };
+      }
+      
+      const checkRequest = pool.request();
+      checkRequest.input('idAgence', sql.Int, IdAgence);
+      let query = `
+        SELECT u.IdUtilisateur 
+        FROM Utilisateur u
+        INNER JOIN Role r ON u.IdRole = r.IdRole
+        WHERE (r.CodeRole = 'RELATION_CLIENTELE' OR (r.CodeRole LIKE '%RELATION%' AND r.CodeRole LIKE '%CLIENTELE%'))
+        AND u.IdAgence = @idAgence 
+        AND u.Actif = 1
+      `;
+      if (IdUtilisateur) {
+        checkRequest.input('idUtilisateur', sql.Int, IdUtilisateur);
+        query += ' AND u.IdUtilisateur != @idUtilisateur';
+      }
+      const checkResult = await checkRequest.query(query);
+      
+      if (checkResult.recordset.length > 0) {
+        return { valid: false, error: 'Il ne peut y avoir qu\'un seul relation clientèle par agence' };
+      }
+    }
+    
+    // TECHNICO_COMMERCIAL : un seul par centre
+    if (codeRole === 'TECHNICO_COMMERCIAL' || (codeRole.includes('TECHNICO') && codeRole.includes('COMMERCIAL'))) {
+      if (!IdCentre) {
+        return { valid: false, error: 'Le technico-commercial doit être associé à un centre' };
+      }
+      
+      const checkRequest = pool.request();
+      checkRequest.input('idCentre', sql.Int, IdCentre);
+      let query = `
+        SELECT u.IdUtilisateur 
+        FROM Utilisateur u
+        INNER JOIN Role r ON u.IdRole = r.IdRole
+        WHERE (r.CodeRole = 'TECHNICO_COMMERCIAL' OR (r.CodeRole LIKE '%TECHNICO%' AND r.CodeRole LIKE '%COMMERCIAL%'))
+        AND u.IdCentre = @idCentre 
+        AND u.Actif = 1
+      `;
+      if (IdUtilisateur) {
+        checkRequest.input('idUtilisateur', sql.Int, IdUtilisateur);
+        query += ' AND u.IdUtilisateur != @idUtilisateur';
+      }
+      const checkResult = await checkRequest.query(query);
+      
+      if (checkResult.recordset.length > 0) {
+        return { valid: false, error: 'Il ne peut y avoir qu\'un seul technico-commercial par centre' };
+      }
+    }
+    
+    return { valid: true };
+  } catch (error) {
+    console.error('Erreur lors de la validation des contraintes d\'unicité:', error);
+    return { valid: false, error: 'Erreur lors de la validation: ' + error.message };
+  }
+};
 
 // Liste des utilisateurs
 app.get('/api/utilisateurs', verifyToken, async (req, res) => {
@@ -1376,6 +1748,12 @@ app.post('/api/utilisateurs', verifyToken, async (req, res) => {
       }
     }
 
+    // Valider les contraintes d'unicité selon le rôle
+    const uniquenessValidation = await validateUniquenessConstraints(IdRole, enforcedIdCentre, IdAgence);
+    if (!uniquenessValidation.valid) {
+      return res.status(400).json({ error: uniquenessValidation.error });
+    }
+
     // Générer Matricule format UTI-XXXX
     const maxResult = await pool.request().query(`
       SELECT ISNULL(MAX(CAST(SUBSTRING(Matricule, 5, LEN(Matricule)) AS INT)), 0) as MaxNum
@@ -1443,6 +1821,172 @@ app.post('/api/utilisateurs', verifyToken, async (req, res) => {
     return res.status(201).json(userInfo.recordset[0]);
   } catch (error) {
     console.error('Erreur lors de la création de l\'utilisateur:', error);
+    console.error('Détails:', error.message);
+    console.error('Stack:', error.stack);
+    res.status(500).json({ error: error.message || 'Erreur serveur' });
+  }
+});
+
+// Modification d'un utilisateur
+app.put('/api/utilisateurs/:id', verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      IdRole,
+      IdUnite,
+      IdCentre,
+      IdAgence,
+      Nom,
+      Prenom,
+      Email,
+      Telephone,
+      MotDePasse,
+      Actif
+    } = req.body;
+
+    const required = ['IdRole', 'Nom', 'Prenom', 'Email'];
+    const missing = required.filter(f => !req.body[f]);
+    if (missing.length) {
+      return res.status(400).json({ error: `Champs obligatoires manquants: ${missing.join(', ')}` });
+    }
+
+    // Vérifier que l'utilisateur existe
+    const userExists = await pool.request()
+      .input('id', sql.Int, id)
+      .query(`SELECT IdUtilisateur FROM Utilisateur WHERE IdUtilisateur = @id`);
+    
+    if (userExists.recordset.length === 0) {
+      return res.status(404).json({ error: 'Utilisateur introuvable' });
+    }
+
+    // Vérifier l'unicité de l'email (en excluant l'utilisateur actuel)
+    const checkRequest = pool.request();
+    checkRequest.input('email', sql.NVarChar(100), Email);
+    checkRequest.input('id', sql.Int, id);
+    const checkResult = await checkRequest.query(`
+      SELECT Email
+      FROM Utilisateur
+      WHERE Email = @email AND IdUtilisateur != @id
+    `);
+
+    if (checkResult.recordset.length > 0) {
+      return res.status(400).json({ error: 'Cet email est déjà utilisé' });
+    }
+
+    // Si l'utilisateur authentifié est CHEF DE CENTRE, il ne peut modifier
+    // que les utilisateurs de son propre centre
+    const actorRoleRaw = (req.user?.role || '');
+    const actorRoleLower = actorRoleRaw.toLowerCase();
+    const isChefCentreRole = actorRoleLower.includes('chef') && actorRoleLower.includes('centre');
+    let enforcedIdCentre = IdCentre || null;
+    if (isChefCentreRole) {
+      try {
+        const resCentre = await pool.request()
+          .input('id', sql.Int, req.user?.id)
+          .query(`SELECT IdCentre FROM Utilisateur WHERE IdUtilisateur = @id`);
+        const actorCentreId = resCentre.recordset[0]?.IdCentre || null;
+        if (!actorCentreId) {
+          return res.status(403).json({ error: "Droit insuffisant: centre de l'utilisateur introuvable" });
+        }
+        // Vérifier que l'utilisateur à modifier appartient au même centre
+        const userCentre = await pool.request()
+          .input('id', sql.Int, id)
+          .query(`SELECT IdCentre FROM Utilisateur WHERE IdUtilisateur = @id`);
+        const targetCentreId = userCentre.recordset[0]?.IdCentre || null;
+        if (targetCentreId && Number(targetCentreId) !== Number(actorCentreId)) {
+          return res.status(403).json({ error: 'Vous ne pouvez modifier que les utilisateurs de votre centre' });
+        }
+        if (IdCentre && Number(IdCentre) !== Number(actorCentreId)) {
+          return res.status(403).json({ error: 'Vous ne pouvez assigner des utilisateurs qu\'à votre centre' });
+        }
+        enforcedIdCentre = actorCentreId;
+      } catch (e) {
+        return res.status(500).json({ error: 'Erreur lors de la vérification du centre de l\'utilisateur' });
+      }
+    }
+
+    // Valider les contraintes d'unicité selon le rôle (en excluant l'utilisateur actuel)
+    const uniquenessValidation = await validateUniquenessConstraints(IdRole, enforcedIdCentre, IdAgence, parseInt(id));
+    if (!uniquenessValidation.valid) {
+      return res.status(400).json({ error: uniquenessValidation.error });
+    }
+
+    // Construire la requête UPDATE
+    const updateFields = [];
+    const updateRequest = pool.request();
+    updateRequest.input('id', sql.Int, id);
+    updateRequest.input('IdRole', sql.Int, IdRole);
+    updateRequest.input('IdUnite', sql.Int, IdUnite || null);
+    updateRequest.input('IdCentre', sql.Int, enforcedIdCentre || null);
+    updateRequest.input('IdAgence', sql.Int, IdAgence || null);
+    updateRequest.input('Nom', sql.NVarChar(100), Nom);
+    updateRequest.input('Prenom', sql.NVarChar(100), Prenom);
+    updateRequest.input('Email', sql.NVarChar(100), Email);
+    updateRequest.input('Telephone', sql.NVarChar(20), Telephone || null);
+    
+    if (Actif !== undefined) {
+      updateRequest.input('Actif', sql.Bit, Actif);
+      updateFields.push('Actif = @Actif');
+    }
+    
+    // Mettre à jour le mot de passe seulement s'il est fourni
+    if (MotDePasse) {
+      updateRequest.input('MotDePasse', sql.NVarChar(255), MotDePasse);
+      updateFields.push('MotDePasse = @MotDePasse');
+    }
+
+    updateFields.push('IdRole = @IdRole');
+    updateFields.push('IdUnite = @IdUnite');
+    updateFields.push('IdCentre = @IdCentre');
+    updateFields.push('IdAgence = @IdAgence');
+    updateFields.push('Nom = @Nom');
+    updateFields.push('Prenom = @Prenom');
+    updateFields.push('Email = @Email');
+    updateFields.push('Telephone = @Telephone');
+    updateFields.push('DateModification = GETDATE()');
+
+    const updateQuery = `
+      UPDATE Utilisateur
+      SET ${updateFields.join(', ')}
+      WHERE IdUtilisateur = @id
+    `;
+
+    await updateRequest.query(updateQuery);
+
+    // Retourner l'utilisateur modifié avec les informations de rôle et affectation
+    const userInfo = await pool.request()
+      .input('id', sql.Int, id)
+      .query(`
+        SELECT 
+          u.IdUtilisateur,
+          u.Matricule,
+          u.Nom,
+          u.Prenom,
+          u.Email,
+          u.Telephone,
+          u.Actif,
+          u.DateCreation,
+          u.DateModification,
+          u.IdRole,
+          r.CodeRole,
+          r.LibelleRole,
+          u.IdUnite,
+          un.NomUnite,
+          u.IdCentre,
+          c.NomCentre,
+          u.IdAgence,
+          a.NomAgence
+        FROM Utilisateur u
+        INNER JOIN Role r ON u.IdRole = r.IdRole
+        LEFT JOIN Unite un ON u.IdUnite = un.IdUnite
+        LEFT JOIN Centre c ON u.IdCentre = c.IdCentre
+        LEFT JOIN AgenceCommerciale a ON u.IdAgence = a.IdAgence
+        WHERE u.IdUtilisateur = @id
+      `);
+
+    return res.json(userInfo.recordset[0]);
+  } catch (error) {
+    console.error('Erreur lors de la modification de l\'utilisateur:', error);
     console.error('Détails:', error.message);
     console.error('Stack:', error.stack);
     res.status(500).json({ error: error.message || 'Erreur serveur' });
