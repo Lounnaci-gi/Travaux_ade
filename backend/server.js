@@ -451,6 +451,25 @@ app.post('/api/auth/logout', (req, res) => {
   res.json({ message: 'Déconnexion réussie' });
 });
 
+// Verify token endpoint
+app.get('/api/auth/verify', (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ valid: false, error: 'Token manquant' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    if (decoded.iat && decoded.iat < SERVER_BOOT_TIME) {
+      return res.status(401).json({ valid: false, error: 'Session expirée. Veuillez vous reconnecter.' });
+    }
+    res.json({ valid: true, user: decoded });
+  } catch (error) {
+    return res.status(401).json({ valid: false, error: 'Token invalide' });
+  }
+});
+
 // Verify token middleware
 const verifyToken = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
@@ -481,6 +500,7 @@ app.get('/', (req, res) => {
       auth: {
         login: 'POST /api/auth/login',
         logout: 'POST /api/auth/logout',
+        verify: 'GET /api/auth/verify',
       },
       travaux: {
         list: 'GET /api/travaux',
@@ -2246,6 +2266,66 @@ app.put('/api/utilisateurs/:id', verifyToken, async (req, res) => {
     return res.json(userInfo.recordset[0]);
   } catch (error) {
     console.error('Erreur lors de la modification de l\'utilisateur:', error);
+    console.error('Détails:', error.message);
+    console.error('Stack:', error.stack);
+    res.status(500).json({ error: error.message || 'Erreur serveur' });
+  }
+});
+
+// Suppression d'un utilisateur
+app.delete('/api/utilisateurs/:id', verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const actorId = req.user?.id;
+
+    // Vérifier que l'utilisateur existe
+    const userExists = await pool.request()
+      .input('id', sql.Int, id)
+      .query(`SELECT IdUtilisateur, IdCentre FROM Utilisateur WHERE IdUtilisateur = @id`);
+    
+    if (userExists.recordset.length === 0) {
+      return res.status(404).json({ error: 'Utilisateur introuvable' });
+    }
+
+    const targetUser = userExists.recordset[0];
+
+    // Vérifier les permissions
+    const actorRoleRaw = (req.user?.role || '');
+    const actorRoleLower = actorRoleRaw.toLowerCase();
+    const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin');
+    const isChefCentreRole = actorRoleLower.includes('chef') && actorRoleLower.includes('centre');
+
+    // Seuls l'admin et le chef de centre peuvent supprimer des utilisateurs
+    if (!isAdminRole) {
+      // Chef de centre peut supprimer seulement les utilisateurs de son centre
+      if (isChefCentreRole) {
+        const resCentre = await pool.request()
+          .input('id', sql.Int, actorId)
+          .query(`SELECT IdCentre FROM Utilisateur WHERE IdUtilisateur = @id`);
+        const actorCentreId = resCentre.recordset[0]?.IdCentre || null;
+        
+        if (!actorCentreId) {
+          return res.status(403).json({ error: "Droit insuffisant: centre de l'utilisateur introuvable" });
+        }
+
+        // Vérifier que l'utilisateur à supprimer appartient au même centre
+        if (!targetUser.IdCentre || Number(targetUser.IdCentre) !== Number(actorCentreId)) {
+          return res.status(403).json({ error: 'Vous ne pouvez supprimer que les utilisateurs de votre centre' });
+        }
+      } else {
+        // Autres utilisateurs ne peuvent pas supprimer de compte (même le leur)
+        return res.status(403).json({ error: 'Seuls les administrateurs et les chefs de centre peuvent supprimer des utilisateurs' });
+      }
+    }
+
+    // Supprimer l'utilisateur
+    await pool.request()
+      .input('id', sql.Int, id)
+      .query(`DELETE FROM Utilisateur WHERE IdUtilisateur = @id`);
+
+    res.json({ message: 'Utilisateur supprimé avec succès' });
+  } catch (error) {
+    console.error('Erreur lors de la suppression de l\'utilisateur:', error);
     console.error('Détails:', error.message);
     console.error('Stack:', error.stack);
     res.status(500).json({ error: error.message || 'Erreur serveur' });

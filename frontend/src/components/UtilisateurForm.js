@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { alertSuccess, alertError, confirmDialog } from '../ui/alerts';
-import { getRoles, getUnites, getCentres, getAgences, createUtilisateur, getUtilisateurs } from '../services/api';
-import { isAdmin } from '../utils/auth';
+import { getRoles, getUnites, getCentres, getAgences, createUtilisateur, getUtilisateurs, updateUtilisateur, deleteUtilisateur } from '../services/api';
+import { isAdmin, isChefCentre, canModifyUser, canDeleteUser } from '../utils/auth';
 
 const UtilisateurForm = ({ user, onUnauthorized }) => {
   const [roles, setRoles] = useState([]);
@@ -13,6 +13,8 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [editingUser, setEditingUser] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [form, setForm] = useState({
     IdRole: '',
     IdUnite: '',
@@ -27,10 +29,10 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
     Actif: true,
   });
 
-  const isChefCentre = !!(user && user.codeRole && (user.codeRole.toLowerCase().includes('chef') && user.codeRole.toLowerCase().includes('centre')))
+  const isChefCentreUser = isChefCentre(user);
 
   useEffect(() => {
-    if (!isAdmin(user) && !isChefCentre) {
+    if (!isAdmin(user) && !isChefCentreUser) {
       if (onUnauthorized) {
         onUnauthorized();
       } else {
@@ -40,7 +42,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
   }, [user, onUnauthorized]);
 
   useEffect(() => {
-    if (!isAdmin(user) && !isChefCentre) return;
+    if (!isAdmin(user) && !isChefCentreUser) return;
     const load = async () => {
       try {
         setLoading(true);
@@ -58,7 +60,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
         setUtilisateurs(utilisateursList || []);
 
         // Si chef de centre, pré-remplir et verrouiller centre (et l'unité associée)
-        if (isChefCentre && user?.idCentre) {
+        if (isChefCentreUser && user?.idCentre) {
           const centreObj = (centresList || []).find((c) => c.IdCentre === Number(user.idCentre));
           setForm((prev) => ({
             ...prev,
@@ -76,7 +78,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
     load();
   }, [user]);
 
-  if (!isAdmin(user) && !isChefCentre) {
+  if (!isAdmin(user) && !isChefCentreUser) {
     return (
       <div className="min-h-screen p-6 flex items-center justify-center">
         <div className="glass-card p-8 text-center max-w-md">
@@ -105,7 +107,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
   const centresByUnite = form.IdUnite
     ? centres.filter((c) => c.IdUnite === Number(form.IdUnite))
     : centres;
-  const filteredCentres = isChefCentre && user?.idCentre
+  const filteredCentres = isChefCentreUser && user?.idCentre
     ? centresByUnite.filter((c) => c.IdCentre === Number(user.idCentre))
     : centresByUnite;
 
@@ -181,6 +183,111 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
       setError(msg);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleEdit = (utilisateur) => {
+    setEditingUser(utilisateur);
+    setForm({
+      IdRole: String(utilisateur.IdRole),
+      IdUnite: utilisateur.IdUnite ? String(utilisateur.IdUnite) : '',
+      IdCentre: utilisateur.IdCentre ? String(utilisateur.IdCentre) : '',
+      IdAgence: utilisateur.IdAgence ? String(utilisateur.IdAgence) : '',
+      Nom: utilisateur.Nom,
+      Prenom: utilisateur.Prenom,
+      Email: utilisateur.Email,
+      Telephone: utilisateur.Telephone || '',
+      MotDePasse: '',
+      ConfirmationMotDePasse: '',
+      Actif: utilisateur.Actif,
+    });
+    setShowEditModal(true);
+    setError('');
+    setSuccess('');
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+
+    if (!editingUser) return;
+
+    // Validation
+    const required = ['IdRole', 'Nom', 'Prenom', 'Email'];
+    const missing = required.filter((f) => !form[f]);
+    if (missing.length) {
+      setError(`Veuillez remplir tous les champs obligatoires: ${missing.join(', ')}`);
+      return;
+    }
+
+    if (form.MotDePasse && form.MotDePasse !== form.ConfirmationMotDePasse) {
+      setError('Les mots de passe ne correspondent pas');
+      return;
+    }
+
+    if (form.MotDePasse && form.MotDePasse.length < 6) {
+      setError('Le mot de passe doit contenir au moins 6 caractères');
+      return;
+    }
+
+    const confirmed = await confirmDialog('Confirmer', 'Modifier cet utilisateur ?');
+    if (!confirmed) return;
+
+    try {
+      setSubmitting(true);
+      const payload = {
+        IdRole: Number(form.IdRole),
+        IdUnite: form.IdUnite ? Number(form.IdUnite) : null,
+        IdCentre: form.IdCentre ? Number(form.IdCentre) : null,
+        IdAgence: form.IdAgence ? Number(form.IdAgence) : null,
+        Nom: form.Nom.trim(),
+        Prenom: form.Prenom.trim(),
+        Email: form.Email.trim(),
+        Telephone: form.Telephone || null,
+        Actif: form.Actif,
+      };
+
+      // Ajouter le mot de passe seulement s'il est fourni
+      if (form.MotDePasse) {
+        payload.MotDePasse = form.MotDePasse;
+      }
+
+      await updateUtilisateur(editingUser.IdUtilisateur, payload);
+      alertSuccess('Succès', 'Utilisateur modifié avec succès');
+      setSuccess('Utilisateur modifié avec succès');
+      setShowEditModal(false);
+      setEditingUser(null);
+      
+      // Recharger la liste
+      const utilisateursList = await getUtilisateurs();
+      setUtilisateurs(utilisateursList || []);
+    } catch (e) {
+      const msg = e.response?.data?.error || 'Erreur lors de la modification de l\'utilisateur';
+      alertError('Erreur', msg);
+      setError(msg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (utilisateur) => {
+    const confirmed = await confirmDialog(
+      'Confirmer la suppression',
+      `Êtes-vous sûr de vouloir supprimer l'utilisateur ${utilisateur.Nom} ${utilisateur.Prenom} (${utilisateur.Matricule}) ? Cette action est irréversible.`
+    );
+    if (!confirmed) return;
+
+    try {
+      await deleteUtilisateur(utilisateur.IdUtilisateur);
+      alertSuccess('Succès', 'Utilisateur supprimé avec succès');
+      
+      // Recharger la liste
+      const utilisateursList = await getUtilisateurs();
+      setUtilisateurs(utilisateursList || []);
+    } catch (e) {
+      const msg = e.response?.data?.error || 'Erreur lors de la suppression de l\'utilisateur';
+      alertError('Erreur', msg);
     }
   };
 
@@ -322,10 +429,10 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                         }));
                       }}
                       className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
-                      disabled={isChefCentre}
+                      disabled={isChefCentreUser}
                     >
                       <option value="">Aucune</option>
-                    {(isChefCentre ? unites.filter((u) => String(u.IdUnite) === String(form.IdUnite)) : unites).map((u) => (
+                    {(isChefCentreUser ? unites.filter((u) => String(u.IdUnite) === String(form.IdUnite)) : unites).map((u) => (
                         <option key={u.IdUnite} value={u.IdUnite} className="text-black">
                           {u.CodeUnite} - {u.NomUnite}
                         </option>
@@ -347,7 +454,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                         }));
                       }}
                       className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
-                      disabled={!form.IdUnite || isChefCentre}
+                      disabled={!form.IdUnite || isChefCentreUser}
                     >
                       <option value="">Aucun</option>
                       {filteredCentres.map((c) => (
@@ -423,33 +530,299 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Centre</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Agence</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Statut</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {utilisateurs.map((utilisateur) => (
-                    <tr key={utilisateur.IdUtilisateur} className="border-b border-white/5 dark:border-white/5 border-gray-100/50 hover:bg-white/5 dark:hover:bg-white/5">
-                      <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{utilisateur.Matricule}</td>
-                      <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{utilisateur.Nom} {utilisateur.Prenom}</td>
-                      <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{utilisateur.Email}</td>
-                      <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{utilisateur.LibelleRole}</td>
-                      <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{utilisateur.NomUnite || '—'}</td>
-                      <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{utilisateur.NomCentre || '—'}</td>
-                      <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{utilisateur.NomAgence || '—'}</td>
-                      <td className="py-3 px-4 text-sm">
-                        {utilisateur.Actif ? (
-                          <span className="px-2 py-1 rounded-full bg-green-500/20 text-green-400 text-xs">Actif</span>
-                        ) : (
-                          <span className="px-2 py-1 rounded-full bg-red-500/20 text-red-400 text-xs">Inactif</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                  {utilisateurs.map((utilisateur) => {
+                    const canModify = canModifyUser(user, utilisateur);
+                    const canDelete = canDeleteUser(user, utilisateur);
+                    return (
+                      <tr key={utilisateur.IdUtilisateur} className="border-b border-white/5 dark:border-white/5 border-gray-100/50 hover:bg-white/5 dark:hover:bg-white/5">
+                        <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{utilisateur.Matricule}</td>
+                        <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{utilisateur.Nom} {utilisateur.Prenom}</td>
+                        <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{utilisateur.Email}</td>
+                        <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{utilisateur.LibelleRole}</td>
+                        <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{utilisateur.NomUnite || '—'}</td>
+                        <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{utilisateur.NomCentre || '—'}</td>
+                        <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{utilisateur.NomAgence || '—'}</td>
+                        <td className="py-3 px-4 text-sm">
+                          {utilisateur.Actif ? (
+                            <span className="px-2 py-1 rounded-full bg-green-500/20 text-green-400 text-xs">Actif</span>
+                          ) : (
+                            <span className="px-2 py-1 rounded-full bg-red-500/20 text-red-400 text-xs">Inactif</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-sm">
+                          <div className="flex items-center gap-2">
+                            {canModify && (
+                              <button
+                                onClick={() => handleEdit(utilisateur)}
+                                className="p-2 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 transition-colors"
+                                title="Modifier"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                              </button>
+                            )}
+                            {canDelete && (
+                              <button
+                                onClick={() => handleDelete(utilisateur)}
+                                className="p-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 transition-colors"
+                                title="Supprimer"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            )}
+                            {!canModify && !canDelete && (
+                              <span className="text-gray-400 text-xs">—</span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           )}
         </div>
       </div>
+
+      {/* Modal de modification */}
+      {showEditModal && editingUser && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="glass-card p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold dark:text-white text-gray-900">
+                Modifier l'utilisateur: {editingUser.Matricule}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingUser(null);
+                  setError('');
+                  setSuccess('');
+                }}
+                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {error && (
+              <div className="p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-300 text-sm mb-4">{error}</div>
+            )}
+            {success && (
+              <div className="p-3 rounded-lg bg-green-500/20 border border-green-500/50 text-green-300 text-sm mb-4">{success}</div>
+            )}
+
+            <form onSubmit={handleUpdate}>
+              <div className="space-y-6">
+                <div className="mb-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
+                  <p className="text-sm text-blue-300 dark:text-blue-400">
+                    <strong>Note:</strong> Laissez le champ mot de passe vide si vous ne souhaitez pas le modifier.
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Rôle *</label>
+                    <select
+                      name="IdRole"
+                      value={form.IdRole}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                      required
+                      disabled={!isAdmin(user) && isChefCentreUser}
+                    >
+                      <option value="">Sélectionner un rôle</option>
+                      {roles.map((r) => (
+                        <option key={r.IdRole} value={r.IdRole} className="text-black">
+                          {r.LibelleRole} ({r.CodeRole})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Nom *</label>
+                    <input
+                      name="Nom"
+                      value={form.Nom}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Prénom *</label>
+                    <input
+                      name="Prenom"
+                      value={form.Prenom}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Email *</label>
+                    <input
+                      type="email"
+                      name="Email"
+                      value={form.Email}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Téléphone</label>
+                    <input
+                      name="Telephone"
+                      value={form.Telephone}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Nouveau mot de passe (optionnel)</label>
+                    <input
+                      type="password"
+                      name="MotDePasse"
+                      value={form.MotDePasse}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                      minLength={6}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Confirmation mot de passe</label>
+                    <input
+                      type="password"
+                      name="ConfirmationMotDePasse"
+                      value={form.ConfirmationMotDePasse}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                      minLength={6}
+                    />
+                  </div>
+                </div>
+
+                <div className="border-t border-white/10 dark:border-white/10 border-gray-200/50 pt-4">
+                  <h3 className="text-lg font-semibold mb-4 dark:text-white text-gray-900">Affectation hiérarchique</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Unité</label>
+                      <select
+                        name="IdUnite"
+                        value={form.IdUnite}
+                        onChange={(e) => {
+                          handleChange(e);
+                          setForm((prev) => ({
+                            ...prev,
+                            IdUnite: e.target.value,
+                            IdCentre: '',
+                            IdAgence: '',
+                          }));
+                        }}
+                        className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                        disabled={isChefCentreUser}
+                      >
+                        <option value="">Aucune</option>
+                        {(isChefCentreUser ? unites.filter((u) => String(u.IdUnite) === String(form.IdUnite)) : unites).map((u) => (
+                          <option key={u.IdUnite} value={u.IdUnite} className="text-black">
+                            {u.CodeUnite} - {u.NomUnite}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Centre</label>
+                      <select
+                        name="IdCentre"
+                        value={form.IdCentre}
+                        onChange={(e) => {
+                          handleChange(e);
+                          setForm((prev) => ({
+                            ...prev,
+                            IdCentre: e.target.value,
+                            IdAgence: '',
+                          }));
+                        }}
+                        className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                        disabled={!form.IdUnite || isChefCentreUser}
+                      >
+                        <option value="">Aucun</option>
+                        {filteredCentres.map((c) => (
+                          <option key={c.IdCentre} value={c.IdCentre} className="text-black">
+                            {c.CodeCentre} - {c.NomCentre}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Agence</label>
+                      <select
+                        name="IdAgence"
+                        value={form.IdAgence}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                        disabled={!form.IdCentre}
+                      >
+                        <option value="">Aucune</option>
+                        {filteredAgences.map((a) => (
+                          <option key={a.IdAgence} value={a.IdAgence} className="text-black">
+                            {a.CodeAgence} - {a.NomAgence}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-white/10 dark:border-white/10 border-gray-200/50 pt-4">
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      name="Actif"
+                      checked={form.Actif}
+                      onChange={handleChange}
+                      className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <label className="ml-2 text-sm dark:text-gray-300 text-gray-700">Utilisateur actif</label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-4 pt-6">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setEditingUser(null);
+                    setError('');
+                    setSuccess('');
+                  }}
+                  className="px-6 py-3 rounded-lg bg-gray-500/20 hover:bg-gray-500/30 text-gray-300 font-semibold transition-all"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-6 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold shadow-lg shadow-blue-500/50 hover:shadow-xl hover:shadow-blue-500/60 transition-all disabled:opacity-50"
+                >
+                  {submitting ? 'Modification...' : 'Modifier l\'Utilisateur'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

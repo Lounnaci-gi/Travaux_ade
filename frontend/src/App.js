@@ -20,21 +20,57 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Vérifier si l'utilisateur est déjà connecté
-    const token = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
+    // Vérifier si l'utilisateur est déjà connecté et valider le token
+    const checkAuth = async () => {
+      const token = localStorage.getItem('token');
+      const storedUser = localStorage.getItem('user');
 
-    if (token && storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-        setIsAuthenticated(true);
-      } catch (error) {
-        console.error('Erreur parsing user:', error);
+      if (!token || !storedUser) {
+        // Pas de token ou utilisateur, nettoyer et afficher le login
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        setLoading(false);
+        return;
       }
-    }
-    setLoading(false);
+
+      try {
+        // Vérifier la validité du token avec le serveur
+        const response = await fetch(
+          `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/verify`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        if (response.ok) {
+          // Token valide, restaurer l'utilisateur
+          const userData = JSON.parse(storedUser);
+          setUser(userData);
+          setIsAuthenticated(true);
+        } else {
+          // Token invalide ou expiré, nettoyer et forcer le login
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          setIsAuthenticated(false);
+          setUser(null);
+        }
+      } catch (error) {
+        console.error('Erreur lors de la vérification du token:', error);
+        // En cas d'erreur, nettoyer et forcer le login
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setIsAuthenticated(false);
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
   }, []);
 
   const handleLogin = (userData) => {

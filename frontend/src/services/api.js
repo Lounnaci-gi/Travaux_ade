@@ -147,6 +147,16 @@ export const createUtilisateur = async (payload) => {
   return response.data;
 };
 
+export const updateUtilisateur = async (id, payload) => {
+  const response = await api.put(`/utilisateurs/${id}`, payload);
+  return response.data;
+};
+
+export const deleteUtilisateur = async (id) => {
+  const response = await api.delete(`/utilisateurs/${id}`);
+  return response.data;
+};
+
 export const getDemandeTypes = async () => {
   const response = await api.get('/demandes/types');
   return response.data;
