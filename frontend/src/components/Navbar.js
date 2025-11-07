@@ -119,14 +119,11 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
         </svg>
       ),
       submenu: [
-        { id: 'admin-users', label: 'Utilisateurs', adminOnly: true },
-        { id: 'utilisateurs-create', label: 'Créer un Utilisateur', adminOnly: true },
-        { id: 'admin-roles', label: 'Rôles', adminOnly: true },
-        { id: 'roles-create', label: 'Créer un Rôle', adminOnly: true },
-        { id: 'admin-hierarchie', label: 'Hiérarchie (Unité/Centre/Agence)', adminOnly: true },
-        { id: 'unites-create', label: 'Créer une Unité', adminOnly: true },
-        { id: 'centres-create', label: 'Créer un Centre', adminOnly: true },
-        { id: 'agences-create', label: 'Créer une Agence', adminOnly: true },
+        { id: 'utilisateurs-create', label: 'Utilisateur', adminOnly: true },
+        { id: 'roles-create', label: 'Rôle', adminOnly: true },
+        { id: 'unites-create', label: 'Unité', adminOnly: true },
+        { id: 'centres-create', label: 'Centre', adminOnly: true },
+        { id: 'agences-create', label: 'Agence', adminOnly: true },
       ],
     },
   };
