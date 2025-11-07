@@ -99,16 +99,39 @@ const AgenceForm = ({ user, onUnauthorized }) => {
         setSubmitting(false);
         return;
       }
+
+      const lengthConstraints = [
+        { field: 'NomAgence', label: 'Nom Agence', max: 100 },
+        { field: 'Adresse', label: 'Adresse', max: 200 },
+        { field: 'Commune', label: 'Commune', max: 60 },
+        { field: 'CodePostal', label: 'Code Postal', max: 10 },
+        { field: 'TelephonePrincipal', label: 'Téléphone Principal', max: 10 },
+        { field: 'TelephoneSecondaire', label: 'Téléphone Secondaire', max: 10 },
+        { field: 'Fax', label: 'Fax', max: 20 },
+        { field: 'Email', label: 'Email', max: 100 },
+      ];
+
+      for (const { field, label, max } of lengthConstraints) {
+        const value = typeof form[field] === 'string' ? form[field].trim() : form[field];
+        if (value && value.length > max) {
+          setError(`Le champ ${label} ne doit pas dépasser ${max} caractères.`);
+          setSubmitting(false);
+          return;
+        }
+      }
+
+      const trimValue = (value) => (typeof value === 'string' ? value.trim() : value);
+
       const payload = {
         IdCentre: Number(form.IdCentre),
         NomAgence: form.NomAgence.trim(),
-        Adresse: form.Adresse || null,
-        Commune: form.Commune || null,
-        CodePostal: form.CodePostal || null,
-        TelephonePrincipal: form.TelephonePrincipal || null,
-        TelephoneSecondaire: form.TelephoneSecondaire || null,
-        Fax: form.Fax || null,
-        Email: form.Email || null,
+        Adresse: trimValue(form.Adresse) || null,
+        Commune: trimValue(form.Commune) || null,
+        CodePostal: trimValue(form.CodePostal) || null,
+        TelephonePrincipal: trimValue(form.TelephonePrincipal) || null,
+        TelephoneSecondaire: trimValue(form.TelephoneSecondaire) || null,
+        Fax: trimValue(form.Fax) || null,
+        Email: trimValue(form.Email) || null,
       };
       
       let result;
@@ -227,15 +250,15 @@ const AgenceForm = ({ user, onUnauthorized }) => {
                 </div>
                 <div>
                   <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Nom Agence *</label>
-                  <input name="NomAgence" value={form.NomAgence} onChange={handleChange} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" required />
+                  <input name="NomAgence" value={form.NomAgence} onChange={handleChange} maxLength={100} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" required />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Adresse</label>
-                  <input name="Adresse" value={form.Adresse} onChange={handleChange} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
+                  <input name="Adresse" value={form.Adresse} onChange={handleChange} maxLength={200} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
                 </div>
                 <div>
                   <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Commune</label>
-                  <input name="Commune" value={form.Commune} onChange={handleChange} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
+                  <input name="Commune" value={form.Commune} onChange={handleChange} maxLength={60} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
                 </div>
                 <div>
                   <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Code Postal</label>
@@ -256,11 +279,11 @@ const AgenceForm = ({ user, onUnauthorized }) => {
                   </div>
                   <div>
                     <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Fax</label>
-                    <input name="Fax" value={form.Fax} onChange={handleChange} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
+                    <input name="Fax" value={form.Fax} onChange={handleChange} maxLength={20} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
                   </div>
                   <div>
                     <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Email</label>
-                    <input type="email" name="Email" value={form.Email} onChange={handleChange} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
+                    <input type="email" name="Email" value={form.Email} onChange={handleChange} maxLength={100} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
                   </div>
                 </div>
               </div>

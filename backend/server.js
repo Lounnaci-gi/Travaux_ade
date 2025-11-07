@@ -1076,6 +1076,27 @@ app.post('/api/centres', verifyToken, async (req, res) => {
       return res.status(400).json({ error: `Champs obligatoires manquants: ${missing.join(', ')}` });
     }
 
+    // Validation des longueurs de champs
+    const lengthConstraints = [
+      { field: 'NomCentre', value: NomCentre, max: 100, label: 'Nom Centre' },
+      { field: 'PrefixeCentre', value: PrefixeCentre, max: 5, label: 'Préfixe Centre' },
+      { field: 'Adresse', value: Adresse, max: 200, label: 'Adresse' },
+      { field: 'Commune', value: Commune, max: 60, label: 'Commune' },
+      { field: 'CodePostal', value: CodePostal, max: 10, label: 'Code Postal' },
+      { field: 'TelephonePrincipal', value: TelephonePrincipal, max: 10, label: 'Téléphone Principal' },
+      { field: 'TelephoneSecondaire', value: TelephoneSecondaire, max: 10, label: 'Téléphone Secondaire' },
+      { field: 'Fax', value: Fax, max: 10, label: 'Fax' },
+      { field: 'Email', value: Email, max: 100, label: 'Email' },
+      { field: 'NumerocompteBancaire', value: NumerocompteBancaire, max: 20, label: 'N° Compte Bancaire' },
+      { field: 'NumeroComptePostal', value: NumeroComptePostal, max: 20, label: 'N° Compte Postal' },
+    ];
+
+    for (const { field, value, max, label } of lengthConstraints) {
+      if (value && typeof value === 'string' && value.trim().length > max) {
+        return res.status(400).json({ error: `Le champ ${label} ne doit pas dépasser ${max} caractères.` });
+      }
+    }
+
     // Générer CodeCentre format CEN-XXXX
     const maxResult = await pool.request().query(`
       SELECT ISNULL(MAX(CAST(SUBSTRING(CodeCentre, 5, LEN(CodeCentre)) AS INT)), 0) as MaxNum
@@ -1095,7 +1116,7 @@ app.post('/api/centres', verifyToken, async (req, res) => {
       .input('CodePostal', sql.NVarChar(10), CodePostal)
       .input('TelephonePrincipal', sql.NVarChar(10), TelephonePrincipal)
       .input('TelephoneSecondaire', sql.NVarChar(10), TelephoneSecondaire || null)
-      .input('Fax', sql.NVarChar(20), Fax || null)
+      .input('Fax', sql.NVarChar(10), Fax || null)
       .input('Email', sql.NVarChar(100), Email || null)
       .input('NumerocompteBancaire', sql.NVarChar(20), NumerocompteBancaire || null)
       .input('NumeroComptePostal', sql.NVarChar(20), NumeroComptePostal || null)
@@ -1149,6 +1170,27 @@ app.put('/api/centres/:id', verifyToken, async (req, res) => {
       return res.status(400).json({ error: `Champs obligatoires manquants: ${missing.join(', ')}` });
     }
 
+    // Validation des longueurs de champs
+    const lengthConstraints = [
+      { field: 'NomCentre', value: NomCentre, max: 100, label: 'Nom Centre' },
+      { field: 'PrefixeCentre', value: PrefixeCentre, max: 5, label: 'Préfixe Centre' },
+      { field: 'Adresse', value: Adresse, max: 200, label: 'Adresse' },
+      { field: 'Commune', value: Commune, max: 60, label: 'Commune' },
+      { field: 'CodePostal', value: CodePostal, max: 10, label: 'Code Postal' },
+      { field: 'TelephonePrincipal', value: TelephonePrincipal, max: 10, label: 'Téléphone Principal' },
+      { field: 'TelephoneSecondaire', value: TelephoneSecondaire, max: 10, label: 'Téléphone Secondaire' },
+      { field: 'Fax', value: Fax, max: 10, label: 'Fax' },
+      { field: 'Email', value: Email, max: 100, label: 'Email' },
+      { field: 'NumerocompteBancaire', value: NumerocompteBancaire, max: 20, label: 'N° Compte Bancaire' },
+      { field: 'NumeroComptePostal', value: NumeroComptePostal, max: 20, label: 'N° Compte Postal' },
+    ];
+
+    for (const { field, value, max, label } of lengthConstraints) {
+      if (value && typeof value === 'string' && value.trim().length > max) {
+        return res.status(400).json({ error: `Le champ ${label} ne doit pas dépasser ${max} caractères.` });
+      }
+    }
+
     const update = await pool.request()
       .input('id', sql.Int, id)
       .input('IdUnite', sql.Int, IdUnite)
@@ -1159,7 +1201,7 @@ app.put('/api/centres/:id', verifyToken, async (req, res) => {
       .input('CodePostal', sql.NVarChar(10), CodePostal)
       .input('TelephonePrincipal', sql.NVarChar(10), TelephonePrincipal)
       .input('TelephoneSecondaire', sql.NVarChar(10), TelephoneSecondaire || null)
-      .input('Fax', sql.NVarChar(20), Fax || null)
+      .input('Fax', sql.NVarChar(10), Fax || null)
       .input('Email', sql.NVarChar(100), Email || null)
       .input('NumerocompteBancaire', sql.NVarChar(20), NumerocompteBancaire || null)
       .input('NumeroComptePostal', sql.NVarChar(20), NumeroComptePostal || null)
@@ -1265,6 +1307,24 @@ app.post('/api/agences', verifyToken, async (req, res) => {
       return res.status(400).json({ error: 'IdCentre et NomAgence sont requis' });
     }
 
+    // Validation des longueurs de champs
+    const lengthConstraints = [
+      { field: 'NomAgence', value: NomAgence, max: 100, label: 'Nom Agence' },
+      { field: 'Adresse', value: Adresse, max: 200, label: 'Adresse' },
+      { field: 'Commune', value: Commune, max: 60, label: 'Commune' },
+      { field: 'CodePostal', value: CodePostal, max: 10, label: 'Code Postal' },
+      { field: 'TelephonePrincipal', value: TelephonePrincipal, max: 10, label: 'Téléphone Principal' },
+      { field: 'TelephoneSecondaire', value: TelephoneSecondaire, max: 10, label: 'Téléphone Secondaire' },
+      { field: 'Fax', value: Fax, max: 10, label: 'Fax' },
+      { field: 'Email', value: Email, max: 100, label: 'Email' },
+    ];
+
+    for (const { field, value, max, label } of lengthConstraints) {
+      if (value && typeof value === 'string' && value.trim().length > max) {
+        return res.status(400).json({ error: `Le champ ${label} ne doit pas dépasser ${max} caractères.` });
+      }
+    }
+
     // Générer CodeAgence format AG-XXX
     const maxResult = await pool.request().query(`
       SELECT ISNULL(MAX(CAST(SUBSTRING(CodeAgence, 4, LEN(CodeAgence)) AS INT)), 0) as MaxNum
@@ -1326,6 +1386,24 @@ app.put('/api/agences/:id', verifyToken, async (req, res) => {
 
     if (!IdCentre || !NomAgence) {
       return res.status(400).json({ error: 'IdCentre et NomAgence sont requis' });
+    }
+
+    // Validation des longueurs de champs
+    const lengthConstraints = [
+      { field: 'NomAgence', value: NomAgence, max: 100, label: 'Nom Agence' },
+      { field: 'Adresse', value: Adresse, max: 200, label: 'Adresse' },
+      { field: 'Commune', value: Commune, max: 60, label: 'Commune' },
+      { field: 'CodePostal', value: CodePostal, max: 10, label: 'Code Postal' },
+      { field: 'TelephonePrincipal', value: TelephonePrincipal, max: 10, label: 'Téléphone Principal' },
+      { field: 'TelephoneSecondaire', value: TelephoneSecondaire, max: 10, label: 'Téléphone Secondaire' },
+      { field: 'Fax', value: Fax, max: 10, label: 'Fax' },
+      { field: 'Email', value: Email, max: 100, label: 'Email' },
+    ];
+
+    for (const { field, value, max, label } of lengthConstraints) {
+      if (value && typeof value === 'string' && value.trim().length > max) {
+        return res.status(400).json({ error: `Le champ ${label} ne doit pas dépasser ${max} caractères.` });
+      }
     }
 
     const update = await pool.request()
