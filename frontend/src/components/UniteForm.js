@@ -288,23 +288,32 @@ const UniteForm = ({ user, onUnauthorized }) => {
               <div className="p-3 rounded-lg bg-green-500/20 border border-green-500/50 text-green-300 text-sm mb-4">{success}</div>
             )}
 
+            <div className="mb-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
+              <p className="text-sm text-blue-300 dark:text-blue-400">
+                <strong>Note:</strong> Les champs marqués d'un <span className="text-red-400">*</span> sont obligatoires. Le code unité sera généré automatiquement.
+              </p>
+            </div>
+
             <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Nom Unité *</label>
-                  <input name="NomUnite" value={form.NomUnite} onChange={handleChange} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" required />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Adresse</label>
-                  <input name="Adresse" value={form.Adresse} onChange={handleChange} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
-                </div>
-                <div>
-                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Commune</label>
-                  <input name="Commune" value={form.Commune} onChange={handleChange} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
-                </div>
-                <div>
-                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Code Postal</label>
-                  <input name="CodePostal" value={form.CodePostal} onChange={handleChange} maxLength={6} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
+              <div>
+                <h3 className="text-lg font-semibold mb-4 dark:text-white text-gray-900">Informations générales</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Nom Unité <span className="text-red-400">*</span></label>
+                    <input name="NomUnite" value={form.NomUnite} onChange={handleChange} placeholder="Ex: Direction Régionale Nord" className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" required />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Adresse</label>
+                    <input name="Adresse" value={form.Adresse} onChange={handleChange} placeholder="Ex: 123 Avenue principale, Zone industrielle" className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
+                  </div>
+                  <div>
+                    <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Commune</label>
+                    <input name="Commune" value={form.Commune} onChange={handleChange} placeholder="Ex: Casablanca" className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
+                  </div>
+                  <div>
+                    <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Code Postal</label>
+                    <input name="CodePostal" value={form.CodePostal} onChange={handleChange} maxLength={5} placeholder="Ex: 20000" className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
+                  </div>
                 </div>
               </div>
 
@@ -313,23 +322,23 @@ const UniteForm = ({ user, onUnauthorized }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Téléphone Principal</label>
-                    <input name="TelephonePrincipal" value={form.TelephonePrincipal} onChange={handleChange} maxLength={10} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
+                    <input name="TelephonePrincipal" value={form.TelephonePrincipal} onChange={handleChange} maxLength={10} placeholder="Ex: 0522123456" className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
                   </div>
                   <div>
                     <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Téléphone Secondaire</label>
-                    <input name="TelephoneSecondaire" value={form.TelephoneSecondaire} onChange={handleChange} maxLength={10} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
+                    <input name="TelephoneSecondaire" value={form.TelephoneSecondaire} onChange={handleChange} maxLength={10} placeholder="Ex: 0666123456" className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
                   </div>
                   <div>
                     <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Fax</label>
-                    <input name="Fax" value={form.Fax} onChange={handleChange} maxLength={10} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
+                    <input name="Fax" value={form.Fax} onChange={handleChange} maxLength={10} placeholder="Ex: 0522123457" className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
                   </div>
                   <div>
                     <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Email</label>
-                    <input type="email" name="Email" value={form.Email} onChange={handleChange} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
+                    <input type="email" name="Email" value={form.Email} onChange={handleChange} placeholder="Ex: contact@example.ma" className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
                   </div>
                   <div>
                     <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Site Web</label>
-                    <input name="SiteWeb" value={form.SiteWeb} onChange={handleChange} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
+                    <input name="SiteWeb" value={form.SiteWeb} onChange={handleChange} placeholder="Ex: https://www.example.ma" className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
                   </div>
                 </div>
               </div>

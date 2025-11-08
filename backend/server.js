@@ -920,6 +920,7 @@ app.put('/api/unites/:id', verifyToken, async (req, res) => {
       NumeroIdentifiantFiscal,
       NumeroIdentificationStatistique,
       NumeroRegistreCommerce,
+      NomBanque,
       NumerocompteBancaire,
       NumeroComptePostal
     } = req.body;
@@ -2727,14 +2728,14 @@ app.post('/api/articles', verifyToken, async (req, res) => {
       }
     }
 
-    // Générer CodeArticle format ART-XXX
+    // Générer CodeArticle format ART-XXXXXXX (7 chiffres)
     const maxResult = await pool.request().query(`
       SELECT ISNULL(MAX(CAST(SUBSTRING(CodeArticle, 5, LEN(CodeArticle)) AS INT)), 0) as MaxNum
       FROM Article
       WHERE CodeArticle LIKE 'ART-%' AND ISNUMERIC(SUBSTRING(CodeArticle, 5, LEN(CodeArticle))) = 1
     `);
     const nextNumber = (maxResult.recordset[0].MaxNum || 0) + 1;
-    const CodeArticle = `ART-${String(nextNumber).padStart(3, '0')}`;
+    const CodeArticle = `ART-${String(nextNumber).padStart(7, '0')}`;
 
     const insert = await pool.request()
       .input('IdFamille', sql.Int, IdFamille)

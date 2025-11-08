@@ -298,7 +298,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
             {editingId ? 'Modifier un Article' : 'Créer un Nouvel Article'}
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-            Le code article sera généré automatiquement au format ART-XXX.
+            Le code article sera généré automatiquement au format <strong>ART-XXXXXXX</strong> (7 chiffres).
           </p>
 
           {error && (
@@ -377,6 +377,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                 value={form.Designation}
                 onChange={handleChange}
                 maxLength={200}
+                placeholder="Ex: Tuyau PVC DN63, Compteur d'eau, Réducteur de pression"
                 className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
                 required
               />
