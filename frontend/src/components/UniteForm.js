@@ -301,7 +301,7 @@ const UniteForm = ({ user, onUnauthorized }) => {
                 </div>
                 <div>
                   <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Code Postal</label>
-                  <input name="CodePostal" value={form.CodePostal} onChange={handleChange} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
+                  <input name="CodePostal" value={form.CodePostal} onChange={handleChange} maxLength={6} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
                 </div>
               </div>
 
@@ -318,7 +318,7 @@ const UniteForm = ({ user, onUnauthorized }) => {
                   </div>
                   <div>
                     <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Fax</label>
-                    <input name="Fax" value={form.Fax} onChange={handleChange} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
+                    <input name="Fax" value={form.Fax} onChange={handleChange} maxLength={10} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
                   </div>
                   <div>
                     <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Email</label>

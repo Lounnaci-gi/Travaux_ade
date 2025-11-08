@@ -865,10 +865,10 @@ app.post('/api/unites', verifyToken, async (req, res) => {
       .input('NomUnite', sql.NVarChar(100), trimmedNomUnite)
       .input('Adresse', sql.NVarChar(200), Adresse || null)
       .input('Commune', sql.NVarChar(60), Commune || null)
-      .input('CodePostal', sql.NVarChar(10), CodePostal || null)
+      .input('CodePostal', sql.NVarChar(6), CodePostal || null)
       .input('TelephonePrincipal', sql.NVarChar(10), TelephonePrincipal || null)
       .input('TelephoneSecondaire', sql.NVarChar(10), TelephoneSecondaire || null)
-      .input('Fax', sql.NVarChar(20), Fax || null)
+      .input('Fax', sql.NVarChar(10), Fax || null)
       .input('Email', sql.NVarChar(100), Email || null)
       .input('SiteWeb', sql.NVarChar(100), SiteWeb || null)
       .input('NumeroIdentifiantFiscal', sql.NVarChar(20), NumeroIdentifiantFiscal || null)
@@ -968,10 +968,10 @@ app.put('/api/unites/:id', verifyToken, async (req, res) => {
       .input('NomUnite', sql.NVarChar(100), trimmedNomUnite)
       .input('Adresse', sql.NVarChar(200), Adresse || null)
       .input('Commune', sql.NVarChar(60), Commune || null)
-      .input('CodePostal', sql.NVarChar(10), CodePostal || null)
+      .input('CodePostal', sql.NVarChar(6), CodePostal || null)
       .input('TelephonePrincipal', sql.NVarChar(10), TelephonePrincipal || null)
       .input('TelephoneSecondaire', sql.NVarChar(10), TelephoneSecondaire || null)
-      .input('Fax', sql.NVarChar(20), Fax || null)
+      .input('Fax', sql.NVarChar(10), Fax || null)
       .input('Email', sql.NVarChar(100), Email || null)
       .input('SiteWeb', sql.NVarChar(100), SiteWeb || null)
       .input('NumeroIdentifiantFiscal', sql.NVarChar(20), NumeroIdentifiantFiscal || null)
@@ -1102,7 +1102,7 @@ app.post('/api/centres', verifyToken, async (req, res) => {
       { field: 'PrefixeCentre', value: PrefixeCentre, max: 5, label: 'Préfixe Centre' },
       { field: 'Adresse', value: Adresse, max: 200, label: 'Adresse' },
       { field: 'Commune', value: Commune, max: 60, label: 'Commune' },
-      { field: 'CodePostal', value: CodePostal, max: 10, label: 'Code Postal' },
+      { field: 'CodePostal', value: CodePostal, max: 5, label: 'Code Postal' },
       { field: 'TelephonePrincipal', value: TelephonePrincipal, max: 10, label: 'Téléphone Principal' },
       { field: 'TelephoneSecondaire', value: TelephoneSecondaire, max: 10, label: 'Téléphone Secondaire' },
       { field: 'Fax', value: Fax, max: 10, label: 'Fax' },
@@ -1133,7 +1133,7 @@ app.post('/api/centres', verifyToken, async (req, res) => {
       .input('PrefixeCentre', sql.NVarChar(5), PrefixeCentre)
       .input('Adresse', sql.NVarChar(200), Adresse)
       .input('Commune', sql.NVarChar(60), Commune)
-      .input('CodePostal', sql.NVarChar(10), CodePostal)
+      .input('CodePostal', sql.NVarChar(5), CodePostal)
       .input('TelephonePrincipal', sql.NVarChar(10), TelephonePrincipal)
       .input('TelephoneSecondaire', sql.NVarChar(10), TelephoneSecondaire || null)
       .input('Fax', sql.NVarChar(10), Fax || null)
@@ -1196,7 +1196,7 @@ app.put('/api/centres/:id', verifyToken, async (req, res) => {
       { field: 'PrefixeCentre', value: PrefixeCentre, max: 5, label: 'Préfixe Centre' },
       { field: 'Adresse', value: Adresse, max: 200, label: 'Adresse' },
       { field: 'Commune', value: Commune, max: 60, label: 'Commune' },
-      { field: 'CodePostal', value: CodePostal, max: 10, label: 'Code Postal' },
+      { field: 'CodePostal', value: CodePostal, max: 5, label: 'Code Postal' },
       { field: 'TelephonePrincipal', value: TelephonePrincipal, max: 10, label: 'Téléphone Principal' },
       { field: 'TelephoneSecondaire', value: TelephoneSecondaire, max: 10, label: 'Téléphone Secondaire' },
       { field: 'Fax', value: Fax, max: 10, label: 'Fax' },
@@ -1218,7 +1218,7 @@ app.put('/api/centres/:id', verifyToken, async (req, res) => {
       .input('PrefixeCentre', sql.NVarChar(5), PrefixeCentre)
       .input('Adresse', sql.NVarChar(200), Adresse)
       .input('Commune', sql.NVarChar(60), Commune)
-      .input('CodePostal', sql.NVarChar(10), CodePostal)
+      .input('CodePostal', sql.NVarChar(5), CodePostal)
       .input('TelephonePrincipal', sql.NVarChar(10), TelephonePrincipal)
       .input('TelephoneSecondaire', sql.NVarChar(10), TelephoneSecondaire || null)
       .input('Fax', sql.NVarChar(10), Fax || null)
@@ -1332,7 +1332,7 @@ app.post('/api/agences', verifyToken, async (req, res) => {
       { field: 'NomAgence', value: NomAgence, max: 100, label: 'Nom Agence' },
       { field: 'Adresse', value: Adresse, max: 200, label: 'Adresse' },
       { field: 'Commune', value: Commune, max: 60, label: 'Commune' },
-      { field: 'CodePostal', value: CodePostal, max: 10, label: 'Code Postal' },
+      { field: 'CodePostal', value: CodePostal, max: 5, label: 'Code Postal' },
       { field: 'TelephonePrincipal', value: TelephonePrincipal, max: 10, label: 'Téléphone Principal' },
       { field: 'TelephoneSecondaire', value: TelephoneSecondaire, max: 10, label: 'Téléphone Secondaire' },
       { field: 'Fax', value: Fax, max: 10, label: 'Fax' },
@@ -1360,10 +1360,10 @@ app.post('/api/agences', verifyToken, async (req, res) => {
       .input('NomAgence', sql.NVarChar(100), NomAgence)
       .input('Adresse', sql.NVarChar(200), Adresse || null)
       .input('Commune', sql.NVarChar(60), Commune || null)
-      .input('CodePostal', sql.NVarChar(10), CodePostal || null)
+      .input('CodePostal', sql.NVarChar(5), CodePostal || null)
       .input('TelephonePrincipal', sql.NVarChar(10), TelephonePrincipal || null)
       .input('TelephoneSecondaire', sql.NVarChar(10), TelephoneSecondaire || null)
-      .input('Fax', sql.NVarChar(20), Fax || null)
+      .input('Fax', sql.NVarChar(10), Fax || null)
       .input('Email', sql.NVarChar(100), Email || null)
       .query(`
         INSERT INTO AgenceCommerciale (
@@ -1413,7 +1413,7 @@ app.put('/api/agences/:id', verifyToken, async (req, res) => {
       { field: 'NomAgence', value: NomAgence, max: 100, label: 'Nom Agence' },
       { field: 'Adresse', value: Adresse, max: 200, label: 'Adresse' },
       { field: 'Commune', value: Commune, max: 60, label: 'Commune' },
-      { field: 'CodePostal', value: CodePostal, max: 10, label: 'Code Postal' },
+      { field: 'CodePostal', value: CodePostal, max: 5, label: 'Code Postal' },
       { field: 'TelephonePrincipal', value: TelephonePrincipal, max: 10, label: 'Téléphone Principal' },
       { field: 'TelephoneSecondaire', value: TelephoneSecondaire, max: 10, label: 'Téléphone Secondaire' },
       { field: 'Fax', value: Fax, max: 10, label: 'Fax' },
@@ -1432,10 +1432,10 @@ app.put('/api/agences/:id', verifyToken, async (req, res) => {
       .input('NomAgence', sql.NVarChar(100), NomAgence)
       .input('Adresse', sql.NVarChar(200), Adresse || null)
       .input('Commune', sql.NVarChar(60), Commune || null)
-      .input('CodePostal', sql.NVarChar(10), CodePostal || null)
+      .input('CodePostal', sql.NVarChar(5), CodePostal || null)
       .input('TelephonePrincipal', sql.NVarChar(10), TelephonePrincipal || null)
       .input('TelephoneSecondaire', sql.NVarChar(10), TelephoneSecondaire || null)
-      .input('Fax', sql.NVarChar(20), Fax || null)
+      .input('Fax', sql.NVarChar(10), Fax || null)
       .input('Email', sql.NVarChar(100), Email || null)
       .query(`
         UPDATE AgenceCommerciale SET
@@ -2532,6 +2532,248 @@ app.post('/api/demandes', verifyToken, async (req, res) => {
     try { await transaction.rollback(); } catch (_) {}
     console.error('Erreur lors de la création de la demande:', error);
     res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// ============================================================================
+// ARTICLES
+// ============================================================================
+
+// Récupérer les familles d'articles
+app.get('/api/articles/familles', async (req, res) => {
+  try {
+    const result = await pool.request().query(`
+      SELECT IdFamille, CodeFamille, LibelleFamille
+      FROM ArticleFamille
+      WHERE Actif = 1
+      ORDER BY LibelleFamille
+    `);
+    res.json(result.recordset);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des familles d\'articles:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Création d'une famille d'articles (CodeFamille auto FAM-XXX)
+app.post('/api/articles/familles', verifyToken, async (req, res) => {
+  try {
+    const {
+      LibelleFamille,
+      Description
+    } = req.body;
+
+    if (!LibelleFamille) {
+      return res.status(400).json({ error: 'LibelleFamille est requis' });
+    }
+
+    // Validation des longueurs de champs
+    const lengthConstraints = [
+      { field: 'LibelleFamille', value: LibelleFamille, max: 100, label: 'Libellé Famille' },
+      { field: 'Description', value: Description, max: 255, label: 'Description' },
+    ];
+
+    for (const { field, value, max, label } of lengthConstraints) {
+      if (value && typeof value === 'string' && value.trim().length > max) {
+        return res.status(400).json({ error: `Le champ ${label} ne doit pas dépasser ${max} caractères.` });
+      }
+    }
+
+    // Générer CodeFamille format FAM-XXX
+    const maxResult = await pool.request().query(`
+      SELECT ISNULL(MAX(CAST(SUBSTRING(CodeFamille, 5, LEN(CodeFamille)) AS INT)), 0) as MaxNum
+      FROM ArticleFamille
+      WHERE CodeFamille LIKE 'FAM-%' AND ISNUMERIC(SUBSTRING(CodeFamille, 5, LEN(CodeFamille))) = 1
+    `);
+    const nextNumber = (maxResult.recordset[0].MaxNum || 0) + 1;
+    const CodeFamille = `FAM-${String(nextNumber).padStart(3, '0')}`;
+
+    const insert = await pool.request()
+      .input('CodeFamille', sql.NVarChar(20), CodeFamille)
+      .input('LibelleFamille', sql.NVarChar(100), LibelleFamille.trim())
+      .input('Description', sql.NVarChar(255), Description?.trim() || null)
+      .query(`
+        INSERT INTO ArticleFamille (CodeFamille, LibelleFamille, Description, Actif, DateCreation)
+        OUTPUT INSERTED.*
+        VALUES (@CodeFamille, @LibelleFamille, @Description, 1, GETDATE())
+      `);
+
+    res.status(201).json(insert.recordset[0]);
+  } catch (error) {
+    console.error('Erreur lors de la création de la famille d\'articles:', error);
+    if (error.number === 2627 || error.number === 2601) {
+      return res.status(409).json({ error: 'Une famille avec ce code existe déjà.' });
+    }
+    res.status(500).json({ error: error.message || 'Erreur serveur' });
+  }
+});
+
+// Récupérer un article par ID avec tous les champs
+app.get('/api/articles/:id', verifyToken, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (!id) return res.status(400).json({ error: 'Id invalide' });
+
+    const result = await pool.request()
+      .input('id', sql.Int, id)
+      .query(`
+        SELECT 
+          a.IdArticle, a.IdFamille, a.CodeArticle, a.Designation, 
+          a.Description, a.Unite, a.Actif, a.DateCreation, a.DateModification,
+          f.LibelleFamille
+        FROM Article a
+        LEFT JOIN ArticleFamille f ON a.IdFamille = f.IdFamille
+        WHERE a.IdArticle = @id
+      `);
+    
+    if (result.recordset.length === 0) {
+      return res.status(404).json({ error: 'Article introuvable' });
+    }
+    
+    res.json(result.recordset[0]);
+  } catch (error) {
+    console.error('Erreur lors de la récupération de l\'article:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Liste des articles
+app.get('/api/articles', async (req, res) => {
+  try {
+    const result = await pool.request().query(`
+      SELECT TOP 200
+        a.IdArticle,
+        a.CodeArticle,
+        a.Designation,
+        a.Description,
+        a.Unite,
+        a.Actif,
+        a.DateCreation,
+        f.LibelleFamille
+      FROM Article a
+      LEFT JOIN ArticleFamille f ON a.IdFamille = f.IdFamille
+      ORDER BY a.Designation
+    `);
+    res.json(result.recordset);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des articles:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Création d'un article (CodeArticle auto ART-XXX)
+app.post('/api/articles', verifyToken, async (req, res) => {
+  try {
+    const {
+      IdFamille,
+      Designation,
+      Description,
+      Unite
+    } = req.body;
+
+    if (!IdFamille || !Designation || !Unite) {
+      return res.status(400).json({ error: 'IdFamille, Designation et Unite sont requis' });
+    }
+
+    // Validation des longueurs de champs
+    const lengthConstraints = [
+      { field: 'Designation', value: Designation, max: 200, label: 'Désignation' },
+      { field: 'Description', value: Description, max: 500, label: 'Description' },
+      { field: 'Unite', value: Unite, max: 50, label: 'Unité' },
+    ];
+
+    for (const { field, value, max, label } of lengthConstraints) {
+      if (value && typeof value === 'string' && value.trim().length > max) {
+        return res.status(400).json({ error: `Le champ ${label} ne doit pas dépasser ${max} caractères.` });
+      }
+    }
+
+    // Générer CodeArticle format ART-XXX
+    const maxResult = await pool.request().query(`
+      SELECT ISNULL(MAX(CAST(SUBSTRING(CodeArticle, 5, LEN(CodeArticle)) AS INT)), 0) as MaxNum
+      FROM Article
+      WHERE CodeArticle LIKE 'ART-%' AND ISNUMERIC(SUBSTRING(CodeArticle, 5, LEN(CodeArticle))) = 1
+    `);
+    const nextNumber = (maxResult.recordset[0].MaxNum || 0) + 1;
+    const CodeArticle = `ART-${String(nextNumber).padStart(3, '0')}`;
+
+    const insert = await pool.request()
+      .input('IdFamille', sql.Int, IdFamille)
+      .input('CodeArticle', sql.NVarChar(50), CodeArticle)
+      .input('Designation', sql.NVarChar(200), Designation.trim())
+      .input('Description', sql.NVarChar(500), Description?.trim() || null)
+      .input('Unite', sql.NVarChar(50), Unite.trim())
+      .query(`
+        INSERT INTO Article (IdFamille, CodeArticle, Designation, Description, Unite, Actif, DateCreation)
+        OUTPUT INSERTED.*
+        VALUES (@IdFamille, @CodeArticle, @Designation, @Description, @Unite, 1, GETDATE())
+      `);
+
+    res.status(201).json(insert.recordset[0]);
+  } catch (error) {
+    console.error('Erreur lors de la création de l\'article:', error);
+    if (error.number === 2627 || error.number === 2601) {
+      return res.status(409).json({ error: 'Un article avec ce code existe déjà.' });
+    }
+    res.status(500).json({ error: error.message || 'Erreur serveur' });
+  }
+});
+
+// Mise à jour d'un article
+app.put('/api/articles/:id', verifyToken, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (!id) return res.status(400).json({ error: 'Id invalide' });
+
+    const {
+      IdFamille,
+      Designation,
+      Description,
+      Unite
+    } = req.body;
+
+    if (!IdFamille || !Designation || !Unite) {
+      return res.status(400).json({ error: 'IdFamille, Designation et Unite sont requis' });
+    }
+
+    // Validation des longueurs de champs
+    const lengthConstraints = [
+      { field: 'Designation', value: Designation, max: 200, label: 'Désignation' },
+      { field: 'Description', value: Description, max: 500, label: 'Description' },
+      { field: 'Unite', value: Unite, max: 50, label: 'Unité' },
+    ];
+
+    for (const { field, value, max, label } of lengthConstraints) {
+      if (value && typeof value === 'string' && value.trim().length > max) {
+        return res.status(400).json({ error: `Le champ ${label} ne doit pas dépasser ${max} caractères.` });
+      }
+    }
+
+    const update = await pool.request()
+      .input('id', sql.Int, id)
+      .input('IdFamille', sql.Int, IdFamille)
+      .input('Designation', sql.NVarChar(200), Designation.trim())
+      .input('Description', sql.NVarChar(500), Description?.trim() || null)
+      .input('Unite', sql.NVarChar(50), Unite.trim())
+      .query(`
+        UPDATE Article SET
+          IdFamille = @IdFamille,
+          Designation = @Designation,
+          Description = @Description,
+          Unite = @Unite,
+          DateModification = GETDATE()
+        WHERE IdArticle = @id
+        OUTPUT INSERTED.*
+      `);
+
+    if (update.recordset.length === 0) {
+      return res.status(404).json({ error: 'Article introuvable' });
+    }
+
+    res.json(update.recordset[0]);
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour de l\'article:', error);
+    res.status(500).json({ error: error.message || 'Erreur serveur' });
   }
 });
 

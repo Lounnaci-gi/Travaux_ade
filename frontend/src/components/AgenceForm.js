@@ -104,10 +104,10 @@ const AgenceForm = ({ user, onUnauthorized }) => {
         { field: 'NomAgence', label: 'Nom Agence', max: 100 },
         { field: 'Adresse', label: 'Adresse', max: 200 },
         { field: 'Commune', label: 'Commune', max: 60 },
-        { field: 'CodePostal', label: 'Code Postal', max: 10 },
+        { field: 'CodePostal', label: 'Code Postal', max: 5 },
         { field: 'TelephonePrincipal', label: 'Téléphone Principal', max: 10 },
         { field: 'TelephoneSecondaire', label: 'Téléphone Secondaire', max: 10 },
-        { field: 'Fax', label: 'Fax', max: 20 },
+        { field: 'Fax', label: 'Fax', max: 10 },
         { field: 'Email', label: 'Email', max: 100 },
       ];
 
@@ -262,7 +262,7 @@ const AgenceForm = ({ user, onUnauthorized }) => {
                 </div>
                 <div>
                   <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Code Postal</label>
-                  <input name="CodePostal" value={form.CodePostal} onChange={handleChange} maxLength={10} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
+                  <input name="CodePostal" value={form.CodePostal} onChange={handleChange} maxLength={5} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
                 </div>
               </div>
 
@@ -279,7 +279,7 @@ const AgenceForm = ({ user, onUnauthorized }) => {
                   </div>
                   <div>
                     <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Fax</label>
-                    <input name="Fax" value={form.Fax} onChange={handleChange} maxLength={20} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
+                    <input name="Fax" value={form.Fax} onChange={handleChange} maxLength={10} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
                   </div>
                   <div>
                     <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Email</label>

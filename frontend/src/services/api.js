@@ -224,5 +224,36 @@ api.interceptors.response.use(
   }
 );
 
+// Articles
+export const getArticles = async () => {
+  const response = await api.get('/articles');
+  return response.data;
+};
+
+export const getArticleById = async (id) => {
+  const response = await api.get(`/articles/${id}`);
+  return response.data;
+};
+
+export const createArticle = async (payload) => {
+  const response = await api.post('/articles', payload);
+  return response.data;
+};
+
+export const updateArticle = async (id, payload) => {
+  const response = await api.put(`/articles/${id}`, payload);
+  return response.data;
+};
+
+export const getArticleFamilles = async () => {
+  const response = await api.get('/articles/familles');
+  return response.data;
+};
+
+export const createArticleFamille = async (payload) => {
+  const response = await api.post('/articles/familles', payload);
+  return response.data;
+};
+
 export default api;
 
