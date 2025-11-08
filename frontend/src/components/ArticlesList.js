@@ -39,16 +39,14 @@ const ArticlesList = ({ user, onUnauthorized }) => {
     'ML',          // Mètre linéaire
     'M²',          // Mètre carré
     'M3',          // Mètre cube
-    'Cm',          // Centimètre
-    'mm',          // Millimètre
+    'CM',          // Centimètre
+    'MM',          // Millimètre
     'KG',          // Kilogramme
     'Gramme',      // Gramme
-    'Pièce',       // Pièce
     'Forfait',     // Forfait
     'Heure',       // Heure
     'Jour',        // Jour
     'Litre',       // Litre
-    'Mètre',       // Mètre
     'Ton',         // Tonne
     'Baril',       // Baril
     'Paquet',      // Paquet
@@ -377,7 +375,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                 value={form.Designation}
                 onChange={handleChange}
                 maxLength={200}
-                placeholder="Ex: Tuyau PVC DN63, Compteur d'eau, Réducteur de pression"
+                placeholder="Ex: Tuyau,Raccord, Manchon, Coude, Bouchon, Compteur d'eau, Réducteur de pression"
                 className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
                 required
               />
@@ -411,7 +409,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     value={form.Diametre}
                     onChange={handleChange}
                     maxLength={20}
-                    placeholder="Ex: 40mm, 63mm, DN50"
+                    placeholder="Ex: DN15, DN20, DN25, DN32, DN40"
                     className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
                   />
                 </div>
@@ -437,7 +435,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     value={form.Classe}
                     onChange={handleChange}
                     maxLength={20}
-                    placeholder="Ex: C6, C10, PN10, PN16, Classe B"
+                    placeholder="Ex: C6, C10, Classe A, Classe B,Classe C"
                     className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
                   />
                 </div>
@@ -450,7 +448,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     value={form.Pression}
                     onChange={handleChange}
                     maxLength={20}
-                    placeholder="Ex: PN10, PN16"
+                    placeholder="Ex: PN10, PN16, PN20, PN25"
                     className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
                   />
                 </div>

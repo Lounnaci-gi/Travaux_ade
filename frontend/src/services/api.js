@@ -213,13 +213,9 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Ne rediriger vers le login que pour les erreurs 401 (non autorisé)
-    // Les erreurs 400 (Bad Request) et autres ne doivent pas déclencher de redirection
-    if (error.response?.status === 401 && !error.config?.skipAuthRedirect) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
-    }
+    // Ne jamais rediriger vers le login en cas d'erreur
+    // Les erreurs doivent être gérées par les composants qui les appellent
+    // L'utilisateur reste sur la page actuelle
     return Promise.reject(error);
   }
 );

@@ -2595,6 +2595,20 @@ app.post('/api/articles/familles', verifyToken, async (req, res) => {
       }
     }
 
+    // Vérifier si une famille avec le même libellé existe déjà
+    const existingFamille = await pool.request()
+      .input('LibelleFamille', sql.NVarChar(100), LibelleFamille.trim())
+      .query(`
+        SELECT IdFamille, LibelleFamille
+        FROM ArticleFamille
+        WHERE LOWER(LTRIM(RTRIM(LibelleFamille))) = LOWER(LTRIM(RTRIM(@LibelleFamille)))
+          AND Actif = 1
+      `);
+
+    if (existingFamille.recordset.length > 0) {
+      return res.status(409).json({ error: 'Une famille avec ce libellé existe déjà.' });
+    }
+
     // Générer CodeFamille format FAM-XXX
     const maxResult = await pool.request().query(`
       SELECT ISNULL(MAX(CAST(SUBSTRING(CodeFamille, 5, LEN(CodeFamille)) AS INT)), 0) as MaxNum

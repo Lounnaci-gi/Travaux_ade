@@ -212,9 +212,10 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
                         ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/50'
                         : 'glass-effect hover:bg-white/10 dark:hover:bg-white/10 dark:text-gray-300 dark:hover:text-white text-gray-700 hover:text-gray-900 hover:bg-gray-100'
                     }`}
+                    title={item.label}
                   >
                     {item.icon}
-                    <span>{item.label}</span>
+                    {menuId !== 'administration' && <span>{item.label}</span>}
                     {item.submenu && (
                       <svg
                         className={`w-3 h-3 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
@@ -379,9 +380,10 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
                         ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
                         : 'glass-effect hover:bg-white/10 dark:hover:bg-white/10 dark:text-gray-300 text-gray-700 hover:text-gray-900 hover:bg-gray-100'
                     }`}
+                    title={item.label}
                   >
                     {item.icon}
-                    <span className="flex-1">{item.label}</span>
+                    {menuId !== 'administration' && <span className="flex-1">{item.label}</span>}
                     {item.submenu && (
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
