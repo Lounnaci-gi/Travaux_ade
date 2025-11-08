@@ -32,6 +32,8 @@ const ArticlesList = ({ user, onUnauthorized }) => {
     Couleur: '',
     Caracteristiques: '',
   });
+  const [matiereSearch, setMatiereSearch] = useState('');
+  const [showMatiereDropdown, setShowMatiereDropdown] = useState(false);
 
   // Liste des unités de mesure prédéfinies
   const unitesMesure = [
@@ -55,6 +57,43 @@ const ArticlesList = ({ user, onUnauthorized }) => {
     'Sachet',      // Sachet
   ];
 
+  // Liste des matières de plomberie
+  const matieresPlomberie = [
+    'Acier',
+    'Acier galvanisé',
+    'Acier inoxydable',
+    'Acier noir',
+    'Acier zingué',
+    'Aluminium',
+    'Béton',
+    'Bronze',
+    'Caoutchouc',
+    'Céramique',
+    'Composite',
+    'Cuivre',
+    'Fibre de verre',
+    'Fonte',
+    'Grès',
+    'Inox',
+    'Laiton',
+    'Multicouche',
+    'Nylon',
+    'PEHD',
+    'PEX',
+    'Plastique',
+    'Plomb',
+    'Polybutylène',
+    'Polyéthylène',
+    'Polyéthylène basse densité',
+    'Polyéthylène haute densité',
+    'Polyéthylène réticulé',
+    'Polyamide',
+    'Polypropylène',
+    'PVC',
+    'Résine',
+    'Silicone',
+    'Téflon',
+];
   useEffect(() => {
     if (!isAdmin(user)) {
       if (onUnauthorized) {
@@ -85,6 +124,24 @@ const ArticlesList = ({ user, onUnauthorized }) => {
     loadData();
   }, [user]);
 
+  // Fermer le dropdown matière quand on clique en dehors
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showMatiereDropdown && !event.target.closest('.matiere-dropdown-container')) {
+        setShowMatiereDropdown(false);
+        setMatiereSearch('');
+      }
+    };
+
+    if (showMatiereDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showMatiereDropdown]);
+
   if (!isAdmin(user)) {
     return (
       <div className="min-h-screen p-6 flex items-center justify-center">
@@ -107,6 +164,28 @@ const ArticlesList = ({ user, onUnauthorized }) => {
     setSuccess('');
   };
 
+  // Filtrer les matières selon la recherche
+  const filteredMatieres = matiereSearch
+    ? matieresPlomberie.filter((matiere) =>
+        matiere.toLowerCase().includes(matiereSearch.toLowerCase())
+      )
+    : matieresPlomberie;
+
+  // Gérer la sélection d'une matière
+  const handleMatiereSelect = (matiere) => {
+    setForm((prev) => ({ ...prev, Matiere: matiere }));
+    setMatiereSearch('');
+    setShowMatiereDropdown(false);
+  };
+
+  // Gérer le changement dans le champ de recherche matière
+  const handleMatiereSearchChange = (e) => {
+    const value = e.target.value;
+    setMatiereSearch(value);
+    setForm((prev) => ({ ...prev, Matiere: value }));
+    setShowMatiereDropdown(true);
+  };
+
   const resetForm = () => {
     setForm({
       IdFamille: '',
@@ -126,19 +205,22 @@ const ArticlesList = ({ user, onUnauthorized }) => {
     setEditingId(null);
     setError('');
     setSuccess('');
+    setMatiereSearch('');
+    setShowMatiereDropdown(false);
   };
 
   const handleEdit = async (id) => {
     try {
       setLoading(true);
       const article = await getArticleById(id);
+      const matiere = article.Matiere || '';
       setForm({
         IdFamille: article.IdFamille ? String(article.IdFamille) : '',
         Designation: article.Designation || '',
         Description: article.Description || '',
         Unite: article.Unite || '',
         Diametre: article.Diametre || '',
-        Matiere: article.Matiere || '',
+        Matiere: matiere,
         Classe: article.Classe || '',
         Pression: article.Pression || '',
         Longueur: article.Longueur != null ? String(article.Longueur) : '',
@@ -147,6 +229,8 @@ const ArticlesList = ({ user, onUnauthorized }) => {
         Couleur: article.Couleur || '',
         Caracteristiques: article.Caracteristiques || '',
       });
+      setMatiereSearch(matiere);
+      setShowMatiereDropdown(false);
       setEditingId(id);
       setError('');
       setSuccess('');
@@ -413,18 +497,56 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
                   />
                 </div>
-                <div>
+                <div className="relative matiere-dropdown-container">
                   <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">
                     Matière
                   </label>
-                  <input
-                    name="Matiere"
-                    value={form.Matiere}
-                    onChange={handleChange}
-                    maxLength={50}
-                    placeholder="Ex: PVC, PEHD, Fonte, Laiton, Béton"
-                    className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={form.Matiere}
+                      onChange={handleMatiereSearchChange}
+                      onFocus={() => {
+                        setShowMatiereDropdown(true);
+                        setMatiereSearch(form.Matiere);
+                      }}
+                      maxLength={50}
+                      placeholder="Rechercher une matière..."
+                      className="w-full px-4 py-3 pr-10 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                    />
+                    <svg
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    {showMatiereDropdown && (
+                      <>
+                        {filteredMatieres.length > 0 ? (
+                          <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border dark:border-white/20 border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                            {filteredMatieres.map((matiere) => (
+                              <button
+                                key={matiere}
+                                type="button"
+                                onClick={() => handleMatiereSelect(matiere)}
+                                className="w-full text-left px-4 py-2 hover:bg-blue-500/20 dark:hover:bg-blue-500/20 dark:text-white text-gray-900 transition-colors first:rounded-t-lg last:rounded-b-lg"
+                              >
+                                {matiere}
+                              </button>
+                            ))}
+                          </div>
+                        ) : (
+                          matiereSearch && (
+                            <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border dark:border-white/20 border-gray-300 rounded-lg shadow-lg p-4">
+                              <p className="text-sm text-gray-500 dark:text-gray-400">Aucune matière trouvée</p>
+                            </div>
+                          )
+                        )}
+                      </>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">
