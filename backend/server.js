@@ -809,6 +809,7 @@ app.post('/api/unites', verifyToken, async (req, res) => {
       NumeroIdentifiantFiscal,
       NumeroIdentificationStatistique,
       NumeroRegistreCommerce,
+      NomBanque,
       NumerocompteBancaire,
       NumeroComptePostal
     } = req.body;
@@ -874,19 +875,20 @@ app.post('/api/unites', verifyToken, async (req, res) => {
       .input('NumeroIdentifiantFiscal', sql.NVarChar(20), NumeroIdentifiantFiscal || null)
       .input('NumeroIdentificationStatistique', sql.NVarChar(20), NumeroIdentificationStatistique || null)
       .input('NumeroRegistreCommerce', sql.NVarChar(20), NumeroRegistreCommerce || null)
+      .input('NomBanque', sql.NVarChar(100), NomBanque || null)
       .input('NumerocompteBancaire', sql.NVarChar(20), NumerocompteBancaire || null)
       .input('NumeroComptePostal', sql.NVarChar(20), NumeroComptePostal || null)
       .query(`
         INSERT INTO Unite (
           CodeUnite, NomUnite, Adresse, Commune, CodePostal, TelephonePrincipal, TelephoneSecondaire,
           Fax, Email, SiteWeb, NumeroIdentifiantFiscal, NumeroIdentificationStatistique,
-          NumeroRegistreCommerce, NumerocompteBancaire, NumeroComptePostal, Actif, DateCreation
+          NumeroRegistreCommerce, NomBanque, NumerocompteBancaire, NumeroComptePostal, Actif, DateCreation
         )
         OUTPUT INSERTED.*
         VALUES (
           @CodeUnite, @NomUnite, @Adresse, @Commune, @CodePostal, @TelephonePrincipal, @TelephoneSecondaire,
           @Fax, @Email, @SiteWeb, @NumeroIdentifiantFiscal, @NumeroIdentificationStatistique,
-          @NumeroRegistreCommerce, @NumerocompteBancaire, @NumeroComptePostal, 1, GETDATE()
+          @NumeroRegistreCommerce, @NomBanque, @NumerocompteBancaire, @NumeroComptePostal, 1, GETDATE()
         )
       `);
 
@@ -977,6 +979,7 @@ app.put('/api/unites/:id', verifyToken, async (req, res) => {
       .input('NumeroIdentifiantFiscal', sql.NVarChar(20), NumeroIdentifiantFiscal || null)
       .input('NumeroIdentificationStatistique', sql.NVarChar(20), NumeroIdentificationStatistique || null)
       .input('NumeroRegistreCommerce', sql.NVarChar(20), NumeroRegistreCommerce || null)
+      .input('NomBanque', sql.NVarChar(100), NomBanque || null)
       .input('NumerocompteBancaire', sql.NVarChar(20), NumerocompteBancaire || null)
       .input('NumeroComptePostal', sql.NVarChar(20), NumeroComptePostal || null)
       .query(`
@@ -993,6 +996,7 @@ app.put('/api/unites/:id', verifyToken, async (req, res) => {
           NumeroIdentifiantFiscal = @NumeroIdentifiantFiscal,
           NumeroIdentificationStatistique = @NumeroIdentificationStatistique,
           NumeroRegistreCommerce = @NumeroRegistreCommerce,
+          NomBanque = @NomBanque,
           NumerocompteBancaire = @NumerocompteBancaire,
           NumeroComptePostal = @NumeroComptePostal,
           DateModification = GETDATE()
@@ -1086,6 +1090,7 @@ app.post('/api/centres', verifyToken, async (req, res) => {
       TelephoneSecondaire,
       Fax,
       Email,
+      NomBanque,
       NumerocompteBancaire,
       NumeroComptePostal
     } = req.body;
@@ -1138,19 +1143,20 @@ app.post('/api/centres', verifyToken, async (req, res) => {
       .input('TelephoneSecondaire', sql.NVarChar(10), TelephoneSecondaire || null)
       .input('Fax', sql.NVarChar(10), Fax || null)
       .input('Email', sql.NVarChar(100), Email || null)
+      .input('NomBanque', sql.NVarChar(100), NomBanque || null)
       .input('NumerocompteBancaire', sql.NVarChar(20), NumerocompteBancaire || null)
       .input('NumeroComptePostal', sql.NVarChar(20), NumeroComptePostal || null)
       .query(`
         INSERT INTO Centre (
           IdUnite, CodeCentre, NomCentre, PrefixeCentre, Adresse, Commune, CodePostal,
           TelephonePrincipal, TelephoneSecondaire, Fax, Email,
-          NumerocompteBancaire, NumeroComptePostal, Actif, DateCreation
+          NomBanque, NumerocompteBancaire, NumeroComptePostal, Actif, DateCreation
         )
         OUTPUT INSERTED.*
         VALUES (
           @IdUnite, @CodeCentre, @NomCentre, @PrefixeCentre, @Adresse, @Commune, @CodePostal,
           @TelephonePrincipal, @TelephoneSecondaire, @Fax, @Email,
-          @NumerocompteBancaire, @NumeroComptePostal, 1, GETDATE()
+          @NomBanque, @NumerocompteBancaire, @NumeroComptePostal, 1, GETDATE()
         )
       `);
 
@@ -1223,6 +1229,7 @@ app.put('/api/centres/:id', verifyToken, async (req, res) => {
       .input('TelephoneSecondaire', sql.NVarChar(10), TelephoneSecondaire || null)
       .input('Fax', sql.NVarChar(10), Fax || null)
       .input('Email', sql.NVarChar(100), Email || null)
+      .input('NomBanque', sql.NVarChar(100), NomBanque || null)
       .input('NumerocompteBancaire', sql.NVarChar(20), NumerocompteBancaire || null)
       .input('NumeroComptePostal', sql.NVarChar(20), NumeroComptePostal || null)
       .query(`
@@ -1237,6 +1244,7 @@ app.put('/api/centres/:id', verifyToken, async (req, res) => {
           TelephoneSecondaire = @TelephoneSecondaire,
           Fax = @Fax,
           Email = @Email,
+          NomBanque = @NomBanque,
           NumerocompteBancaire = @NumerocompteBancaire,
           NumeroComptePostal = @NumeroComptePostal,
           DateModification = GETDATE()
@@ -2558,6 +2566,13 @@ app.get('/api/articles/familles', async (req, res) => {
 // Création d'une famille d'articles (CodeFamille auto FAM-XXX)
 app.post('/api/articles/familles', verifyToken, async (req, res) => {
   try {
+    // Vérifier que l'utilisateur est admin
+    const actorRoleLower = (req.user?.role || '').toLowerCase();
+    const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin');
+    if (!isAdminRole) {
+      return res.status(403).json({ error: 'Seuls les administrateurs peuvent créer des familles d\'articles.' });
+    }
+
     const {
       LibelleFamille,
       Description
@@ -2620,6 +2635,8 @@ app.get('/api/articles/:id', verifyToken, async (req, res) => {
         SELECT 
           a.IdArticle, a.IdFamille, a.CodeArticle, a.Designation, 
           a.Description, a.Unite, a.Actif, a.DateCreation, a.DateModification,
+          a.Diametre, a.Matiere, a.Classe, a.Pression, 
+          a.Longueur, a.Largeur, a.Epaisseur, a.Couleur, a.Caracteristiques,
           f.LibelleFamille
         FROM Article a
         LEFT JOIN ArticleFamille f ON a.IdFamille = f.IdFamille
@@ -2664,11 +2681,27 @@ app.get('/api/articles', async (req, res) => {
 // Création d'un article (CodeArticle auto ART-XXX)
 app.post('/api/articles', verifyToken, async (req, res) => {
   try {
+    // Vérifier que l'utilisateur est admin
+    const actorRoleLower = (req.user?.role || '').toLowerCase();
+    const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin');
+    if (!isAdminRole) {
+      return res.status(403).json({ error: 'Seuls les administrateurs peuvent créer des articles.' });
+    }
+
     const {
       IdFamille,
       Designation,
       Description,
-      Unite
+      Unite,
+      Diametre,
+      Matiere,
+      Classe,
+      Pression,
+      Longueur,
+      Largeur,
+      Epaisseur,
+      Couleur,
+      Caracteristiques
     } = req.body;
 
     if (!IdFamille || !Designation || !Unite) {
@@ -2680,6 +2713,12 @@ app.post('/api/articles', verifyToken, async (req, res) => {
       { field: 'Designation', value: Designation, max: 200, label: 'Désignation' },
       { field: 'Description', value: Description, max: 500, label: 'Description' },
       { field: 'Unite', value: Unite, max: 50, label: 'Unité' },
+      { field: 'Diametre', value: Diametre, max: 20, label: 'Diamètre' },
+      { field: 'Matiere', value: Matiere, max: 50, label: 'Matière' },
+      { field: 'Classe', value: Classe, max: 20, label: 'Classe' },
+      { field: 'Pression', value: Pression, max: 20, label: 'Pression' },
+      { field: 'Couleur', value: Couleur, max: 30, label: 'Couleur' },
+      { field: 'Caracteristiques', value: Caracteristiques, max: 500, label: 'Caractéristiques' },
     ];
 
     for (const { field, value, max, label } of lengthConstraints) {
@@ -2703,10 +2742,27 @@ app.post('/api/articles', verifyToken, async (req, res) => {
       .input('Designation', sql.NVarChar(200), Designation.trim())
       .input('Description', sql.NVarChar(500), Description?.trim() || null)
       .input('Unite', sql.NVarChar(50), Unite.trim())
+      .input('Diametre', sql.NVarChar(20), Diametre?.trim() || null)
+      .input('Matiere', sql.NVarChar(50), Matiere?.trim() || null)
+      .input('Classe', sql.NVarChar(20), Classe?.trim() || null)
+      .input('Pression', sql.NVarChar(20), Pression?.trim() || null)
+      .input('Longueur', sql.Decimal(10, 2), Longueur || null)
+      .input('Largeur', sql.Decimal(10, 2), Largeur || null)
+      .input('Epaisseur', sql.Decimal(10, 2), Epaisseur || null)
+      .input('Couleur', sql.NVarChar(30), Couleur?.trim() || null)
+      .input('Caracteristiques', sql.NVarChar(500), Caracteristiques?.trim() || null)
       .query(`
-        INSERT INTO Article (IdFamille, CodeArticle, Designation, Description, Unite, Actif, DateCreation)
+        INSERT INTO Article (
+          IdFamille, CodeArticle, Designation, Description, Unite,
+          Diametre, Matiere, Classe, Pression, Longueur, Largeur, Epaisseur, Couleur, Caracteristiques,
+          Actif, DateCreation
+        )
         OUTPUT INSERTED.*
-        VALUES (@IdFamille, @CodeArticle, @Designation, @Description, @Unite, 1, GETDATE())
+        VALUES (
+          @IdFamille, @CodeArticle, @Designation, @Description, @Unite,
+          @Diametre, @Matiere, @Classe, @Pression, @Longueur, @Largeur, @Epaisseur, @Couleur, @Caracteristiques,
+          1, GETDATE()
+        )
       `);
 
     res.status(201).json(insert.recordset[0]);
@@ -2722,6 +2778,13 @@ app.post('/api/articles', verifyToken, async (req, res) => {
 // Mise à jour d'un article
 app.put('/api/articles/:id', verifyToken, async (req, res) => {
   try {
+    // Vérifier que l'utilisateur est admin
+    const actorRoleLower = (req.user?.role || '').toLowerCase();
+    const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin');
+    if (!isAdminRole) {
+      return res.status(403).json({ error: 'Seuls les administrateurs peuvent modifier des articles.' });
+    }
+
     const id = parseInt(req.params.id);
     if (!id) return res.status(400).json({ error: 'Id invalide' });
 
@@ -2729,7 +2792,16 @@ app.put('/api/articles/:id', verifyToken, async (req, res) => {
       IdFamille,
       Designation,
       Description,
-      Unite
+      Unite,
+      Diametre,
+      Matiere,
+      Classe,
+      Pression,
+      Longueur,
+      Largeur,
+      Epaisseur,
+      Couleur,
+      Caracteristiques
     } = req.body;
 
     if (!IdFamille || !Designation || !Unite) {
@@ -2741,6 +2813,12 @@ app.put('/api/articles/:id', verifyToken, async (req, res) => {
       { field: 'Designation', value: Designation, max: 200, label: 'Désignation' },
       { field: 'Description', value: Description, max: 500, label: 'Description' },
       { field: 'Unite', value: Unite, max: 50, label: 'Unité' },
+      { field: 'Diametre', value: Diametre, max: 20, label: 'Diamètre' },
+      { field: 'Matiere', value: Matiere, max: 50, label: 'Matière' },
+      { field: 'Classe', value: Classe, max: 20, label: 'Classe' },
+      { field: 'Pression', value: Pression, max: 20, label: 'Pression' },
+      { field: 'Couleur', value: Couleur, max: 30, label: 'Couleur' },
+      { field: 'Caracteristiques', value: Caracteristiques, max: 500, label: 'Caractéristiques' },
     ];
 
     for (const { field, value, max, label } of lengthConstraints) {
@@ -2755,15 +2833,33 @@ app.put('/api/articles/:id', verifyToken, async (req, res) => {
       .input('Designation', sql.NVarChar(200), Designation.trim())
       .input('Description', sql.NVarChar(500), Description?.trim() || null)
       .input('Unite', sql.NVarChar(50), Unite.trim())
+      .input('Diametre', sql.NVarChar(20), Diametre?.trim() || null)
+      .input('Matiere', sql.NVarChar(50), Matiere?.trim() || null)
+      .input('Classe', sql.NVarChar(20), Classe?.trim() || null)
+      .input('Pression', sql.NVarChar(20), Pression?.trim() || null)
+      .input('Longueur', sql.Decimal(10, 2), Longueur || null)
+      .input('Largeur', sql.Decimal(10, 2), Largeur || null)
+      .input('Epaisseur', sql.Decimal(10, 2), Epaisseur || null)
+      .input('Couleur', sql.NVarChar(30), Couleur?.trim() || null)
+      .input('Caracteristiques', sql.NVarChar(500), Caracteristiques?.trim() || null)
       .query(`
         UPDATE Article SET
           IdFamille = @IdFamille,
           Designation = @Designation,
           Description = @Description,
           Unite = @Unite,
+          Diametre = @Diametre,
+          Matiere = @Matiere,
+          Classe = @Classe,
+          Pression = @Pression,
+          Longueur = @Longueur,
+          Largeur = @Largeur,
+          Epaisseur = @Epaisseur,
+          Couleur = @Couleur,
+          Caracteristiques = @Caracteristiques,
           DateModification = GETDATE()
-        WHERE IdArticle = @id
         OUTPUT INSERTED.*
+        WHERE IdArticle = @id
       `);
 
     if (update.recordset.length === 0) {

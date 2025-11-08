@@ -22,7 +22,40 @@ const ArticlesList = ({ user, onUnauthorized }) => {
     Designation: '',
     Description: '',
     Unite: '',
+    Diametre: '',
+    Matiere: '',
+    Classe: '',
+    Pression: '',
+    Longueur: '',
+    Largeur: '',
+    Epaisseur: '',
+    Couleur: '',
+    Caracteristiques: '',
   });
+
+  // Liste des unités de mesure prédéfinies
+  const unitesMesure = [
+    'U',           // Unité
+    'ML',          // Mètre linéaire
+    'M²',          // Mètre carré
+    'M3',          // Mètre cube
+    'Cm',          // Centimètre
+    'mm',          // Millimètre
+    'KG',          // Kilogramme
+    'Gramme',      // Gramme
+    'Pièce',       // Pièce
+    'Forfait',     // Forfait
+    'Heure',       // Heure
+    'Jour',        // Jour
+    'Litre',       // Litre
+    'Mètre',       // Mètre
+    'Ton',         // Tonne
+    'Baril',       // Baril
+    'Paquet',      // Paquet
+    'Carton',      // Carton
+    'Boîte',       // Boîte
+    'Sachet',      // Sachet
+  ];
 
   useEffect(() => {
     if (!isAdmin(user)) {
@@ -82,6 +115,15 @@ const ArticlesList = ({ user, onUnauthorized }) => {
       Designation: '',
       Description: '',
       Unite: '',
+      Diametre: '',
+      Matiere: '',
+      Classe: '',
+      Pression: '',
+      Longueur: '',
+      Largeur: '',
+      Epaisseur: '',
+      Couleur: '',
+      Caracteristiques: '',
     });
     setEditingId(null);
     setError('');
@@ -93,10 +135,19 @@ const ArticlesList = ({ user, onUnauthorized }) => {
       setLoading(true);
       const article = await getArticleById(id);
       setForm({
-        IdFamille: article.IdFamille || '',
+        IdFamille: article.IdFamille ? String(article.IdFamille) : '',
         Designation: article.Designation || '',
         Description: article.Description || '',
         Unite: article.Unite || '',
+        Diametre: article.Diametre || '',
+        Matiere: article.Matiere || '',
+        Classe: article.Classe || '',
+        Pression: article.Pression || '',
+        Longueur: article.Longueur != null ? String(article.Longueur) : '',
+        Largeur: article.Largeur != null ? String(article.Largeur) : '',
+        Epaisseur: article.Epaisseur != null ? String(article.Epaisseur) : '',
+        Couleur: article.Couleur || '',
+        Caracteristiques: article.Caracteristiques || '',
       });
       setEditingId(id);
       setError('');
@@ -173,6 +224,12 @@ const ArticlesList = ({ user, onUnauthorized }) => {
         { field: 'Designation', value: form.Designation, max: 200, label: 'Désignation' },
         { field: 'Description', value: form.Description, max: 500, label: 'Description' },
         { field: 'Unite', value: form.Unite, max: 50, label: 'Unité' },
+        { field: 'Diametre', value: form.Diametre, max: 20, label: 'Diamètre' },
+        { field: 'Matiere', value: form.Matiere, max: 50, label: 'Matière' },
+        { field: 'Classe', value: form.Classe, max: 20, label: 'Classe' },
+        { field: 'Pression', value: form.Pression, max: 20, label: 'Pression' },
+        { field: 'Couleur', value: form.Couleur, max: 30, label: 'Couleur' },
+        { field: 'Caracteristiques', value: form.Caracteristiques, max: 500, label: 'Caractéristiques' },
       ];
 
       for (const { field, value, max, label } of lengthConstraints) {
@@ -186,22 +243,33 @@ const ArticlesList = ({ user, onUnauthorized }) => {
       }
 
       const trimValue = (val) => (val && typeof val === 'string' ? val.trim() : val) || null;
+      const parseDecimal = (val) => {
+        if (!val || val === '') return null;
+        const parsed = parseFloat(val);
+        return isNaN(parsed) ? null : parsed;
+      };
+
+      const payload = {
+        IdFamille: parseInt(form.IdFamille),
+        Designation: form.Designation.trim(),
+        Description: trimValue(form.Description),
+        Unite: form.Unite.trim(),
+        Diametre: trimValue(form.Diametre),
+        Matiere: trimValue(form.Matiere),
+        Classe: trimValue(form.Classe),
+        Pression: trimValue(form.Pression),
+        Longueur: parseDecimal(form.Longueur),
+        Largeur: parseDecimal(form.Largeur),
+        Epaisseur: parseDecimal(form.Epaisseur),
+        Couleur: trimValue(form.Couleur),
+        Caracteristiques: trimValue(form.Caracteristiques),
+      };
 
       if (editingId) {
-        await updateArticle(editingId, {
-          IdFamille: parseInt(form.IdFamille),
-          Designation: form.Designation.trim(),
-          Description: trimValue(form.Description),
-          Unite: form.Unite.trim(),
-        });
+        await updateArticle(editingId, payload);
         alertSuccess('Succès', 'Article modifié avec succès.');
       } else {
-        await createArticle({
-          IdFamille: parseInt(form.IdFamille),
-          Designation: form.Designation.trim(),
-          Description: trimValue(form.Description),
-          Unite: form.Unite.trim(),
-        });
+        await createArticle(payload);
         alertSuccess('Succès', 'Article créé avec succès.');
       }
 
@@ -283,15 +351,20 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                 <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">
                   Unité *
                 </label>
-                <input
+                <select
                   name="Unite"
                   value={form.Unite}
                   onChange={handleChange}
-                  maxLength={50}
-                  placeholder="Ex: Pièce, ML, M3, U, Forfait, Heure, Jour"
                   className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
                   required
-                />
+                >
+                  <option value="">Sélectionner une unité</option>
+                  {unitesMesure.map((unite) => (
+                    <option key={unite} value={unite}>
+                      {unite}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
@@ -321,6 +394,135 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                 rows={3}
                 className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
               />
+            </div>
+
+            <div className="border-t border-white/10 dark:border-white/10 border-gray-200/50 pt-4">
+              <h3 className="text-lg font-semibold mb-4 dark:text-white text-gray-900">
+                Variantes (optionnel)
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">
+                    Diamètre
+                  </label>
+                  <input
+                    name="Diametre"
+                    value={form.Diametre}
+                    onChange={handleChange}
+                    maxLength={20}
+                    placeholder="Ex: 40mm, 63mm, DN50"
+                    className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">
+                    Matière
+                  </label>
+                  <input
+                    name="Matiere"
+                    value={form.Matiere}
+                    onChange={handleChange}
+                    maxLength={50}
+                    placeholder="Ex: PVC, PEHD, Fonte, Laiton, Béton"
+                    className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">
+                    Classe
+                  </label>
+                  <input
+                    name="Classe"
+                    value={form.Classe}
+                    onChange={handleChange}
+                    maxLength={20}
+                    placeholder="Ex: C6, C10, PN10, PN16, Classe B"
+                    className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">
+                    Pression
+                  </label>
+                  <input
+                    name="Pression"
+                    value={form.Pression}
+                    onChange={handleChange}
+                    maxLength={20}
+                    placeholder="Ex: PN10, PN16"
+                    className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">
+                    Longueur (cm ou m)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="Longueur"
+                    value={form.Longueur}
+                    onChange={handleChange}
+                    placeholder="Ex: 100.5"
+                    className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">
+                    Largeur (cm)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="Largeur"
+                    value={form.Largeur}
+                    onChange={handleChange}
+                    placeholder="Ex: 50.2"
+                    className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">
+                    Épaisseur (mm ou cm)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="Epaisseur"
+                    value={form.Epaisseur}
+                    onChange={handleChange}
+                    placeholder="Ex: 2.5"
+                    className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">
+                    Couleur
+                  </label>
+                  <input
+                    name="Couleur"
+                    value={form.Couleur}
+                    onChange={handleChange}
+                    maxLength={30}
+                    placeholder="Ex: Bleu, Vert, Rouge"
+                    className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                  />
+                </div>
+              </div>
+              <div className="mt-4">
+                <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">
+                  Caractéristiques
+                </label>
+                <textarea
+                  name="Caracteristiques"
+                  value={form.Caracteristiques}
+                  onChange={handleChange}
+                  maxLength={500}
+                  rows={3}
+                  placeholder="Informations complémentaires texte libre"
+                  className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                />
+              </div>
             </div>
 
             <div className="flex gap-4">

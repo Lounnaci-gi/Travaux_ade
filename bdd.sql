@@ -1,6 +1,8 @@
 -- ============================================================================
--- Script SQL Server - Syst�me de Gestion des Branchements AquaConnect
--- Cr�ation de la base de donn�es et des tables
+-- Script SQL Server - Système de Gestion des Branchements AquaConnect
+-- Version 2.0 - Avec gestion des variantes d'articles et informations bancaires
+-- ============================================================================
+
 IF DB_ID(N'AquaConnect_DB') IS NULL
 BEGIN
     CREATE DATABASE AquaConnect_DB;
@@ -9,19 +11,25 @@ GO
 
 USE AquaConnect_DB;
 GO
+
 /*******************************************************
   SUPPRESSION DES OBJETS EXISTANTS DANS L'ORDRE CORRECT
 *******************************************************/
 
--- 1. Tables dépendantes de 3e ou 4e niveau (Historiques, Articles de devis)
+-- 1. Vues
+IF OBJECT_ID('dbo.V_ArticleDetaille', 'V') IS NOT NULL DROP VIEW dbo.V_ArticleDetaille;
+
+-- 2. Fonctions
+IF OBJECT_ID('dbo.fn_GenererCodeArticle', 'FN') IS NOT NULL DROP FUNCTION dbo.fn_GenererCodeArticle;
+
+-- 3. Tables dépendantes de 3e ou 4e niveau (Historiques, Articles de devis)
 IF OBJECT_ID('dbo.PaiementDevis') IS NOT NULL DROP TABLE dbo.PaiementDevis;
 IF OBJECT_ID('dbo.OrdreExecutionHistorique') IS NOT NULL DROP TABLE dbo.OrdreExecutionHistorique;
 IF OBJECT_ID('dbo.DemandeWorkflowHistorique') IS NOT NULL DROP TABLE dbo.DemandeWorkflowHistorique;
 IF OBJECT_ID('dbo.DevisArticle') IS NOT NULL DROP TABLE dbo.DevisArticle;
 IF OBJECT_ID('dbo.ArticlePrixHistorique') IS NOT NULL DROP TABLE dbo.ArticlePrixHistorique;
 
-
--- 2. Tables dépendantes de 2e niveau (Ordres, Devis, Demandes)
+-- 4. Tables dépendantes de 2e niveau (Ordres, Devis, Demandes)
 IF OBJECT_ID('dbo.OrdreExecution') IS NOT NULL DROP TABLE dbo.OrdreExecution;
 IF OBJECT_ID('dbo.Devis') IS NOT NULL DROP TABLE dbo.Devis;
 IF OBJECT_ID('dbo.DemandeBranchement') IS NOT NULL DROP TABLE dbo.DemandeBranchement;
@@ -29,13 +37,10 @@ IF OBJECT_ID('dbo.Client') IS NOT NULL DROP TABLE dbo.Client;
 IF OBJECT_ID('dbo.Utilisateur') IS NOT NULL DROP TABLE dbo.Utilisateur;
 IF OBJECT_ID('dbo.Article') IS NOT NULL DROP TABLE dbo.Article;
 
-
--- 3. Tables dépendantes de 1er niveau (Hiérarchie Géo., Types, Statuts)
+-- 5. Tables dépendantes de 1er niveau
 IF OBJECT_ID('dbo.AgenceCommerciale') IS NOT NULL DROP TABLE dbo.AgenceCommerciale;
 IF OBJECT_ID('dbo.Centre') IS NOT NULL DROP TABLE dbo.Centre;
-
 IF OBJECT_ID('dbo.Unite') IS NOT NULL DROP TABLE dbo.Unite;
-
 IF OBJECT_ID('dbo.Role') IS NOT NULL DROP TABLE dbo.Role;
 IF OBJECT_ID('dbo.ClientType') IS NOT NULL DROP TABLE dbo.ClientType;
 IF OBJECT_ID('dbo.DemandeType') IS NOT NULL DROP TABLE dbo.DemandeType;
@@ -47,22 +52,8 @@ IF OBJECT_ID('dbo.TypeDevis') IS NOT NULL DROP TABLE dbo.TypeDevis;
 
 GO
 
-
 -- ============================================================================
--- CR�ATION DE LA BASE DE DONN�ES
--- ============================================================================
-
-IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'AquaConnect_DB')
-BEGIN
-    CREATE DATABASE AquaConnect_DB;
-END
-GO
-
-USE AquaConnect_DB;
-GO
-
--- ============================================================================
--- 1. HI�RARCHIE G�OGRAPHIQUE
+-- 1. HIÉRARCHIE GÉOGRAPHIQUE
 -- ============================================================================
 
 CREATE TABLE Unite (
@@ -80,6 +71,7 @@ CREATE TABLE Unite (
     NumeroIdentifiantFiscal NVARCHAR(18),
     NumeroIdentificationStatistique NVARCHAR(15),
     NumeroRegistreCommerce NVARCHAR(15),
+    NomBanque NVARCHAR(100),
     NumerocompteBancaire NVARCHAR(20),
     NumeroComptePostal NVARCHAR(11),
     Actif BIT NOT NULL DEFAULT 1,
@@ -100,6 +92,7 @@ CREATE TABLE Centre (
     TelephoneSecondaire NVARCHAR(10) DEFAULT NULL,
     Fax NVARCHAR(10) DEFAULT NULL,   
     Email NVARCHAR(100) DEFAULT NULL,
+    NomBanque NVARCHAR(100) DEFAULT NULL,
     NumerocompteBancaire NVARCHAR(20) DEFAULT NULL,
     NumeroComptePostal NVARCHAR(20) DEFAULT NULL,
     Actif BIT NOT NULL DEFAULT 1,
@@ -171,7 +164,7 @@ CREATE TABLE Client (
 );
 
 -- ============================================================================
--- 4. UTILISATEURS ET R�LES
+-- 4. UTILISATEURS ET RÔLES
 -- ============================================================================
 
 CREATE TABLE Role (
@@ -276,7 +269,7 @@ CREATE TABLE DemandeWorkflowHistorique (
 );
 
 -- ============================================================================
--- 8. ARTICLES ET FAMILLES
+-- 8. ARTICLES ET FAMILLES (AVEC VARIANTES)
 -- ============================================================================
 
 CREATE TABLE ArticleFamille (
@@ -294,7 +287,19 @@ CREATE TABLE Article (
     CodeArticle NVARCHAR(50) NOT NULL UNIQUE,
     Designation NVARCHAR(200) NOT NULL,
     Description NVARCHAR(500),
-    Unite NVARCHAR(50) NOT NULL, -- Ex: Pi�ce, M�tre lin�aire (ML), M�tre cube (M3), Unit� (U), Forfait, Heure, Jour, etc.
+    Unite NVARCHAR(50) NOT NULL, -- Ex: Pièce, Mètre linéaire (ML), Mètre cube (M3), Unité (U), Forfait, Heure, Jour, etc.
+    
+    -- NOUVELLES COLONNES POUR LES VARIANTES (NULL si non applicable)
+    Diametre NVARCHAR(20) NULL,           -- Ex: 40mm, 63mm, DN50
+    Matiere NVARCHAR(50) NULL,            -- Ex: PVC, PEHD, Fonte, Laiton, Béton
+    Classe NVARCHAR(20) NULL,             -- Ex: C6, C10, PN10, PN16, Classe B
+    Pression NVARCHAR(20) NULL,           -- Ex: PN10, PN16
+    Longueur DECIMAL(10,2) NULL,          -- En cm ou m
+    Largeur DECIMAL(10,2) NULL,           -- En cm
+    Epaisseur DECIMAL(10,2) NULL,         -- En mm ou cm
+    Couleur NVARCHAR(30) NULL,            -- Ex: Bleu, Vert, Rouge
+    Caracteristiques NVARCHAR(500) NULL,  -- Infos complémentaires texte libre
+    
     Actif BIT NOT NULL DEFAULT 1,
     DateCreation DATETIME NOT NULL DEFAULT GETDATE(),
     DateModification DATETIME,
@@ -359,9 +364,9 @@ CREATE TABLE DevisArticle (
     IdDevisArticle INT IDENTITY(1,1) PRIMARY KEY,
     IdDevis INT NOT NULL,
     IdArticle INT NOT NULL,
-    Designation NVARCHAR(200) NOT NULL, -- Copie de la d�signation au moment du devis
-    Unite NVARCHAR(50) NOT NULL, -- Copie de l'unit� au moment du devis (Pi�ce, ML, M3, U, etc.)
-    Quantite DECIMAL(18, 3) NOT NULL CHECK (Quantite > 0), -- Ex: 2 (pi�ces), 3.5 (ML), 5.25 (M3)
+    Designation NVARCHAR(200) NOT NULL, -- Copie de la désignation au moment du devis
+    Unite NVARCHAR(50) NOT NULL, -- Copie de l'unité au moment du devis (Pièce, ML, M3, U, etc.)
+    Quantite DECIMAL(18, 3) NOT NULL CHECK (Quantite > 0), -- Ex: 2 (pièces), 3.5 (ML), 5.25 (M3)
     PrixUnitaireHT DECIMAL(18, 2) NOT NULL CHECK (PrixUnitaireHT >= 0),
     TauxTVAApplique DECIMAL(5, 2) NOT NULL CHECK (TauxTVAApplique >= 0 AND TauxTVAApplique <= 100),
     MontantHT DECIMAL(18, 2) NOT NULL CHECK (MontantHT >= 0),
@@ -402,7 +407,7 @@ CREATE TABLE PaiementDevis (
 );
 
 -- ============================================================================
--- 12. ORDRE D'EX�CUTION
+-- 12. ORDRE D'EXÉCUTION
 -- ============================================================================
 
 CREATE TABLE OrdreExecutionStatut (
@@ -454,10 +459,10 @@ CREATE TABLE OrdreExecutionHistorique (
 );
 
 -- ============================================================================
--- CR�ATION DES INDEX POUR OPTIMISATION DES PERFORMANCES
+-- CRÉATION DES INDEX POUR OPTIMISATION DES PERFORMANCES
 -- ============================================================================
 
--- Index sur la hi�rarchie g�ographique
+-- Index sur la hiérarchie géographique
 CREATE INDEX IX_Centre_Unite ON Centre(IdUnite);
 CREATE INDEX IX_AgenceCommerciale_Centre ON AgenceCommerciale(IdCentre);
 
@@ -494,6 +499,11 @@ CREATE INDEX IX_Article_Famille ON Article(IdFamille);
 CREATE INDEX IX_Article_CodeArticle ON Article(CodeArticle);
 CREATE INDEX IX_Article_Actif ON Article(Actif);
 
+-- NOUVEAUX INDEX POUR LES VARIANTES D'ARTICLES
+CREATE INDEX IX_Article_FamilleDiametre ON Article(IdFamille, Diametre) WHERE Actif = 1 AND Diametre IS NOT NULL;
+CREATE INDEX IX_Article_FamilleMatiere ON Article(IdFamille, Matiere) WHERE Actif = 1 AND Matiere IS NOT NULL;
+CREATE INDEX IX_Article_FamilleClasse ON Article(IdFamille, Classe) WHERE Actif = 1 AND Classe IS NOT NULL;
+
 -- Index sur l'historique des prix
 CREATE INDEX IX_ArticlePrixHistorique_Article ON ArticlePrixHistorique(IdArticle);
 CREATE INDEX IX_ArticlePrixHistorique_Article_Actif ON ArticlePrixHistorique(IdArticle, EstActif, DateDebutApplication DESC);
@@ -510,33 +520,3 @@ CREATE INDEX IX_Devis_EstValide ON Devis(EstValide);
 -- Index sur les articles de devis
 CREATE INDEX IX_DevisArticle_Devis ON DevisArticle(IdDevis);
 CREATE INDEX IX_DevisArticle_Article ON DevisArticle(IdArticle);
-
--- Index sur les paiements
-CREATE INDEX IX_PaiementDevis_Devis ON PaiementDevis(IdDevis);
-CREATE INDEX IX_PaiementDevis_ModePaiement ON PaiementDevis(IdModePaiement);
-CREATE INDEX IX_PaiementDevis_DatePaiement ON PaiementDevis(DatePaiement DESC);
-CREATE INDEX IX_PaiementDevis_NumeroPaiement ON PaiementDevis(NumeroPaiement);
-
--- Index sur les ordres d'ex�cution
-CREATE INDEX IX_OrdreExecution_Demande ON OrdreExecution(IdDemande);
-CREATE INDEX IX_OrdreExecution_Devis ON OrdreExecution(IdDevis);
-CREATE INDEX IX_OrdreExecution_Statut ON OrdreExecution(IdOrdreStatut);
-CREATE INDEX IX_OrdreExecution_DateEmission ON OrdreExecution(DateEmission DESC);
-CREATE INDEX IX_OrdreExecution_NumeroOrdre ON OrdreExecution(NumeroOrdre);
-
--- Index sur l'historique des ordres d'ex�cution
-CREATE INDEX IX_OrdreExecutionHistorique_Ordre ON OrdreExecutionHistorique(IdOrdre);
-CREATE INDEX IX_OrdreExecutionHistorique_Utilisateur ON OrdreExecutionHistorique(IdUtilisateur);
-CREATE INDEX IX_OrdreExecutionHistorique_DateAction ON OrdreExecutionHistorique(DateAction DESC);
-
-GO
-
--- ============================================================================
--- FIN DU SCRIPT - BASE DE DONN�ES AQUACONNECT_DB CR��E
--- ============================================================================
-
-PRINT '============================================================================';
-PRINT 'Base de donn�es AquaConnect_DB cr��e avec succ�s!';
-PRINT 'Toutes les tables et index ont �t� cr��s.';
-PRINT '============================================================================';
-GO

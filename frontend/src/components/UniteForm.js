@@ -37,6 +37,7 @@ const UniteForm = ({ user, onUnauthorized }) => {
     NumeroIdentifiantFiscal: '',
     NumeroIdentificationStatistique: '',
     NumeroRegistreCommerce: '',
+    NomBanque: '',
     NumerocompteBancaire: '',
     NumeroComptePostal: '',
   });
@@ -94,7 +95,7 @@ const UniteForm = ({ user, onUnauthorized }) => {
       NomUnite: '', Adresse: '', Commune: '', CodePostal: '',
       TelephonePrincipal: '', TelephoneSecondaire: '', Fax: '', Email: '',
       SiteWeb: '', NumeroIdentifiantFiscal: '', NumeroIdentificationStatistique: '',
-      NumeroRegistreCommerce: '', NumerocompteBancaire: '', NumeroComptePostal: '',
+      NumeroRegistreCommerce: '', NomBanque: '', NumerocompteBancaire: '', NumeroComptePostal: '',
     });
     setEditingId(null);
     setError('');
@@ -181,6 +182,7 @@ const UniteForm = ({ user, onUnauthorized }) => {
         NumeroIdentifiantFiscal: trimValue(form.NumeroIdentifiantFiscal) || null,
         NumeroIdentificationStatistique: trimValue(form.NumeroIdentificationStatistique) || null,
         NumeroRegistreCommerce: trimValue(form.NumeroRegistreCommerce) || null,
+        NomBanque: trimValue(form.NomBanque) || null,
         NumerocompteBancaire: trimValue(form.NumerocompteBancaire) || null,
         NumeroComptePostal: trimValue(form.NumeroComptePostal) || null,
       };
@@ -226,6 +228,7 @@ const UniteForm = ({ user, onUnauthorized }) => {
         NumeroIdentifiantFiscal: unite.NumeroIdentifiantFiscal || '',
         NumeroIdentificationStatistique: unite.NumeroIdentificationStatistique || '',
         NumeroRegistreCommerce: unite.NumeroRegistreCommerce || '',
+        NomBanque: unite.NomBanque || '',
         NumerocompteBancaire: unite.NumerocompteBancaire || '',
         NumeroComptePostal: unite.NumeroComptePostal || '',
       });
@@ -345,6 +348,10 @@ const UniteForm = ({ user, onUnauthorized }) => {
                   <div>
                     <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">N° Registre de Commerce</label>
                     <input name="NumeroRegistreCommerce" value={form.NumeroRegistreCommerce} onChange={handleChange} maxLength={15} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
+                  </div>
+                  <div>
+                    <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Nom de la Banque</label>
+                    <input name="NomBanque" value={form.NomBanque} onChange={handleChange} maxLength={100} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
                   </div>
                   <div>
                     <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">N° Compte Bancaire</label>

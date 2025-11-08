@@ -22,6 +22,7 @@ const CentreForm = ({ user, onUnauthorized }) => {
     TelephoneSecondaire: '',
     Fax: '',
     Email: '',
+    NomBanque: '',
     NumerocompteBancaire: '',
     NumeroComptePostal: '',
   });
@@ -82,7 +83,7 @@ const CentreForm = ({ user, onUnauthorized }) => {
     setForm({
       IdUnite: '', NomCentre: '', PrefixeCentre: '', Adresse: '', Commune: '', CodePostal: '',
       TelephonePrincipal: '', TelephoneSecondaire: '', Fax: '', Email: '',
-      NumerocompteBancaire: '', NumeroComptePostal: '',
+      NomBanque: '', NumerocompteBancaire: '', NumeroComptePostal: '',
     });
     setEditingId(null);
     setError('');
@@ -142,6 +143,7 @@ const CentreForm = ({ user, onUnauthorized }) => {
         TelephoneSecondaire: trimValue(form.TelephoneSecondaire) || null,
         Fax: trimValue(form.Fax) || null,
         Email: trimValue(form.Email) || null,
+        NomBanque: trimValue(form.NomBanque) || null,
         NumerocompteBancaire: trimValue(form.NumerocompteBancaire) || null,
         NumeroComptePostal: trimValue(form.NumeroComptePostal) || null,
       };
@@ -185,6 +187,7 @@ const CentreForm = ({ user, onUnauthorized }) => {
         TelephoneSecondaire: centre.TelephoneSecondaire || '',
         Fax: centre.Fax || '',
         Email: centre.Email || '',
+        NomBanque: centre.NomBanque || '',
         NumerocompteBancaire: centre.NumerocompteBancaire || '',
         NumeroComptePostal: centre.NumeroComptePostal || '',
       });
@@ -310,6 +313,10 @@ const CentreForm = ({ user, onUnauthorized }) => {
               <div className="border-t border-white/10 dark:border-white/10 border-gray-200/50 pt-4">
                 <h3 className="text-lg font-semibold mb-4 dark:text-white text-gray-900">Informations bancaires</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Nom de la Banque</label>
+                    <input name="NomBanque" value={form.NomBanque} onChange={handleChange} maxLength={100} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
+                  </div>
                   <div>
                     <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">N° Compte Bancaire</label>
                     <input name="NumerocompteBancaire" value={form.NumerocompteBancaire} onChange={handleChange} maxLength={20} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" />
