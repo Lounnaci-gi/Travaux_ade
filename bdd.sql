@@ -520,3 +520,38 @@ CREATE INDEX IX_Devis_EstValide ON Devis(EstValide);
 -- Index sur les articles de devis
 CREATE INDEX IX_DevisArticle_Devis ON DevisArticle(IdDevis);
 CREATE INDEX IX_DevisArticle_Article ON DevisArticle(IdArticle);
+
+-- ============================================================================
+-- DONNÉES PAR DÉFAUT
+-- ============================================================================
+
+-- Statuts de demande par défaut
+IF NOT EXISTS (SELECT 1 FROM DemandeStatut WHERE CodeStatut = 'EN_ATTENTE')
+BEGIN
+    INSERT INTO DemandeStatut (CodeStatut, LibelleStatut, OrdreStatut, Actif, DateCreation)
+    VALUES ('EN_ATTENTE', 'En attente', 1, 1, GETDATE());
+END
+
+IF NOT EXISTS (SELECT 1 FROM DemandeStatut WHERE CodeStatut = 'EN_COURS')
+BEGIN
+    INSERT INTO DemandeStatut (CodeStatut, LibelleStatut, OrdreStatut, Actif, DateCreation)
+    VALUES ('EN_COURS', 'En cours', 2, 1, GETDATE());
+END
+
+IF NOT EXISTS (SELECT 1 FROM DemandeStatut WHERE CodeStatut = 'VALIDE')
+BEGIN
+    INSERT INTO DemandeStatut (CodeStatut, LibelleStatut, OrdreStatut, Actif, DateCreation)
+    VALUES ('VALIDE', 'Validée', 3, 1, GETDATE());
+END
+
+IF NOT EXISTS (SELECT 1 FROM DemandeStatut WHERE CodeStatut = 'REJETE')
+BEGIN
+    INSERT INTO DemandeStatut (CodeStatut, LibelleStatut, OrdreStatut, Actif, DateCreation)
+    VALUES ('REJETE', 'Rejetée', 4, 1, GETDATE());
+END
+
+IF NOT EXISTS (SELECT 1 FROM DemandeStatut WHERE CodeStatut = 'TERMINE')
+BEGIN
+    INSERT INTO DemandeStatut (CodeStatut, LibelleStatut, OrdreStatut, Actif, DateCreation)
+    VALUES ('TERMINE', 'Terminée', 5, 1, GETDATE());
+END

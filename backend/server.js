@@ -453,20 +453,34 @@ app.post('/api/auth/logout', (req, res) => {
 
 // Verify token endpoint
 app.get('/api/auth/verify', (req, res) => {
-  const token = req.headers.authorization?.split(' ')[1];
-
-  if (!token) {
-    return res.status(401).json({ valid: false, error: 'Token manquant' });
-  }
-
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    if (decoded.iat && decoded.iat < SERVER_BOOT_TIME) {
-      return res.status(401).json({ valid: false, error: 'Session expirée. Veuillez vous reconnecter.' });
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ valid: false, error: 'Token manquant' });
     }
-    res.json({ valid: true, user: decoded });
+
+    const token = authHeader.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ valid: false, error: 'Token manquant' });
+    }
+
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      if (decoded.iat && decoded.iat < SERVER_BOOT_TIME) {
+        return res.status(401).json({ valid: false, error: 'Session expirée. Veuillez vous reconnecter.' });
+      }
+      res.json({ valid: true, user: decoded });
+    } catch (jwtError) {
+      if (jwtError.name === 'TokenExpiredError') {
+        return res.status(401).json({ valid: false, error: 'Token expiré' });
+      } else if (jwtError.name === 'JsonWebTokenError') {
+        return res.status(401).json({ valid: false, error: 'Token invalide' });
+      }
+      return res.status(401).json({ valid: false, error: 'Erreur de vérification du token' });
+    }
   } catch (error) {
-    return res.status(401).json({ valid: false, error: 'Token invalide' });
+    console.error('Erreur dans /api/auth/verify:', error);
+    return res.status(500).json({ valid: false, error: 'Erreur serveur' });
   }
 });
 
@@ -2508,6 +2522,41 @@ app.post('/api/demandes', verifyToken, async (req, res) => {
         SELECT TOP 1 IdStatut FROM DemandeStatut WHERE Actif = 1 ORDER BY OrdreStatut ASC
       );
 
+      IF @idStatut IS NULL
+      BEGIN
+        -- Essayer d'insérer les statuts par défaut automatiquement
+        INSERT INTO DemandeStatut (CodeStatut, LibelleStatut, OrdreStatut, Actif, DateCreation)
+        SELECT 'EN_ATTENTE', 'En attente', 1, 1, GETDATE()
+        WHERE NOT EXISTS (SELECT 1 FROM DemandeStatut WHERE CodeStatut = 'EN_ATTENTE');
+        
+        INSERT INTO DemandeStatut (CodeStatut, LibelleStatut, OrdreStatut, Actif, DateCreation)
+        SELECT 'EN_COURS', 'En cours', 2, 1, GETDATE()
+        WHERE NOT EXISTS (SELECT 1 FROM DemandeStatut WHERE CodeStatut = 'EN_COURS');
+        
+        INSERT INTO DemandeStatut (CodeStatut, LibelleStatut, OrdreStatut, Actif, DateCreation)
+        SELECT 'VALIDE', 'Validée', 3, 1, GETDATE()
+        WHERE NOT EXISTS (SELECT 1 FROM DemandeStatut WHERE CodeStatut = 'VALIDE');
+        
+        INSERT INTO DemandeStatut (CodeStatut, LibelleStatut, OrdreStatut, Actif, DateCreation)
+        SELECT 'REJETE', 'Rejetée', 4, 1, GETDATE()
+        WHERE NOT EXISTS (SELECT 1 FROM DemandeStatut WHERE CodeStatut = 'REJETE');
+        
+        INSERT INTO DemandeStatut (CodeStatut, LibelleStatut, OrdreStatut, Actif, DateCreation)
+        SELECT 'TERMINE', 'Terminée', 5, 1, GETDATE()
+        WHERE NOT EXISTS (SELECT 1 FROM DemandeStatut WHERE CodeStatut = 'TERMINE');
+        
+        -- Réessayer de récupérer le statut
+        SET @idStatut = (
+          SELECT TOP 1 IdStatut FROM DemandeStatut WHERE Actif = 1 ORDER BY OrdreStatut ASC
+        );
+        
+        IF @idStatut IS NULL
+        BEGIN
+          RAISERROR('Aucun statut actif trouvé dans DemandeStatut après initialisation', 16, 1);
+          RETURN;
+        END
+      END
+
       INSERT INTO DemandeBranchement (
         NumeroDemande,
         IdAgence,
@@ -2541,7 +2590,11 @@ app.post('/api/demandes', verifyToken, async (req, res) => {
     await transaction.commit();
     return res.status(201).json(result.recordset[0]);
   } catch (error) {
-    try { await transaction.rollback(); } catch (rollbackError) {
+    try { 
+      if (transaction) {
+        await transaction.rollback(); 
+      }
+    } catch (rollbackError) {
       console.error('Erreur lors du rollback:', rollbackError);
     }
     console.error('Erreur lors de la création de la demande:', error);
@@ -2553,13 +2606,91 @@ app.post('/api/demandes', verifyToken, async (req, res) => {
       class: error.class,
       serverName: error.serverName,
       procName: error.procName,
-      lineNumber: error.lineNumber
+      lineNumber: error.lineNumber,
+      originalError: error.originalError?.message
     });
-    const errorMessage = error.message || 'Erreur serveur';
+    
+    // Messages d'erreur plus spécifiques
+    let errorMessage = 'Erreur serveur';
+    if (error.number === 50000 || error.message?.includes('Aucun statut actif')) {
+      errorMessage = 'Aucun statut de demande actif trouvé. Veuillez contacter l\'administrateur.';
+    } else if (error.number === 515 || error.message?.includes('cannot insert the value NULL')) {
+      errorMessage = 'Une valeur obligatoire est manquante.';
+    } else if (error.number === 547 || error.message?.includes('FOREIGN KEY constraint')) {
+      errorMessage = 'Référence invalide (clé étrangère). Vérifiez que l\'agence, le client et le type de demande existent.';
+    } else if (error.originalError?.message) {
+      errorMessage = error.originalError.message;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
     res.status(500).json({ 
-      error: 'Erreur serveur',
-      details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+      error: errorMessage,
+      details: process.env.NODE_ENV === 'development' ? {
+        message: error.message,
+        number: error.number,
+        state: error.state
+      } : undefined
     });
+  }
+});
+
+// ============================================================================
+// DEMANDES - STATUTS
+// ============================================================================
+
+// Initialiser les statuts par défaut si la table est vide
+app.post('/api/demandes/statuts/init', verifyToken, async (req, res) => {
+  try {
+    // Vérifier si l'utilisateur est admin
+    if (req.user?.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Accès refusé. Seuls les administrateurs peuvent initialiser les statuts.' });
+    }
+
+    const checkRequest = pool.request();
+    const checkResult = await checkRequest.query(`
+      SELECT COUNT(*) as Count FROM DemandeStatut WHERE Actif = 1
+    `);
+
+    if (checkResult.recordset[0].Count > 0) {
+      return res.json({ 
+        message: 'Les statuts existent déjà',
+        count: checkResult.recordset[0].Count
+      });
+    }
+
+    // Insérer les statuts par défaut
+    const insertRequest = pool.request();
+    await insertRequest.query(`
+      INSERT INTO DemandeStatut (CodeStatut, LibelleStatut, OrdreStatut, Actif, DateCreation)
+      VALUES 
+        ('EN_ATTENTE', 'En attente', 1, 1, GETDATE()),
+        ('EN_COURS', 'En cours', 2, 1, GETDATE()),
+        ('VALIDE', 'Validée', 3, 1, GETDATE()),
+        ('REJETE', 'Rejetée', 4, 1, GETDATE()),
+        ('TERMINE', 'Terminée', 5, 1, GETDATE())
+    `);
+
+    res.json({ message: 'Statuts initialisés avec succès' });
+  } catch (error) {
+    console.error('Erreur lors de l\'initialisation des statuts:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Récupérer tous les statuts
+app.get('/api/demandes/statuts', async (req, res) => {
+  try {
+    const result = await pool.request().query(`
+      SELECT IdStatut, CodeStatut, LibelleStatut, OrdreStatut, Actif
+      FROM DemandeStatut
+      WHERE Actif = 1
+      ORDER BY OrdreStatut ASC
+    `);
+    res.json(result.recordset);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des statuts:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
   }
 });
 
