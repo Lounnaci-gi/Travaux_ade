@@ -655,13 +655,13 @@ app.post('/api/clients', verifyToken, async (req, res) => {
     r.input('prenom', sql.NVarChar(100), prenom || null);
     r.input('adresseResidence', sql.NVarChar(200), adresseResidence);
     r.input('communeResidence', sql.NVarChar(100), communeResidence);
-    r.input('codePostalResidence', sql.NVarChar(10), codePostalResidence);
+    r.input('codePostalResidence', sql.NVarChar(5), (codePostalResidence || '').substring(0, 5));
     r.input('adresseBranchement', sql.NVarChar(200), adresseBranchement || null);
     r.input('communeBranchement', sql.NVarChar(100), communeBranchement || null);
-    r.input('codePostalBranchement', sql.NVarChar(10), codePostalBranchement || null);
-    r.input('telephonePrincipal', sql.NVarChar(20), telephonePrincipal || null);
-    r.input('telephoneSecondaire', sql.NVarChar(20), telephoneSecondaire || null);
-    r.input('fax', sql.NVarChar(20), fax || null);
+    r.input('codePostalBranchement', sql.NVarChar(5), (codePostalBranchement || '').substring(0, 5) || null);
+    r.input('telephonePrincipal', sql.NVarChar(10), (telephonePrincipal || '').substring(0, 10) || null);
+    r.input('telephoneSecondaire', sql.NVarChar(10), (telephoneSecondaire || '').substring(0, 10) || null);
+    r.input('fax', sql.NVarChar(10), (fax || '').substring(0, 10) || null);
     r.input('email', sql.NVarChar(100), email || null);
     r.input('typeBranchement', sql.NVarChar(50), typeBranchement || null);
     r.input('numeroPieceIdentite', sql.NVarChar(50), numeroPieceIdentite || null);
@@ -2412,7 +2412,6 @@ app.post('/api/demandes', verifyToken, async (req, res) => {
       idAgence,
       idClient,
       idDemandeType,
-      objetDemande,
       commentaire,
       delaiPaiementJours,
       client: clientPayload
@@ -2441,13 +2440,13 @@ app.post('/api/demandes', verifyToken, async (req, res) => {
       tr.input('prenom', sql.NVarChar(100), clientPayload.prenom || null);
       tr.input('adresseResidence', sql.NVarChar(200), clientPayload.adresseResidence);
       tr.input('communeResidence', sql.NVarChar(100), clientPayload.communeResidence);
-      tr.input('codePostalResidence', sql.NVarChar(10), clientPayload.codePostalResidence);
+      tr.input('codePostalResidence', sql.NVarChar(5), (clientPayload.codePostalResidence || '').substring(0, 5));
       tr.input('adresseBranchement', sql.NVarChar(200), clientPayload.adresseBranchement || null);
       tr.input('communeBranchement', sql.NVarChar(100), clientPayload.communeBranchement || null);
-      tr.input('codePostalBranchement', sql.NVarChar(10), clientPayload.codePostalBranchement || null);
-      tr.input('telephonePrincipal', sql.NVarChar(20), clientPayload.telephonePrincipal || null);
-      tr.input('telephoneSecondaire', sql.NVarChar(20), clientPayload.telephoneSecondaire || null);
-      tr.input('fax', sql.NVarChar(20), clientPayload.fax || null);
+      tr.input('codePostalBranchement', sql.NVarChar(5), (clientPayload.codePostalBranchement || '').substring(0, 5) || null);
+      tr.input('telephonePrincipal', sql.NVarChar(10), (clientPayload.telephonePrincipal || '').substring(0, 10) || null);
+      tr.input('telephoneSecondaire', sql.NVarChar(10), (clientPayload.telephoneSecondaire || '').substring(0, 10) || null);
+      tr.input('fax', sql.NVarChar(10), (clientPayload.fax || '').substring(0, 10) || null);
       tr.input('email', sql.NVarChar(100), clientPayload.email || null);
       tr.input('typeBranchement', sql.NVarChar(50), clientPayload.typeBranchement || null);
       tr.input('numeroPieceIdentite', sql.NVarChar(50), clientPayload.numeroPieceIdentite || null);
@@ -2486,8 +2485,14 @@ app.post('/api/demandes', verifyToken, async (req, res) => {
     reqInsert.input('idAgence', sql.Int, idAgence);
     reqInsert.input('idClient', sql.Int, clientId);
     reqInsert.input('idDemandeType', sql.Int, idDemandeType);
-    reqInsert.input('idUtilisateur', sql.Int, req.user?.id || null);
-    reqInsert.input('objetDemande', sql.NVarChar(sql.MAX), objetDemande || null);
+    
+    // IdUtilisateurCreation est NOT NULL, donc on doit avoir un utilisateur
+    if (!req.user?.id) {
+      await transaction.rollback();
+      return res.status(401).json({ error: 'Utilisateur non authentifié' });
+    }
+    
+    reqInsert.input('idUtilisateur', sql.Int, req.user.id);
     reqInsert.input('commentaire', sql.NVarChar(sql.MAX), commentaire || null);
     reqInsert.input('delai', sql.Int, delaiPaiementJours || 30);
 
@@ -2511,7 +2516,6 @@ app.post('/api/demandes', verifyToken, async (req, res) => {
         IdStatut,
         IdUtilisateurCreation,
         DateDemande,
-        ObjetDemande,
         Commentaire,
         DelaiPaiementJours,
         Actif,
@@ -2526,7 +2530,6 @@ app.post('/api/demandes', verifyToken, async (req, res) => {
         @idStatut,
         @idUtilisateur,
         GETDATE(),
-        @objetDemande,
         @commentaire,
         @delai,
         1,
@@ -2538,9 +2541,25 @@ app.post('/api/demandes', verifyToken, async (req, res) => {
     await transaction.commit();
     return res.status(201).json(result.recordset[0]);
   } catch (error) {
-    try { await transaction.rollback(); } catch (_) {}
+    try { await transaction.rollback(); } catch (rollbackError) {
+      console.error('Erreur lors du rollback:', rollbackError);
+    }
     console.error('Erreur lors de la création de la demande:', error);
-    res.status(500).json({ error: 'Erreur serveur' });
+    console.error('Détails de l\'erreur:', {
+      message: error.message,
+      code: error.code,
+      number: error.number,
+      state: error.state,
+      class: error.class,
+      serverName: error.serverName,
+      procName: error.procName,
+      lineNumber: error.lineNumber
+    });
+    const errorMessage = error.message || 'Erreur serveur';
+    res.status(500).json({ 
+      error: 'Erreur serveur',
+      details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+    });
   }
 });
 
