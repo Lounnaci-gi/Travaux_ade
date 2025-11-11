@@ -63,48 +63,21 @@ const DemandeList = ({ user }) => {
 
   // Vérifier si l'utilisateur peut valider une demande
   const canValidateDemande = (demande, typeValidation) => {
-    if (!user) {
-      console.log('canValidateDemande: pas d\'utilisateur');
-      return false;
-    }
+    if (!user) return false;
 
     if (typeValidation === 'juridique') {
       // Chef service juridique peut valider si la validation est requise et pas encore faite
-      const isChefJuridique = isChefServiceJuridique(user);
-      if (!isChefJuridique) {
-        console.log('canValidateDemande juridique: pas chef juridique', user.codeRole);
-        return false;
-      }
-      if (!demande.ValidationJuridiqueRequise) {
-        console.log('canValidateDemande juridique: validation non requise');
-        return false;
-      }
-      if (demande.DateValidationJuridique) {
-        console.log('canValidateDemande juridique: déjà validée');
-        return false;
-      }
+      if (!isChefServiceJuridique(user)) return false;
+      if (!demande.ValidationJuridiqueRequise) return false;
+      if (demande.DateValidationJuridique) return false;
       return true;
     } else if (typeValidation === 'chefAgence') {
       // Chef d'agence peut valider si la validation est requise et pas encore faite
-      const isChef = isChefAgence(user);
-      if (!isChef) {
-        console.log('canValidateDemande chefAgence: pas chef agence', user.codeRole, user);
-        return false;
-      }
-      if (!demande.ValidationChefAgenceRequise) {
-        console.log('canValidateDemande chefAgence: validation non requise', demande.ValidationChefAgenceRequise);
-        return false;
-      }
-      if (demande.DateValidationChefAgence) {
-        console.log('canValidateDemande chefAgence: déjà validée');
-        return false;
-      }
+      if (!isChefAgence(user)) return false;
+      if (!demande.ValidationChefAgenceRequise) return false;
+      if (demande.DateValidationChefAgence) return false;
       // Vérifier que c'est l'agence de l'utilisateur
-      if (user.idAgence && Number(user.idAgence) !== Number(demande.IdAgence)) {
-        console.log('canValidateDemande chefAgence: agence différente', user.idAgence, demande.IdAgence);
-        return false;
-      }
-      console.log('canValidateDemande chefAgence: OK');
+      if (user.idAgence && Number(user.idAgence) !== Number(demande.IdAgence)) return false;
       return true;
     }
     return false;
@@ -138,6 +111,20 @@ const DemandeList = ({ user }) => {
       'TERMINE': 'bg-purple-500/20 text-purple-400',
     };
     return classes[codeStatut] || 'bg-gray-500/20 text-gray-400';
+  };
+
+  // Fonction pour obtenir l'état d'une validation
+  const getValidationStatus = (demande, validationType) => {
+    const required = demande[`Validation${validationType}Requise`];
+    const date = demande[`DateValidation${validationType}`];
+    
+    if (!required) {
+      return { status: 'not_required', label: 'Non requise', class: 'bg-gray-500/20 text-gray-400' };
+    }
+    if (date) {
+      return { status: 'validated', label: 'Validée', class: 'bg-green-500/20 text-green-400', date };
+    }
+    return { status: 'pending', label: 'En attente', class: 'bg-yellow-500/20 text-yellow-400' };
   };
 
   if (loading) {
@@ -247,6 +234,9 @@ const DemandeList = ({ user }) => {
                     Délai (jours)
                   </th>
                   <th className="py-4 px-6 text-left text-sm font-semibold dark:text-gray-300 text-gray-700">
+                    Validations
+                  </th>
+                  <th className="py-4 px-6 text-left text-sm font-semibold dark:text-gray-300 text-gray-700">
                     Actions
                   </th>
                 </tr>
@@ -254,7 +244,7 @@ const DemandeList = ({ user }) => {
               <tbody>
                 {filteredDemandes.length === 0 ? (
                   <tr>
-                    <td colSpan="9" className="py-8 text-center text-gray-400">
+                    <td colSpan="10" className="py-8 text-center text-gray-400">
                       {demandes.length === 0
                         ? 'Aucune demande enregistrée'
                         : 'Aucune demande ne correspond aux critères de recherche'}
@@ -308,6 +298,73 @@ const DemandeList = ({ user }) => {
                       </td>
                       <td className="py-4 px-6 text-sm dark:text-gray-300 text-gray-700">
                         {demande.DelaiPaiementJours || '—'}
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="flex flex-col gap-1">
+                          {/* Validation Chef Section RC */}
+                          {demande.ValidationChefSectionRelationClienteleRequise && (
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-gray-400">Chef Section RC:</span>
+                              {(() => {
+                                const status = getValidationStatus(demande, 'ChefSectionRelationClientele');
+                                return (
+                                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${status.class}`}>
+                                    {status.label}
+                                  </span>
+                                );
+                              })()}
+                            </div>
+                          )}
+                          {/* Validation Juridique */}
+                          {demande.ValidationJuridiqueRequise && (
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-gray-400">Juridique:</span>
+                              {(() => {
+                                const status = getValidationStatus(demande, 'Juridique');
+                                return (
+                                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${status.class}`}>
+                                    {status.label}
+                                  </span>
+                                );
+                              })()}
+                            </div>
+                          )}
+                          {/* Validation Chef Agence */}
+                          {demande.ValidationChefAgenceRequise && (
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-gray-400">Chef Agence:</span>
+                              {(() => {
+                                const status = getValidationStatus(demande, 'ChefAgence');
+                                return (
+                                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${status.class}`}>
+                                    {status.label}
+                                  </span>
+                                );
+                              })()}
+                            </div>
+                          )}
+                          {/* Validation Chef Centre */}
+                          {demande.ValidationChefCentreRequise && (
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-gray-400">Chef Centre:</span>
+                              {(() => {
+                                const status = getValidationStatus(demande, 'ChefCentre');
+                                return (
+                                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${status.class}`}>
+                                    {status.label}
+                                  </span>
+                                );
+                              })()}
+                            </div>
+                          )}
+                          {/* Si aucune validation requise */}
+                          {!demande.ValidationChefSectionRelationClienteleRequise && 
+                           !demande.ValidationJuridiqueRequise && 
+                           !demande.ValidationChefAgenceRequise && 
+                           !demande.ValidationChefCentreRequise && (
+                            <span className="text-xs text-gray-400">Aucune validation requise</span>
+                          )}
+                        </div>
                       </td>
                       <td className="py-4 px-6">
                         <div className="flex gap-2">

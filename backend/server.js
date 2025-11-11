@@ -1697,13 +1697,18 @@ app.put('/api/roles/:id', verifyToken, async (req, res) => {
         SET CodeRole = @CodeRole,
             LibelleRole = @LibelleRole,
             Description = @Description,
-            Actif = @Actif,
-            DateModification = GETDATE()
-        OUTPUT INSERTED.*
-        WHERE IdRole = @id
+            Actif = @Actif
+        WHERE IdRole = @id;
       `);
 
-    return res.json(update.recordset[0]);
+    // Récupérer le rôle mis à jour
+    const updatedRole = await pool.request()
+      .input('id', sql.Int, roleId)
+      .query(`
+        SELECT * FROM Role WHERE IdRole = @id
+      `);
+
+    return res.json(updatedRole.recordset[0]);
   } catch (error) {
     console.error('Erreur lors de la mise à jour du rôle:', error);
     res.status(500).json({ error: error.message || 'Erreur serveur' });
@@ -1739,8 +1744,7 @@ app.delete('/api/roles/:id', verifyToken, async (req, res) => {
       .input('id', sql.Int, roleId)
       .query(`
         UPDATE Role
-        SET Actif = 0,
-            DateModification = GETDATE()
+        SET Actif = 0
         WHERE IdRole = @id
       `);
 
