@@ -2385,6 +2385,13 @@ app.get('/api/demandes/types', async (req, res) => {
 // Création d'un type de travaux (DemandeType)
 app.post('/api/demandes/types', verifyToken, async (req, res) => {
   try {
+    // Vérifier que seul l'admin peut créer des types de travaux
+    const actorRoleLower = (req.user?.role || '').toLowerCase();
+    const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin');
+    if (!isAdminRole) {
+      return res.status(403).json({ error: 'Seuls les administrateurs peuvent créer des types de travaux.' });
+    }
+
     const { 
       LibelleType, 
       Description, 
@@ -2460,6 +2467,13 @@ app.post('/api/demandes/types', verifyToken, async (req, res) => {
 // Modification d'un type de demande
 app.put('/api/demandes/types/:id', verifyToken, async (req, res) => {
   try {
+    // Vérifier que seul l'admin peut modifier des types de travaux
+    const actorRoleLower = (req.user?.role || '').toLowerCase();
+    const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin');
+    if (!isAdminRole) {
+      return res.status(403).json({ error: 'Seuls les administrateurs peuvent modifier des types de travaux.' });
+    }
+
     console.log('PUT /api/demandes/types/:id - ID:', req.params.id);
     const id = parseInt(req.params.id);
     if (!id) return res.status(400).json({ error: 'Id invalide' });
@@ -2748,7 +2762,56 @@ app.post('/api/demandes', verifyToken, async (req, res) => {
 // Liste des demandes
 app.get('/api/demandes', verifyToken, async (req, res) => {
   try {
-    const result = await pool.request().query(`
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Utilisateur non identifié' });
+    }
+
+    // Récupérer les informations de l'utilisateur (IdAgence, IdCentre, rôle)
+    const userInfo = await pool.request()
+      .input('id', sql.Int, userId)
+      .query(`
+        SELECT u.IdAgence, u.IdCentre, r.CodeRole
+        FROM Utilisateur u
+        INNER JOIN Role r ON u.IdRole = r.IdRole
+        WHERE u.IdUtilisateur = @id
+      `);
+
+    if (userInfo.recordset.length === 0) {
+      return res.status(404).json({ error: 'Utilisateur introuvable' });
+    }
+
+    const userData = userInfo.recordset[0];
+    const actorRoleLower = (userData.CodeRole || '').toLowerCase();
+    const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin');
+    const isChefCentreRole = actorRoleLower.includes('chef') && actorRoleLower.includes('centre');
+
+    // Construire la clause WHERE selon le rôle
+    let whereClause = 'WHERE d.Actif = 1';
+    let request = pool.request();
+
+    if (!isAdminRole) {
+      if (isChefCentreRole) {
+        // Chef de centre : voir toutes les demandes de son centre
+        if (userData.IdCentre) {
+          whereClause += ' AND a.IdCentre = @centreId';
+          request.input('centreId', sql.Int, userData.IdCentre);
+        } else {
+          return res.status(403).json({ error: 'Vous n\'êtes pas affecté à un centre.' });
+        }
+      } else {
+        // Autres utilisateurs : voir seulement les demandes de leur agence
+        if (userData.IdAgence) {
+          whereClause += ' AND d.IdAgence = @agenceId';
+          request.input('agenceId', sql.Int, userData.IdAgence);
+        } else {
+          return res.status(403).json({ error: 'Vous n\'êtes pas affecté à une agence.' });
+        }
+      }
+    }
+    // Admin : pas de filtre, voit toutes les demandes
+
+    const result = await request.query(`
       SELECT 
         d.IdDemande,
         d.NumeroDemande,
@@ -2781,7 +2844,7 @@ app.get('/api/demandes', verifyToken, async (req, res) => {
       INNER JOIN AgenceCommerciale a ON d.IdAgence = a.IdAgence
       INNER JOIN Client c ON d.IdClient = c.IdClient
       INNER JOIN Utilisateur u ON d.IdUtilisateurCreation = u.IdUtilisateur
-      WHERE d.Actif = 1
+      ${whereClause}
       ORDER BY d.DateDemande DESC
     `);
     res.json(result.recordset);

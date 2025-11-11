@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getDemandes } from '../services/api';
 import { alertError } from '../ui/alerts';
 
-const DemandeList = () => {
+const DemandeList = ({ user }) => {
   const [demandes, setDemandes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -10,8 +10,11 @@ const DemandeList = () => {
   const [filterType, setFilterType] = useState('all');
 
   useEffect(() => {
-    loadDemandes();
-  }, []);
+    // Tous les utilisateurs peuvent consulter les demandes (filtrées par agence/centre côté backend)
+    if (user) {
+      loadDemandes();
+    }
+  }, [user]);
 
   const loadDemandes = async () => {
     try {

@@ -19,6 +19,26 @@ export const isChefCentre = (user) => {
   return codeRole.includes('chef') && codeRole.includes('centre');
 };
 
+// Fonction pour vérifier si l'utilisateur est chef service juridique
+export const isChefServiceJuridique = (user) => {
+  if (!user || !user.codeRole) return false;
+  const codeRole = user.codeRole.toString().toLowerCase();
+  return codeRole.includes('chef') && (codeRole.includes('juridique') || codeRole.includes('jurid'));
+};
+
+// Fonction pour vérifier si l'utilisateur est chef d'agence commerciale
+export const isChefAgenceCommerciale = (user) => {
+  if (!user || !user.codeRole) return false;
+  const codeRole = user.codeRole.toString().toLowerCase();
+  return codeRole.includes('chef') && codeRole.includes('agence') && codeRole.includes('commerciale');
+};
+
+// Fonction pour vérifier si l'utilisateur peut consulter les demandes pour validation
+export const canViewDemandesForValidation = (user) => {
+  if (!user) return false;
+  return isAdmin(user) || isChefServiceJuridique(user) || isChefAgenceCommerciale(user);
+};
+
 // Fonction pour vérifier si l'utilisateur peut modifier/supprimer un autre utilisateur
 export const canModifyUser = (currentUser, targetUser) => {
   if (!currentUser || !targetUser) return false;

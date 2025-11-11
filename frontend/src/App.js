@@ -111,9 +111,9 @@ function App() {
       case 'travaux':
         return <TravauxList />;
       case 'demandes-list':
-        return <DemandeList />;
+        return <DemandeList user={user} />;
       case 'demandes-types':
-        return <DemandeTypeForm />;
+        return <DemandeTypeForm user={user} onUnauthorized={() => setCurrentView('dashboard')} />;
       case 'demandes-create':
         return <DemandeForm user={user} onCreated={() => setCurrentView('demandes-list')} />;
       case 'clients-types':

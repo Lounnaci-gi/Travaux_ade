@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { alertSuccess, alertError, confirmDialog } from '../ui/alerts';
 import { getDemandeTypes, createDemandeType, updateDemandeType, getRoles } from '../services/api';
+import { isAdmin } from '../utils/auth';
 
-const DemandeTypeForm = () => {
+const DemandeTypeForm = ({ user, onUnauthorized }) => {
   const [types, setTypes] = useState([]);
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -62,7 +63,22 @@ const DemandeTypeForm = () => {
     }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    // Vérifier que seul l'admin peut accéder
+    if (!isAdmin(user)) {
+      if (onUnauthorized) {
+        onUnauthorized();
+      } else {
+        alertError('Accès refusé', 'Seuls les administrateurs peuvent gérer les types de travaux.');
+      }
+    }
+  }, [user, onUnauthorized]);
+
+  useEffect(() => {
+    if (isAdmin(user)) {
+      load();
+    }
+  }, [user]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -189,6 +205,18 @@ const DemandeTypeForm = () => {
       setSubmitting(false);
     }
   };
+
+  // Si l'utilisateur n'est pas admin, ne rien afficher
+  if (!isAdmin(user)) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4 dark:text-white text-gray-900">Accès refusé</h2>
+          <p className="dark:text-gray-400 text-gray-600">Seuls les administrateurs peuvent gérer les types de travaux.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-6">
