@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { alertSuccess, alertError, confirmDialog } from '../ui/alerts';
-import { getDemandeTypes, createDemandeType, updateDemandeType } from '../services/api';
+import { getDemandeTypes, createDemandeType, updateDemandeType, getRoles } from '../services/api';
 
 const DemandeTypeForm = () => {
   const [types, setTypes] = useState([]);
+  const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -12,6 +13,7 @@ const DemandeTypeForm = () => {
   const [form, setForm] = useState({
     LibelleType: '',
     Description: '',
+    RolesAutorises: [], // Liste des IdRole autorisés
     ValidationChefSectionRelationClienteleRequise: false,
     ValidationJuridiqueRequise: false,
     ValidationChefAgenceRequise: false,
@@ -22,11 +24,37 @@ const DemandeTypeForm = () => {
     Actif: true,
   });
 
+  // Fonction pour parser la Description (format JSON ou texte simple)
+  const parseDescription = (desc) => {
+    if (!desc) return { description: '', roles: [] };
+    try {
+      const parsed = JSON.parse(desc);
+      return {
+        description: parsed.d || parsed.description || '',
+        roles: parsed.r || parsed.roles || []
+      };
+    } catch {
+      // Si ce n'est pas du JSON, c'est une description simple
+      return { description: desc, roles: [] };
+    }
+  };
+
+  // Fonction pour formater la Description avec les rôles
+  const formatDescription = (description, roles) => {
+    if (!description && (!roles || roles.length === 0)) return null;
+    if (!roles || roles.length === 0) return description;
+    return JSON.stringify({ d: description || '', r: roles });
+  };
+
   const load = async () => {
     try {
       setLoading(true);
-      const data = await getDemandeTypes();
+      const [data, rolesData] = await Promise.all([
+        getDemandeTypes(),
+        getRoles()
+      ]);
       setTypes(data);
+      setRoles(rolesData || []);
     } catch (e) {
       setError('Erreur lors du chargement des types de travaux');
     } finally {
@@ -43,10 +71,20 @@ const DemandeTypeForm = () => {
     setSuccess('');
   };
 
+  const handleRoleChange = (roleId, checked) => {
+    setForm((prev) => {
+      const roles = checked
+        ? [...prev.RolesAutorises, roleId]
+        : prev.RolesAutorises.filter(id => id !== roleId);
+      return { ...prev, RolesAutorises: roles };
+    });
+  };
+
   const resetForm = () => {
     setForm({ 
       LibelleType: '', 
       Description: '', 
+      RolesAutorises: [],
       ValidationChefSectionRelationClienteleRequise: false,
       ValidationJuridiqueRequise: false, 
       ValidationChefAgenceRequise: false, 
@@ -60,9 +98,11 @@ const DemandeTypeForm = () => {
   };
 
   const handleEdit = (type) => {
+    const parsed = parseDescription(type.Description);
     setForm({
       LibelleType: type.LibelleType || '',
-      Description: type.Description || '',
+      Description: parsed.description,
+      RolesAutorises: parsed.roles || [],
       ValidationChefSectionRelationClienteleRequise: type.ValidationChefSectionRelationClienteleRequise || false,
       ValidationJuridiqueRequise: type.ValidationJuridiqueRequise || false,
       ValidationChefAgenceRequise: type.ValidationChefAgenceRequise || false,
@@ -106,12 +146,19 @@ const DemandeTypeForm = () => {
     
     try {
       setSubmitting(true);
+      // Formater la description avec les rôles autorisés
+      const descriptionFormatted = formatDescription(form.Description, form.RolesAutorises);
+      const formData = {
+        ...form,
+        Description: descriptionFormatted
+      };
+      
       if (isEditing) {
-        const updated = await updateDemandeType(editingId, form);
+        const updated = await updateDemandeType(editingId, formData);
         setSuccess(`Type modifié: ${updated.LibelleType}`);
         alertSuccess('Succès', `Type modifié: ${updated.LibelleType}`);
       } else {
-        const created = await createDemandeType(form);
+        const created = await createDemandeType(formData);
         setSuccess(`Type créé: ${created.LibelleType}`);
         alertSuccess('Succès', `Type créé: ${created.LibelleType}`);
       }
@@ -178,6 +225,26 @@ const DemandeTypeForm = () => {
             <div className="md:col-span-2">
               <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Description</label>
               <input name="Description" value={form.Description} onChange={handleChange} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" placeholder="Description optionnelle" />
+            </div>
+            <div className="md:col-span-2 border-t border-white/10 dark:border-white/10 border-gray-200/50 pt-4">
+              <h3 className="text-lg font-semibold mb-4 dark:text-white text-gray-900">Rôles autorisés à créer ce type de demande</h3>
+              <p className="text-xs text-gray-400 mb-3">Sélectionnez les rôles qui peuvent créer ce type de demande. Si aucun rôle n'est sélectionné, tous les utilisateurs peuvent créer ce type.</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {roles.map((role) => (
+                  <label key={role.IdRole} className="inline-flex items-center gap-2 text-sm dark:text-gray-300 text-gray-700 cursor-pointer hover:bg-white/5 p-2 rounded">
+                    <input
+                      type="checkbox"
+                      checked={form.RolesAutorises.includes(role.IdRole)}
+                      onChange={(e) => handleRoleChange(role.IdRole, e.target.checked)}
+                      className="accent-blue-500"
+                    />
+                    <span>{role.LibelleRole} ({role.CodeRole})</span>
+                  </label>
+                ))}
+              </div>
+              {roles.length === 0 && (
+                <p className="text-xs text-gray-400">Aucun rôle disponible</p>
+              )}
             </div>
             <div className="border-t border-white/10 dark:border-white/10 border-gray-200/50 pt-4">
               <h3 className="text-lg font-semibold mb-4 dark:text-white text-gray-900">Validations requises pour la Demande</h3>
@@ -265,6 +332,7 @@ const DemandeTypeForm = () => {
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Code</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Libellé</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Description</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Rôles autorisés</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Validations requises</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Statut</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Actions</th>
@@ -275,7 +343,35 @@ const DemandeTypeForm = () => {
                     <tr key={t.IdDemandeType} className="border-b border-white/5 dark:border-white/5 border-gray-100/50 hover:bg-white/5 dark:hover:bg-white/5">
                       <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700 font-mono">{t.CodeType}</td>
                       <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700 font-semibold">{t.LibelleType}</td>
-                      <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{t.Description || '—'}</td>
+                      <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">
+                        {(() => {
+                          const parsed = parseDescription(t.Description);
+                          return parsed.description || '—';
+                        })()}
+                      </td>
+                      <td className="py-3 px-4 text-sm">
+                        {(() => {
+                          const parsed = parseDescription(t.Description);
+                          const rolesAutorises = parsed.roles || [];
+                          if (rolesAutorises.length === 0) {
+                            return <span className="text-gray-400 text-xs">Tous les rôles</span>;
+                          }
+                          // Trouver les noms des rôles
+                          const roleNames = rolesAutorises.map(roleId => {
+                            const role = roles.find(r => r.IdRole === roleId);
+                            return role ? role.LibelleRole : `ID:${roleId}`;
+                          });
+                          return (
+                            <div className="flex flex-wrap gap-1">
+                              {roleNames.map((name, idx) => (
+                                <span key={idx} className="px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 text-xs">
+                                  {name}
+                                </span>
+                              ))}
+                            </div>
+                          );
+                        })()}
+                      </td>
                       <td className="py-3 px-4 text-sm">
                         <div className="space-y-2">
                           <div className="flex flex-wrap gap-2">

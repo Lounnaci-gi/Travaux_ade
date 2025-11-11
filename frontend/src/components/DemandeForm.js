@@ -43,13 +43,46 @@ const DemandeForm = ({ user, onCreated }) => {
     diametreBranchement: '',
   });
 
+  // Fonction pour parser la Description et extraire les rôles autorisés
+  const parseDescription = (desc) => {
+    if (!desc) return { description: '', roles: [] };
+    try {
+      const parsed = JSON.parse(desc);
+      return {
+        description: parsed.d || parsed.description || '',
+        roles: parsed.r || parsed.roles || []
+      };
+    } catch {
+      // Si ce n'est pas du JSON, c'est une description simple (tous les rôles autorisés)
+      return { description: desc, roles: [] };
+    }
+  };
+
+  // Fonction pour vérifier si l'utilisateur peut créer un type de demande
+  const canUserCreateType = (type) => {
+    if (!user?.idRole) return false; // Pas de rôle = pas d'accès
+    const parsed = parseDescription(type.Description);
+    const rolesAutorises = parsed.roles || [];
+    // Si aucun rôle n'est spécifié, tous les utilisateurs peuvent créer
+    if (rolesAutorises.length === 0) return true;
+    // Vérifier si le rôle de l'utilisateur est dans la liste (comparaison avec conversion en nombre)
+    const userRoleId = Number(user.idRole);
+    return rolesAutorises.some(roleId => Number(roleId) === userRoleId);
+  };
+
   useEffect(() => {
     const load = async () => {
       try {
         setLoading(true);
         // Charger d'abord les types de demande pour remplir la liste déroulante
         const typesData = await getDemandeTypes();
-        setTypes(typesData || []);
+        // Filtrer les types selon le rôle de l'utilisateur
+        const filteredTypes = (typesData || []).filter(type => {
+          // Filtrer aussi par Actif
+          if (!type.Actif) return false;
+          return canUserCreateType(type);
+        });
+        setTypes(filteredTypes);
 
         // Charger les autres référentiels sans bloquer le formulaire en cas d'erreur
         const [clientsRes, agencesRes, clientTypesRes] = await Promise.allSettled([
