@@ -192,7 +192,7 @@ app.get('/api/travaux', async (req, res) => {
         u.Nom + ' ' + ISNULL(u.Prenom, '') as UtilisateurEmission
       FROM OrdreExecution o
       INNER JOIN OrdreExecutionStatut s ON o.IdOrdreStatut = s.IdOrdreStatut
-      INNER JOIN DemandeBranchement d ON o.IdDemande = d.IdDemande
+      INNER JOIN DemandeTravaux d ON o.IdDemande = d.IdDemande
       INNER JOIN Devis dv ON o.IdDevis = dv.IdDevis
       INNER JOIN Client c ON d.IdClient = c.IdClient
       INNER JOIN Utilisateur u ON o.IdUtilisateurEmission = u.IdUtilisateur
@@ -224,7 +224,7 @@ app.get('/api/travaux/:id', async (req, res) => {
         u.Nom + ' ' + ISNULL(u.Prenom, '') as UtilisateurEmission
       FROM OrdreExecution o
       INNER JOIN OrdreExecutionStatut s ON o.IdOrdreStatut = s.IdOrdreStatut
-      INNER JOIN DemandeBranchement d ON o.IdDemande = d.IdDemande
+      INNER JOIN DemandeTravaux d ON o.IdDemande = d.IdDemande
       INNER JOIN Devis dv ON o.IdDevis = dv.IdDevis
       INNER JOIN Client c ON d.IdClient = c.IdClient
       INNER JOIN Utilisateur u ON o.IdUtilisateurEmission = u.IdUtilisateur
@@ -2359,7 +2359,19 @@ app.delete('/api/utilisateurs/:id', verifyToken, async (req, res) => {
 app.get('/api/demandes/types', async (req, res) => {
   try {
     const result = await pool.request().query(`
-      SELECT IdDemandeType, CodeType, LibelleType
+      SELECT 
+        IdDemandeType, 
+        CodeType, 
+        LibelleType,
+        Description,
+        ValidationChefSectionRelationClienteleRequise,
+        ValidationJuridiqueRequise,
+        ValidationChefAgenceRequise,
+        ValidationChefCentreRequise,
+        ValidationOE_ChefSectionRelationClienteleRequise,
+        ValidationOE_ChefAgenceRequise,
+        ValidationOE_ChefCentreRequise,
+        Actif
       FROM DemandeType
       ORDER BY DateCreation DESC, LibelleType
     `);
@@ -2373,7 +2385,17 @@ app.get('/api/demandes/types', async (req, res) => {
 // Création d'un type de travaux (DemandeType)
 app.post('/api/demandes/types', verifyToken, async (req, res) => {
   try {
-    const { LibelleType, Description, ValidationJuridiqueRequise, ValidationChefAgenceRequise } = req.body;
+    const { 
+      LibelleType, 
+      Description, 
+      ValidationChefSectionRelationClienteleRequise,
+      ValidationJuridiqueRequise, 
+      ValidationChefAgenceRequise, 
+      ValidationChefCentreRequise,
+      ValidationOE_ChefSectionRelationClienteleRequise,
+      ValidationOE_ChefAgenceRequise,
+      ValidationOE_ChefCentreRequise
+    } = req.body;
 
     if (!LibelleType) {
       return res.status(400).json({ error: 'LibelleType est requis' });
@@ -2400,18 +2422,102 @@ app.post('/api/demandes/types', verifyToken, async (req, res) => {
       .input('CodeType', sql.NVarChar(50), CodeType)
       .input('LibelleType', sql.NVarChar(100), LibelleType)
       .input('Description', sql.NVarChar(255), Description || null)
+      .input('VCSRC', sql.Bit, ValidationChefSectionRelationClienteleRequise === true)
       .input('VJ', sql.Bit, ValidationJuridiqueRequise === true)
       .input('VCA', sql.Bit, ValidationChefAgenceRequise === true)
+      .input('VCC', sql.Bit, ValidationChefCentreRequise === true)
+      .input('VOE_CSRC', sql.Bit, ValidationOE_ChefSectionRelationClienteleRequise === true)
+      .input('VOE_CA', sql.Bit, ValidationOE_ChefAgenceRequise === true)
+      .input('VOE_CC', sql.Bit, ValidationOE_ChefCentreRequise === true)
       .query(`
-        INSERT INTO DemandeType (CodeType, LibelleType, Description, ValidationJuridiqueRequise, ValidationChefAgenceRequise, Actif, DateCreation)
+        INSERT INTO DemandeType (
+          CodeType, LibelleType, Description, 
+          ValidationChefSectionRelationClienteleRequise,
+          ValidationJuridiqueRequise, 
+          ValidationChefAgenceRequise, 
+          ValidationChefCentreRequise,
+          ValidationOE_ChefSectionRelationClienteleRequise,
+          ValidationOE_ChefAgenceRequise,
+          ValidationOE_ChefCentreRequise,
+          Actif, DateCreation
+        )
         OUTPUT INSERTED.*
-        VALUES (@CodeType, @LibelleType, @Description, @VJ, @VCA, 1, GETDATE())
+        VALUES (
+          @CodeType, @LibelleType, @Description, 
+          @VCSRC, @VJ, @VCA, @VCC,
+          @VOE_CSRC, @VOE_CA, @VOE_CC,
+          1, GETDATE()
+        )
       `);
 
     res.status(201).json(insert.recordset[0]);
   } catch (error) {
     console.error('Erreur lors de la création du type de travaux:', error);
-    res.status(500).json({ error: 'Erreur serveur' });
+    res.status(500).json({ error: error.message || 'Erreur serveur' });
+  }
+});
+
+// Modification d'un type de demande
+app.put('/api/demandes/types/:id', verifyToken, async (req, res) => {
+  try {
+    console.log('PUT /api/demandes/types/:id - ID:', req.params.id);
+    const id = parseInt(req.params.id);
+    if (!id) return res.status(400).json({ error: 'Id invalide' });
+
+    const { 
+      LibelleType, 
+      Description, 
+      ValidationChefSectionRelationClienteleRequise,
+      ValidationJuridiqueRequise, 
+      ValidationChefAgenceRequise, 
+      ValidationChefCentreRequise,
+      ValidationOE_ChefSectionRelationClienteleRequise,
+      ValidationOE_ChefAgenceRequise,
+      ValidationOE_ChefCentreRequise,
+      Actif
+    } = req.body;
+
+    if (!LibelleType) {
+      return res.status(400).json({ error: 'LibelleType est requis' });
+    }
+
+    const update = await pool.request()
+      .input('id', sql.Int, id)
+      .input('LibelleType', sql.NVarChar(100), LibelleType)
+      .input('Description', sql.NVarChar(255), Description || null)
+      .input('VCSRC', sql.Bit, ValidationChefSectionRelationClienteleRequise === true)
+      .input('VJ', sql.Bit, ValidationJuridiqueRequise === true)
+      .input('VCA', sql.Bit, ValidationChefAgenceRequise === true)
+      .input('VCC', sql.Bit, ValidationChefCentreRequise === true)
+      .input('VOE_CSRC', sql.Bit, ValidationOE_ChefSectionRelationClienteleRequise === true)
+      .input('VOE_CA', sql.Bit, ValidationOE_ChefAgenceRequise === true)
+      .input('VOE_CC', sql.Bit, ValidationOE_ChefCentreRequise === true)
+      .input('Actif', sql.Bit, Actif !== false)
+      .query(`
+        UPDATE DemandeType SET
+          LibelleType = @LibelleType,
+          Description = @Description,
+          ValidationChefSectionRelationClienteleRequise = @VCSRC,
+          ValidationJuridiqueRequise = @VJ,
+          ValidationChefAgenceRequise = @VCA,
+          ValidationChefCentreRequise = @VCC,
+          ValidationOE_ChefSectionRelationClienteleRequise = @VOE_CSRC,
+          ValidationOE_ChefAgenceRequise = @VOE_CA,
+          ValidationOE_ChefCentreRequise = @VOE_CC,
+          Actif = @Actif
+        WHERE IdDemandeType = @id;
+        
+        SELECT * FROM DemandeType WHERE IdDemandeType = @id;
+      `);
+
+    if (update.recordset.length === 0) {
+      return res.status(404).json({ error: 'Type de demande introuvable' });
+    }
+
+    res.json(update.recordset[0]);
+  } catch (error) {
+    console.error('Erreur lors de la modification du type de travaux:', error);
+    res.status(500).json({ error: error.message || 'Erreur serveur' });
   }
 });
 
@@ -2513,7 +2619,7 @@ app.post('/api/demandes', verifyToken, async (req, res) => {
     const insertQuery = `
       DECLARE @today NVARCHAR(8) = CONVERT(NVARCHAR(8), GETDATE(), 112);
       DECLARE @countToday INT = (
-        SELECT COUNT(*) FROM DemandeBranchement WHERE CONVERT(NVARCHAR(8), DateCreation, 112) = @today
+        SELECT COUNT(*) FROM DemandeTravaux WHERE CONVERT(NVARCHAR(8), DateCreation, 112) = @today
       );
       DECLARE @seq NVARCHAR(4) = RIGHT('0000' + CAST(@countToday + 1 AS NVARCHAR(4)), 4);
       DECLARE @numero NVARCHAR(50) = CONCAT('DEM-', @today, '-', @seq);
@@ -2557,7 +2663,7 @@ app.post('/api/demandes', verifyToken, async (req, res) => {
         END
       END
 
-      INSERT INTO DemandeBranchement (
+      INSERT INTO DemandeTravaux (
         NumeroDemande,
         IdAgence,
         IdClient,
@@ -2632,6 +2738,95 @@ app.post('/api/demandes', verifyToken, async (req, res) => {
         state: error.state
       } : undefined
     });
+  }
+});
+
+// ============================================================================
+// DEMANDES - LECTURE
+// ============================================================================
+
+// Liste des demandes
+app.get('/api/demandes', verifyToken, async (req, res) => {
+  try {
+    const result = await pool.request().query(`
+      SELECT 
+        d.IdDemande,
+        d.NumeroDemande,
+        d.DateDemande,
+        d.Commentaire,
+        d.DelaiPaiementJours,
+        d.Actif,
+        d.DateCreation,
+        d.DateModification,
+        d.DateValidationChefSectionRelationClientele,
+        d.DateValidationJuridique,
+        d.DateValidationChefAgence,
+        d.DateValidationChefCentre,
+        s.IdStatut,
+        s.CodeStatut,
+        s.LibelleStatut as Statut,
+        dt.IdDemandeType,
+        dt.CodeType,
+        dt.LibelleType as TypeDemande,
+        a.IdAgence,
+        a.NomAgence,
+        c.IdClient,
+        c.Nom as ClientNom,
+        c.Prenom as ClientPrenom,
+        c.TelephonePrincipal as ClientTelephone,
+        u.Nom + ' ' + ISNULL(u.Prenom, '') as Createur
+      FROM DemandeTravaux d
+      INNER JOIN DemandeStatut s ON d.IdStatut = s.IdStatut
+      INNER JOIN DemandeType dt ON d.IdDemandeType = dt.IdDemandeType
+      INNER JOIN AgenceCommerciale a ON d.IdAgence = a.IdAgence
+      INNER JOIN Client c ON d.IdClient = c.IdClient
+      INNER JOIN Utilisateur u ON d.IdUtilisateurCreation = u.IdUtilisateur
+      WHERE d.Actif = 1
+      ORDER BY d.DateDemande DESC
+    `);
+    res.json(result.recordset);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des demandes:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Récupérer une demande par ID
+app.get('/api/demandes/:id', verifyToken, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (!id) return res.status(400).json({ error: 'Id invalide' });
+
+    const result = await pool.request()
+      .input('id', sql.Int, id)
+      .query(`
+        SELECT 
+          d.*,
+          s.CodeStatut,
+          s.LibelleStatut as Statut,
+          dt.CodeType,
+          dt.LibelleType as TypeDemande,
+          a.NomAgence,
+          c.Nom as ClientNom,
+          c.Prenom as ClientPrenom,
+          u.Nom + ' ' + ISNULL(u.Prenom, '') as Createur
+        FROM DemandeTravaux d
+        INNER JOIN DemandeStatut s ON d.IdStatut = s.IdStatut
+        INNER JOIN DemandeType dt ON d.IdDemandeType = dt.IdDemandeType
+        INNER JOIN AgenceCommerciale a ON d.IdAgence = a.IdAgence
+        INNER JOIN Client c ON d.IdClient = c.IdClient
+        INNER JOIN Utilisateur u ON d.IdUtilisateurCreation = u.IdUtilisateur
+        WHERE d.IdDemande = @id
+      `);
+    
+    if (result.recordset.length === 0) {
+      return res.status(404).json({ error: 'Demande introuvable' });
+    }
+    
+    res.json(result.recordset[0]);
+  } catch (error) {
+    console.error('Erreur lors de la récupération de la demande:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
   }
 });
 

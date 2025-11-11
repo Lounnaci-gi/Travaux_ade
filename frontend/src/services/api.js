@@ -167,8 +167,23 @@ export const createDemandeType = async (payload) => {
   return response.data;
 };
 
+export const updateDemandeType = async (id, payload) => {
+  const response = await api.put(`/demandes/types/${id}`, payload);
+  return response.data;
+};
+
 export const createDemande = async (payload) => {
   const response = await api.post('/demandes', payload);
+  return response.data;
+};
+
+export const getDemandes = async () => {
+  const response = await api.get('/demandes');
+  return response.data;
+};
+
+export const getDemande = async (id) => {
+  const response = await api.get(`/demandes/${id}`);
   return response.data;
 };
 

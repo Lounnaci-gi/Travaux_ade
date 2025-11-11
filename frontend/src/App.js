@@ -4,6 +4,7 @@ import Navbar from './components/Navbar';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import TravauxList from './components/TravauxList';
+import DemandeList from './components/DemandeList';
 import DemandeForm from './components/DemandeForm';
 import DemandeTypeForm from './components/DemandeTypeForm';
 import ClientTypeForm from './components/ClientTypeForm';
@@ -109,10 +110,12 @@ function App() {
         return <Dashboard />;
       case 'travaux':
         return <TravauxList />;
+      case 'demandes-list':
+        return <DemandeList />;
       case 'demandes-types':
         return <DemandeTypeForm />;
       case 'demandes-create':
-        return <DemandeForm onCreated={() => setCurrentView('dashboard')} />;
+        return <DemandeForm onCreated={() => setCurrentView('demandes-list')} />;
       case 'clients-types':
         return <ClientTypeForm />;
       case 'unites-create':
