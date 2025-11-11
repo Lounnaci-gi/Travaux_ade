@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { getDemandes } from '../services/api';
-import { alertError } from '../ui/alerts';
+import { getDemandes, validateDemande } from '../services/api';
+import { alertError, alertSuccess, confirmDialog } from '../ui/alerts';
+import { isChefServiceJuridique, isChefAgence } from '../utils/auth';
 
 const DemandeList = ({ user }) => {
   const [demandes, setDemandes] = useState([]);
@@ -58,6 +59,74 @@ const DemandeList = ({ user }) => {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  // Vérifier si l'utilisateur peut valider une demande
+  const canValidateDemande = (demande, typeValidation) => {
+    if (!user) {
+      console.log('canValidateDemande: pas d\'utilisateur');
+      return false;
+    }
+
+    if (typeValidation === 'juridique') {
+      // Chef service juridique peut valider si la validation est requise et pas encore faite
+      const isChefJuridique = isChefServiceJuridique(user);
+      if (!isChefJuridique) {
+        console.log('canValidateDemande juridique: pas chef juridique', user.codeRole);
+        return false;
+      }
+      if (!demande.ValidationJuridiqueRequise) {
+        console.log('canValidateDemande juridique: validation non requise');
+        return false;
+      }
+      if (demande.DateValidationJuridique) {
+        console.log('canValidateDemande juridique: déjà validée');
+        return false;
+      }
+      return true;
+    } else if (typeValidation === 'chefAgence') {
+      // Chef d'agence peut valider si la validation est requise et pas encore faite
+      const isChef = isChefAgence(user);
+      if (!isChef) {
+        console.log('canValidateDemande chefAgence: pas chef agence', user.codeRole, user);
+        return false;
+      }
+      if (!demande.ValidationChefAgenceRequise) {
+        console.log('canValidateDemande chefAgence: validation non requise', demande.ValidationChefAgenceRequise);
+        return false;
+      }
+      if (demande.DateValidationChefAgence) {
+        console.log('canValidateDemande chefAgence: déjà validée');
+        return false;
+      }
+      // Vérifier que c'est l'agence de l'utilisateur
+      if (user.idAgence && Number(user.idAgence) !== Number(demande.IdAgence)) {
+        console.log('canValidateDemande chefAgence: agence différente', user.idAgence, demande.IdAgence);
+        return false;
+      }
+      console.log('canValidateDemande chefAgence: OK');
+      return true;
+    }
+    return false;
+  };
+
+  const handleValidate = async (demande, typeValidation) => {
+    const typeLabel = typeValidation === 'juridique' ? 'juridique' : 'chef d\'agence';
+    const confirmed = await confirmDialog(
+      'Confirmer la validation',
+      `Êtes-vous sûr de vouloir valider cette demande en tant que ${typeLabel} ?`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await validateDemande(demande.IdDemande, typeValidation);
+      alertSuccess('Succès', 'Demande validée avec succès');
+      loadDemandes(); // Recharger la liste
+    } catch (error) {
+      const errorMsg = error.response?.data?.error || 'Erreur lors de la validation';
+      alertError('Erreur', errorMsg);
+    }
   };
 
   const getStatutBadgeClass = (codeStatut) => {
@@ -177,12 +246,15 @@ const DemandeList = ({ user }) => {
                   <th className="py-4 px-6 text-left text-sm font-semibold dark:text-gray-300 text-gray-700">
                     Délai (jours)
                   </th>
+                  <th className="py-4 px-6 text-left text-sm font-semibold dark:text-gray-300 text-gray-700">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {filteredDemandes.length === 0 ? (
                   <tr>
-                    <td colSpan="8" className="py-8 text-center text-gray-400">
+                    <td colSpan="9" className="py-8 text-center text-gray-400">
                       {demandes.length === 0
                         ? 'Aucune demande enregistrée'
                         : 'Aucune demande ne correspond aux critères de recherche'}
@@ -236,6 +308,31 @@ const DemandeList = ({ user }) => {
                       </td>
                       <td className="py-4 px-6 text-sm dark:text-gray-300 text-gray-700">
                         {demande.DelaiPaiementJours || '—'}
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="flex gap-2">
+                          {canValidateDemande(demande, 'juridique') && (
+                            <button
+                              onClick={() => handleValidate(demande, 'juridique')}
+                              className="px-3 py-1 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 text-xs font-semibold transition-colors"
+                              title="Valider juridiquement"
+                            >
+                              Valider (Juridique)
+                            </button>
+                          )}
+                          {canValidateDemande(demande, 'chefAgence') && (
+                            <button
+                              onClick={() => handleValidate(demande, 'chefAgence')}
+                              className="px-3 py-1 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 text-xs font-semibold transition-colors"
+                              title="Valider en tant que chef d'agence"
+                            >
+                              Valider (Agence)
+                            </button>
+                          )}
+                          {!canValidateDemande(demande, 'juridique') && !canValidateDemande(demande, 'chefAgence') && (
+                            <span className="text-xs text-gray-400">—</span>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))

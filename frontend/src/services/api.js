@@ -182,6 +182,11 @@ export const getDemandes = async () => {
   return response.data;
 };
 
+export const validateDemande = async (demandeId, typeValidation) => {
+  const response = await api.post(`/demandes/${demandeId}/validate`, { typeValidation });
+  return response.data;
+};
+
 export const getDemande = async (id) => {
   const response = await api.get(`/demandes/${id}`);
   return response.data;

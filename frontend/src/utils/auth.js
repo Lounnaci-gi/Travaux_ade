@@ -26,11 +26,21 @@ export const isChefServiceJuridique = (user) => {
   return codeRole.includes('chef') && (codeRole.includes('juridique') || codeRole.includes('jurid'));
 };
 
+// Fonction pour vérifier si l'utilisateur est chef d'agence (simple)
+export const isChefAgence = (user) => {
+  if (!user) return false;
+  // Vérifier codeRole (avec minuscule) ou CodeRole (avec majuscule) ou role
+  const codeRole = (user.codeRole || user.CodeRole || user.role || '').toString().toLowerCase();
+  return codeRole.includes('chef') && codeRole.includes('agence');
+};
+
 // Fonction pour vérifier si l'utilisateur est chef d'agence commerciale
 export const isChefAgenceCommerciale = (user) => {
   if (!user || !user.codeRole) return false;
   const codeRole = user.codeRole.toString().toLowerCase();
-  return codeRole.includes('chef') && codeRole.includes('agence') && codeRole.includes('commerciale');
+  // Accepter soit "chef agence" simple, soit "chef agence commerciale"
+  return (codeRole.includes('chef') && codeRole.includes('agence')) || 
+         (codeRole.includes('chef') && codeRole.includes('agence') && codeRole.includes('commerciale'));
 };
 
 // Fonction pour vérifier si l'utilisateur peut consulter les demandes pour validation

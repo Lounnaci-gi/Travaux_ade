@@ -2831,6 +2831,10 @@ app.get('/api/demandes', verifyToken, async (req, res) => {
         dt.IdDemandeType,
         dt.CodeType,
         dt.LibelleType as TypeDemande,
+        dt.ValidationChefSectionRelationClienteleRequise,
+        dt.ValidationJuridiqueRequise,
+        dt.ValidationChefAgenceRequise,
+        dt.ValidationChefCentreRequise,
         a.IdAgence,
         a.NomAgence,
         c.IdClient,
@@ -2851,6 +2855,144 @@ app.get('/api/demandes', verifyToken, async (req, res) => {
   } catch (error) {
     console.error('Erreur lors de la récupération des demandes:', error);
     res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Validation d'une demande
+app.post('/api/demandes/:id/validate', verifyToken, async (req, res) => {
+  try {
+    const demandeId = parseInt(req.params.id);
+    const userId = req.user?.id;
+    const { typeValidation } = req.body; // 'juridique' ou 'chefAgence'
+
+    if (!demandeId || !userId || !typeValidation) {
+      return res.status(400).json({ error: 'Paramètres manquants' });
+    }
+
+    // Récupérer les informations de l'utilisateur et de la demande
+    const userInfo = await pool.request()
+      .input('id', sql.Int, userId)
+      .query(`
+        SELECT u.IdAgence, u.IdCentre, r.CodeRole
+        FROM Utilisateur u
+        INNER JOIN Role r ON u.IdRole = r.IdRole
+        WHERE u.IdUtilisateur = @id
+      `);
+
+    if (userInfo.recordset.length === 0) {
+      return res.status(404).json({ error: 'Utilisateur introuvable' });
+    }
+
+    const userData = userInfo.recordset[0];
+    const actorRoleLower = (userData.CodeRole || '').toLowerCase();
+
+    // Récupérer la demande avec son type
+    const demandeInfo = await pool.request()
+      .input('id', sql.Int, demandeId)
+      .query(`
+        SELECT 
+          d.*,
+          dt.ValidationJuridiqueRequise,
+          dt.ValidationChefAgenceRequise,
+          a.IdAgence as DemandeIdAgence
+        FROM DemandeTravaux d
+        INNER JOIN DemandeType dt ON d.IdDemandeType = dt.IdDemandeType
+        INNER JOIN AgenceCommerciale a ON d.IdAgence = a.IdAgence
+        WHERE d.IdDemande = @id
+      `);
+
+    if (demandeInfo.recordset.length === 0) {
+      return res.status(404).json({ error: 'Demande introuvable' });
+    }
+
+    const demande = demandeInfo.recordset[0];
+
+    // Vérifier les permissions selon le type de validation
+    if (typeValidation === 'juridique') {
+      // Vérifier que l'utilisateur est chef service juridique
+      const isChefJuridique = actorRoleLower.includes('chef') && (actorRoleLower.includes('juridique') || actorRoleLower.includes('jurid'));
+      if (!isChefJuridique) {
+        return res.status(403).json({ error: 'Seul le chef service juridique peut valider juridiquement.' });
+      }
+      // Vérifier que la validation juridique est requise pour ce type
+      if (!demande.ValidationJuridiqueRequise) {
+        return res.status(400).json({ error: 'La validation juridique n\'est pas requise pour ce type de demande.' });
+      }
+      // Vérifier que la validation n'a pas déjà été faite
+      if (demande.DateValidationJuridique) {
+        return res.status(400).json({ error: 'Cette demande a déjà été validée juridiquement.' });
+      }
+    } else if (typeValidation === 'chefAgence') {
+      // Vérifier que l'utilisateur est chef d'agence
+      const isChefAgence = actorRoleLower.includes('chef') && actorRoleLower.includes('agence');
+      if (!isChefAgence) {
+        return res.status(403).json({ error: 'Seul le chef d\'agence peut valider.' });
+      }
+      // Vérifier que la validation chef agence est requise pour ce type
+      if (!demande.ValidationChefAgenceRequise) {
+        return res.status(400).json({ error: 'La validation chef d\'agence n\'est pas requise pour ce type de demande.' });
+      }
+      // Vérifier que la validation n'a pas déjà été faite
+      if (demande.DateValidationChefAgence) {
+        return res.status(400).json({ error: 'Cette demande a déjà été validée par le chef d\'agence.' });
+      }
+      // Vérifier que l'utilisateur est chef de l'agence de la demande
+      if (userData.IdAgence && Number(userData.IdAgence) !== Number(demande.DemandeIdAgence)) {
+        return res.status(403).json({ error: 'Vous ne pouvez valider que les demandes de votre agence.' });
+      }
+    } else {
+      return res.status(400).json({ error: 'Type de validation invalide' });
+    }
+
+    // Effectuer la validation
+    let updateQuery = '';
+    if (typeValidation === 'juridique') {
+      updateQuery = `
+        UPDATE DemandeTravaux 
+        SET DateValidationJuridique = GETDATE(),
+            IdUtilisateurValidationJuridique = @userId,
+            DateModification = GETDATE()
+        WHERE IdDemande = @demandeId;
+      `;
+    } else if (typeValidation === 'chefAgence') {
+      updateQuery = `
+        UPDATE DemandeTravaux 
+        SET DateValidationChefAgence = GETDATE(),
+            IdUtilisateurValidationChefAgence = @userId,
+            DateModification = GETDATE()
+        WHERE IdDemande = @demandeId;
+      `;
+    }
+
+    await pool.request()
+      .input('userId', sql.Int, userId)
+      .input('demandeId', sql.Int, demandeId)
+      .query(updateQuery);
+
+    // Récupérer la demande mise à jour
+    const updatedDemande = await pool.request()
+      .input('id', sql.Int, demandeId)
+      .query(`
+        SELECT 
+          d.*,
+          s.CodeStatut,
+          s.LibelleStatut as Statut,
+          dt.LibelleType as TypeDemande,
+          a.NomAgence,
+          c.Nom as ClientNom,
+          c.Prenom as ClientPrenom
+        FROM DemandeTravaux d
+        INNER JOIN DemandeStatut s ON d.IdStatut = s.IdStatut
+        INNER JOIN DemandeType dt ON d.IdDemandeType = dt.IdDemandeType
+        INNER JOIN AgenceCommerciale a ON d.IdAgence = a.IdAgence
+        INNER JOIN Client c ON d.IdClient = c.IdClient
+        WHERE d.IdDemande = @id
+      `);
+
+    res.json(updatedDemande.recordset[0]);
+  } catch (error) {
+    console.error('Erreur lors de la validation de la demande:', error);
+    res.status(500).json({ error: error.message || 'Erreur serveur' });
   }
 });
 
