@@ -115,7 +115,7 @@ function App() {
       case 'demandes-types':
         return <DemandeTypeForm />;
       case 'demandes-create':
-        return <DemandeForm onCreated={() => setCurrentView('demandes-list')} />;
+        return <DemandeForm user={user} onCreated={() => setCurrentView('demandes-list')} />;
       case 'clients-types':
         return <ClientTypeForm />;
       case 'unites-create':

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { alertSuccess, alertError, confirmDialog } from '../ui/alerts';
 import { getClients, getClientById, getClientTypes, getAgences, getDemandeTypes, createClient, createDemande } from '../services/api';
+import { isAdmin } from '../utils/auth';
 
-const DemandeForm = ({ onCreated }) => {
+const DemandeForm = ({ user, onCreated }) => {
   const [clients, setClients] = useState([]);
   const [agences, setAgences] = useState([]);
   const [types, setTypes] = useState([]);
@@ -59,6 +60,14 @@ const DemandeForm = ({ onCreated }) => {
         if (clientsRes.status === 'fulfilled') setClients(clientsRes.value);
         if (agencesRes.status === 'fulfilled') setAgences(agencesRes.value);
         if (clientTypesRes.status === 'fulfilled') setClientTypes(clientTypesRes.value);
+
+        // Pré-remplir automatiquement l'agence de l'utilisateur connecté
+        if (user?.idAgence) {
+          setForm(prev => ({
+            ...prev,
+            idAgence: String(user.idAgence)
+          }));
+        }
       } catch (e) {
         setError('Erreur lors du chargement des données');
         console.error(e);
@@ -67,7 +76,7 @@ const DemandeForm = ({ onCreated }) => {
       }
     };
     load();
-  }, []);
+  }, [user]);
 
   // Vérifier si le type de demande sélectionné contient "Branchement"
   const isBranchementType = () => {
@@ -147,10 +156,15 @@ const DemandeForm = ({ onCreated }) => {
         setError('Veuillez sélectionner un client existant ou créer un nouveau client.');
         return;
       }
-      // Vérifier que l'agence est sélectionnée
-      if (!form.idAgence) {
+      // Vérifier que l'agence est définie (soit dans le formulaire, soit via l'utilisateur)
+      const agenceId = form.idAgence || user?.idAgence;
+      if (!agenceId) {
         setSubmitting(false);
-        setError('Veuillez sélectionner une agence.');
+        if (!isAdmin(user)) {
+          setError('Vous devez être assigné à une agence pour créer une demande. Veuillez contacter l\'administrateur.');
+        } else {
+          setError('Veuillez sélectionner une agence.');
+        }
         return;
       }
       // Vérifier que le type de demande est sélectionné
@@ -176,7 +190,7 @@ const DemandeForm = ({ onCreated }) => {
             diametreBranchement: null,
           }),
         } : undefined,
-        idAgence: Number(form.idAgence),
+        idAgence: Number(agenceId),
         idDemandeType: Number(form.idDemandeType),
         commentaire: form.commentaire || null,
         delaiPaiementJours: Number(form.delaiPaiementJours) || 30,
@@ -392,12 +406,19 @@ const DemandeForm = ({ onCreated }) => {
                   </div>
 
                   <div>
-                    <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Agence</label>
+                    <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">
+                      Agence *
+                      {user?.idAgence && !isAdmin(user) && (
+                        <span className="ml-2 text-xs text-gray-400">(définie automatiquement)</span>
+                      )}
+                    </label>
                     <select
                       name="idAgence"
                       value={form.idAgence}
                       onChange={handleChange}
                       className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                      disabled={user?.idAgence && !isAdmin(user)}
                     >
                       <option value="">Sélectionner une agence</option>
                       {agences.map((a) => (
@@ -406,6 +427,11 @@ const DemandeForm = ({ onCreated }) => {
                         </option>
                       ))}
                     </select>
+                    {user?.idAgence && !isAdmin(user) && (
+                      <p className="mt-1 text-xs text-gray-400">
+                        L'agence est automatiquement définie selon votre affectation
+                      </p>
+                    )}
                   </div>
                 </div>
 
