@@ -8,6 +8,7 @@ const Dashboard = () => {
     TravauxEnCours: 0,
     TravauxTermines: 0,
     TravauxEnAttente: 0,
+    DemandesEnAttenteParType: [],
   });
   const [loading, setLoading] = useState(true);
 
@@ -75,6 +76,9 @@ const Dashboard = () => {
     },
   ];
 
+  // Calculer le total des demandes en attente
+  const totalDemandesEnAttente = stats.DemandesEnAttenteParType?.reduce((sum, item) => sum + (item.Nombre || 0), 0) || 0;
+
   return (
     <div className="p-6">
       <div className="max-w-7xl mx-auto">
@@ -87,11 +91,63 @@ const Dashboard = () => {
             <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {statsCards.map((card, index) => (
-              <StatsCard key={index} {...card} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {statsCards.map((card, index) => {
+                // Carte spéciale pour "En Attente" avec détails par type
+                if (card.title === 'En Attente') {
+                  return (
+                    <div
+                      key={index}
+                      className="glass-card p-6 transform transition-all duration-500 hover:scale-105 hover:-translate-y-2"
+                      style={{ animationDelay: `${card.delay}ms` }}
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <div className={`p-3 rounded-xl ${card.color} bg-opacity-20 backdrop-blur-sm`}>
+                          {card.icon}
+                        </div>
+                        <div className="text-right">
+                          <p className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                            {card.value}
+                          </p>
+                          <p className="dark:text-gray-300 text-gray-700 text-sm mt-1">{card.title}</p>
+                        </div>
+                      </div>
+                      <div className="h-1 w-full dark:bg-gray-700 bg-gray-300 rounded-full overflow-hidden mb-3">
+                        <div 
+                          className={`h-full ${card.color} animate-pulse`}
+                          style={{ width: '100%' }}
+                        ></div>
+                      </div>
+                      {stats.DemandesEnAttenteParType && stats.DemandesEnAttenteParType.length > 0 ? (
+                        <div className="space-y-2 mt-3">
+                          {stats.DemandesEnAttenteParType.map((item, idx) => (
+                            <div
+                              key={idx}
+                              className="flex items-center justify-between p-2 rounded-lg bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/10"
+                            >
+                              <span className="text-xs dark:text-gray-300 text-gray-700 truncate flex-1 mr-2">
+                                {item.TypeDemande || 'Non spécifié'}
+                              </span>
+                              <span className="text-sm font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent whitespace-nowrap">
+                                {String(item.Nombre || 0).padStart(2, '0')}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-center text-gray-400 text-xs py-2">
+                          Aucune demande
+                        </p>
+                      )}
+                    </div>
+                  );
+                }
+                // Autres cartes normales
+                return <StatsCard key={index} {...card} />;
+              })}
+            </div>
+          </>
         )}
       </div>
     </div>

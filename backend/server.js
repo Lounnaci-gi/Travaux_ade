@@ -271,8 +271,32 @@ app.get('/api/travaux/:id/historique', async (req, res) => {
 });
 
 // Get statistics
-app.get('/api/stats', async (req, res) => {
+app.get('/api/stats', verifyToken, async (req, res) => {
   try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Utilisateur non identifié' });
+    }
+
+    // Récupérer les informations de l'utilisateur (IdAgence, IdCentre, rôle)
+    const userInfo = await pool.request()
+      .input('id', sql.Int, userId)
+      .query(`
+        SELECT u.IdAgence, u.IdCentre, r.CodeRole
+        FROM Utilisateur u
+        INNER JOIN Role r ON u.IdRole = r.IdRole
+        WHERE u.IdUtilisateur = @id
+      `);
+
+    if (userInfo.recordset.length === 0) {
+      return res.status(404).json({ error: 'Utilisateur introuvable' });
+    }
+
+    const userData = userInfo.recordset[0];
+    const actorRoleLower = (userData.CodeRole || '').toLowerCase();
+    const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin');
+    const isChefCentreRole = actorRoleLower.includes('chef') && actorRoleLower.includes('centre');
+
     const request = pool.request();
     
     const stats = await request.query(`
@@ -287,7 +311,51 @@ app.get('/api/stats', async (req, res) => {
         (SELECT COUNT(*) FROM OrdreExecution WHERE DateDebutExecution IS NULL) as TravauxEnAttente
     `);
     
-    res.json(stats.recordset[0]);
+    // Construire la clause WHERE pour filtrer les demandes en attente selon le rôle
+    let whereClause = `WHERE s.CodeStatut = 'EN_ATTENTE' AND d.Actif = 1`;
+    let demandeRequest = pool.request();
+
+    if (!isAdminRole) {
+      if (isChefCentreRole) {
+        // Chef de centre : voir toutes les demandes de son centre
+        if (userData.IdCentre) {
+          whereClause += ' AND a.IdCentre = @centreId';
+          demandeRequest.input('centreId', sql.Int, userData.IdCentre);
+        } else {
+          return res.status(403).json({ error: 'Vous n\'êtes pas affecté à un centre.' });
+        }
+      } else {
+        // Autres utilisateurs : voir seulement les demandes de leur agence
+        if (userData.IdAgence) {
+          whereClause += ' AND d.IdAgence = @agenceId';
+          demandeRequest.input('agenceId', sql.Int, userData.IdAgence);
+        } else {
+          return res.status(403).json({ error: 'Vous n\'êtes pas affecté à une agence.' });
+        }
+      }
+    }
+    // Admin : pas de filtre, voit toutes les demandes
+
+    // Récupérer les demandes en attente groupées par type avec filtrage selon le rôle
+    const demandesEnAttente = await demandeRequest.query(`
+      SELECT 
+        dt.LibelleType as TypeDemande,
+        COUNT(*) as Nombre
+      FROM DemandeTravaux d
+      INNER JOIN DemandeStatut s ON d.IdStatut = s.IdStatut
+      INNER JOIN DemandeType dt ON d.IdDemandeType = dt.IdDemandeType
+      INNER JOIN AgenceCommerciale a ON d.IdAgence = a.IdAgence
+      ${whereClause}
+      GROUP BY dt.LibelleType, dt.IdDemandeType
+      ORDER BY COUNT(*) DESC, dt.LibelleType
+    `);
+    
+    const result = {
+      ...stats.recordset[0],
+      DemandesEnAttenteParType: demandesEnAttente.recordset
+    };
+    
+    res.json(result);
   } catch (error) {
     console.error('Erreur lors de la récupération des statistiques:', error);
     res.status(500).json({ error: 'Erreur serveur' });
@@ -2635,12 +2703,47 @@ app.post('/api/demandes', verifyToken, async (req, res) => {
     reqInsert.input('delai', sql.Int, delaiPaiementJours || 30);
 
     const insertQuery = `
-      DECLARE @today NVARCHAR(8) = CONVERT(NVARCHAR(8), GETDATE(), 112);
-      DECLARE @countToday INT = (
-        SELECT COUNT(*) FROM DemandeTravaux WHERE CONVERT(NVARCHAR(8), DateCreation, 112) = @today
-      );
-      DECLARE @seq NVARCHAR(4) = RIGHT('0000' + CAST(@countToday + 1 AS NVARCHAR(4)), 4);
-      DECLARE @numero NVARCHAR(50) = CONCAT('DEM-', @today, '-', @seq);
+      -- Récupérer le préfixe du centre depuis l'agence
+      DECLARE @prefixeCentre NVARCHAR(5);
+      SELECT @prefixeCentre = c.PrefixeCentre
+      FROM AgenceCommerciale a
+      INNER JOIN Centre c ON a.IdCentre = c.IdCentre
+      WHERE a.IdAgence = @idAgence;
+      
+      -- Si le préfixe n'est pas trouvé, utiliser une valeur par défaut
+      IF @prefixeCentre IS NULL OR @prefixeCentre = ''
+      BEGIN
+        SET @prefixeCentre = 'DEF';
+      END
+      
+      -- Récupérer l'année en cours
+      DECLARE @annee NVARCHAR(4) = CAST(YEAR(GETDATE()) AS NVARCHAR(4));
+      
+      -- Calculer le prochain numéro séquentiel pour cette année et ce préfixe
+      DECLARE @nextSeq INT = 1;
+      DECLARE @suffixPattern NVARCHAR(50) = CONCAT('/', @prefixeCentre, '/', @annee);
+      
+      -- Extraire le numéro séquentiel des demandes existantes avec le même préfixe et année
+      -- Format attendu: DEM-XXXX/préfix/yyyy où XXXX est le numéro séquentiel
+      SELECT @nextSeq = ISNULL(MAX(
+        CASE 
+          WHEN NumeroDemande LIKE CONCAT('DEM-%', @suffixPattern)
+            AND LEN(NumeroDemande) >= 13
+            AND SUBSTRING(NumeroDemande, 1, 4) = 'DEM-'
+            AND CHARINDEX('/', NumeroDemande, 5) > 5
+            AND ISNUMERIC(SUBSTRING(NumeroDemande, 5, CHARINDEX('/', NumeroDemande, 5) - 5)) = 1
+          THEN CAST(SUBSTRING(NumeroDemande, 5, CHARINDEX('/', NumeroDemande, 5) - 5) AS INT)
+          ELSE 0
+        END
+      ), 0) + 1
+      FROM DemandeTravaux
+      WHERE NumeroDemande LIKE CONCAT('DEM-%', @suffixPattern);
+      
+      -- Formater le numéro séquentiel avec padding de 4 chiffres
+      DECLARE @seq NVARCHAR(4) = RIGHT('0000' + CAST(@nextSeq AS NVARCHAR(4)), 4);
+      
+      -- Générer le numéro au format DEM-XXXX/préfix/yyyy
+      DECLARE @numero NVARCHAR(50) = CONCAT('DEM-', @seq, '/', @prefixeCentre, '/', @annee);
 
       DECLARE @idStatut INT = (
         SELECT TOP 1 IdStatut FROM DemandeStatut WHERE Actif = 1 ORDER BY OrdreStatut ASC
