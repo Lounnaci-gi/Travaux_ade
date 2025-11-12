@@ -270,98 +270,6 @@ app.get('/api/travaux/:id/historique', async (req, res) => {
   }
 });
 
-// Get statistics
-app.get('/api/stats', verifyToken, async (req, res) => {
-  try {
-    const userId = req.user?.id;
-    if (!userId) {
-      return res.status(401).json({ error: 'Utilisateur non identifié' });
-    }
-
-    // Récupérer les informations de l'utilisateur (IdAgence, IdCentre, rôle)
-    const userInfo = await pool.request()
-      .input('id', sql.Int, userId)
-      .query(`
-        SELECT u.IdAgence, u.IdCentre, r.CodeRole
-        FROM Utilisateur u
-        INNER JOIN Role r ON u.IdRole = r.IdRole
-        WHERE u.IdUtilisateur = @id
-      `);
-
-    if (userInfo.recordset.length === 0) {
-      return res.status(404).json({ error: 'Utilisateur introuvable' });
-    }
-
-    const userData = userInfo.recordset[0];
-    const actorRoleLower = (userData.CodeRole || '').toLowerCase();
-    const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin');
-    const isChefCentreRole = actorRoleLower.includes('chef') && actorRoleLower.includes('centre');
-
-    const request = pool.request();
-    
-    const stats = await request.query(`
-      SELECT 
-        (SELECT COUNT(*) FROM OrdreExecution) as TotalTravaux,
-        (SELECT COUNT(*) FROM OrdreExecution WHERE IdOrdreStatut = 
-          (SELECT IdOrdreStatut FROM OrdreExecutionStatut WHERE CodeStatut = 'EN_COURS')
-        ) as TravauxEnCours,
-        (SELECT COUNT(*) FROM OrdreExecution WHERE IdOrdreStatut = 
-          (SELECT IdOrdreStatut FROM OrdreExecutionStatut WHERE CodeStatut = 'TERMINE')
-        ) as TravauxTermines,
-        (SELECT COUNT(*) FROM OrdreExecution WHERE DateDebutExecution IS NULL) as TravauxEnAttente
-    `);
-    
-    // Construire la clause WHERE pour filtrer les demandes en attente selon le rôle
-    let whereClause = `WHERE s.CodeStatut = 'EN_ATTENTE' AND d.Actif = 1`;
-    let demandeRequest = pool.request();
-
-    if (!isAdminRole) {
-      if (isChefCentreRole) {
-        // Chef de centre : voir toutes les demandes de son centre
-        if (userData.IdCentre) {
-          whereClause += ' AND a.IdCentre = @centreId';
-          demandeRequest.input('centreId', sql.Int, userData.IdCentre);
-        } else {
-          return res.status(403).json({ error: 'Vous n\'êtes pas affecté à un centre.' });
-        }
-      } else {
-        // Autres utilisateurs : voir seulement les demandes de leur agence
-        if (userData.IdAgence) {
-          whereClause += ' AND d.IdAgence = @agenceId';
-          demandeRequest.input('agenceId', sql.Int, userData.IdAgence);
-        } else {
-          return res.status(403).json({ error: 'Vous n\'êtes pas affecté à une agence.' });
-        }
-      }
-    }
-    // Admin : pas de filtre, voit toutes les demandes
-
-    // Récupérer les demandes en attente groupées par type avec filtrage selon le rôle
-    const demandesEnAttente = await demandeRequest.query(`
-      SELECT 
-        dt.LibelleType as TypeDemande,
-        COUNT(*) as Nombre
-      FROM DemandeTravaux d
-      INNER JOIN DemandeStatut s ON d.IdStatut = s.IdStatut
-      INNER JOIN DemandeType dt ON d.IdDemandeType = dt.IdDemandeType
-      INNER JOIN AgenceCommerciale a ON d.IdAgence = a.IdAgence
-      ${whereClause}
-      GROUP BY dt.LibelleType, dt.IdDemandeType
-      ORDER BY COUNT(*) DESC, dt.LibelleType
-    `);
-    
-    const result = {
-      ...stats.recordset[0],
-      DemandesEnAttenteParType: demandesEnAttente.recordset
-    };
-    
-    res.json(result);
-  } catch (error) {
-    console.error('Erreur lors de la récupération des statistiques:', error);
-    res.status(500).json({ error: 'Erreur serveur' });
-  }
-});
-
 // Authentication Routes
 
 // Login
@@ -571,6 +479,98 @@ const verifyToken = (req, res, next) => {
     return res.status(401).json({ error: 'Token invalide' });
   }
 };
+
+// Get statistics
+app.get('/api/stats', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Utilisateur non identifié' });
+    }
+
+    // Récupérer les informations de l'utilisateur (IdAgence, IdCentre, rôle)
+    const userInfo = await pool.request()
+      .input('id', sql.Int, userId)
+      .query(`
+        SELECT u.IdAgence, u.IdCentre, r.CodeRole
+        FROM Utilisateur u
+        INNER JOIN Role r ON u.IdRole = r.IdRole
+        WHERE u.IdUtilisateur = @id
+      `);
+
+    if (userInfo.recordset.length === 0) {
+      return res.status(404).json({ error: 'Utilisateur introuvable' });
+    }
+
+    const userData = userInfo.recordset[0];
+    const actorRoleLower = (userData.CodeRole || '').toLowerCase();
+    const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin');
+    const isChefCentreRole = actorRoleLower.includes('chef') && actorRoleLower.includes('centre');
+
+    const request = pool.request();
+    
+    const stats = await request.query(`
+      SELECT 
+        (SELECT COUNT(*) FROM OrdreExecution) as TotalTravaux,
+        (SELECT COUNT(*) FROM OrdreExecution WHERE IdOrdreStatut = 
+          (SELECT IdOrdreStatut FROM OrdreExecutionStatut WHERE CodeStatut = 'EN_COURS')
+        ) as TravauxEnCours,
+        (SELECT COUNT(*) FROM OrdreExecution WHERE IdOrdreStatut = 
+          (SELECT IdOrdreStatut FROM OrdreExecutionStatut WHERE CodeStatut = 'TERMINE')
+        ) as TravauxTermines,
+        (SELECT COUNT(*) FROM OrdreExecution WHERE DateDebutExecution IS NULL) as TravauxEnAttente
+    `);
+    
+    // Construire la clause WHERE pour filtrer les demandes en attente selon le rôle
+    let whereClause = `WHERE s.CodeStatut = 'EN_ATTENTE' AND d.Actif = 1`;
+    let demandeRequest = pool.request();
+
+    if (!isAdminRole) {
+      if (isChefCentreRole) {
+        // Chef de centre : voir toutes les demandes de son centre
+        if (userData.IdCentre) {
+          whereClause += ' AND a.IdCentre = @centreId';
+          demandeRequest.input('centreId', sql.Int, userData.IdCentre);
+        } else {
+          return res.status(403).json({ error: 'Vous n\'êtes pas affecté à un centre.' });
+        }
+      } else {
+        // Autres utilisateurs : voir seulement les demandes de leur agence
+        if (userData.IdAgence) {
+          whereClause += ' AND d.IdAgence = @agenceId';
+          demandeRequest.input('agenceId', sql.Int, userData.IdAgence);
+        } else {
+          return res.status(403).json({ error: 'Vous n\'êtes pas affecté à une agence.' });
+        }
+      }
+    }
+    // Admin : pas de filtre, voit toutes les demandes
+
+    // Récupérer les demandes en attente groupées par type avec filtrage selon le rôle
+    const demandesEnAttente = await demandeRequest.query(`
+      SELECT 
+        dt.LibelleType as TypeDemande,
+        COUNT(*) as Nombre
+      FROM DemandeTravaux d
+      INNER JOIN DemandeStatut s ON d.IdStatut = s.IdStatut
+      INNER JOIN DemandeType dt ON d.IdDemandeType = dt.IdDemandeType
+      INNER JOIN AgenceCommerciale a ON d.IdAgence = a.IdAgence
+      ${whereClause}
+      GROUP BY dt.LibelleType, dt.IdDemandeType
+      ORDER BY COUNT(*) DESC, dt.LibelleType
+    `);
+    
+    const result = {
+      ...stats.recordset[0],
+      DemandesEnAttenteParType: demandesEnAttente.recordset
+    };
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des statistiques:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
 
 // Root route
 app.get('/', (req, res) => {
