@@ -34,6 +34,16 @@ export const isChefAgence = (user) => {
   return codeRole.includes('chef') && codeRole.includes('agence');
 };
 
+// Fonction pour vérifier si l'utilisateur est chef section relation clientele
+export const isChefSectionRelationClientele = (user) => {
+  if (!user) return false;
+  const codeRole = (user.codeRole || user.CodeRole || user.role || '').toString().toLowerCase();
+  const hasSection = codeRole.includes('section') || codeRole.includes('sect');
+  const hasRelation = codeRole.includes('relation') || codeRole.includes('relat');
+  const hasClientele = codeRole.includes('client');
+  return codeRole.includes('chef') && hasSection && hasRelation && hasClientele;
+};
+
 // Fonction pour vérifier si l'utilisateur est chef d'agence commerciale
 export const isChefAgenceCommerciale = (user) => {
   if (!user || !user.codeRole) return false;

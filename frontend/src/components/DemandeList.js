@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getDemandes, validateDemande } from '../services/api';
 import { alertError, alertSuccess, confirmDialog } from '../ui/alerts';
-import { isChefServiceJuridique, isChefAgence } from '../utils/auth';
+import { isChefServiceJuridique, isChefAgence, isChefSectionRelationClientele } from '../utils/auth';
 
 const DemandeList = ({ user }) => {
   const [demandes, setDemandes] = useState([]);
@@ -65,6 +65,8 @@ const DemandeList = ({ user }) => {
   const canValidateDemande = (demande, typeValidation) => {
     if (!user) return false;
 
+    const userAgenceId = user.idAgence ?? user.IdAgence ?? user.agenceId ?? null;
+
     if (typeValidation === 'juridique') {
       // Chef service juridique peut valider si la validation est requise et pas encore faite
       if (!isChefServiceJuridique(user)) return false;
@@ -77,14 +79,26 @@ const DemandeList = ({ user }) => {
       if (!demande.ValidationChefAgenceRequise) return false;
       if (demande.DateValidationChefAgence) return false;
       // Vérifier que c'est l'agence de l'utilisateur
-      if (user.idAgence && Number(user.idAgence) !== Number(demande.IdAgence)) return false;
+      if (userAgenceId && Number(userAgenceId) !== Number(demande.IdAgence)) return false;
+      return true;
+    } else if (typeValidation === 'chefSectionRC') {
+      // Chef section relation clientele peut valider si requis et non encore validé
+      if (!isChefSectionRelationClientele(user)) return false;
+      if (!demande.ValidationChefSectionRelationClienteleRequise) return false;
+      if (demande.DateValidationChefSectionRelationClientele) return false;
+      if (userAgenceId && Number(userAgenceId) !== Number(demande.IdAgence)) return false;
       return true;
     }
     return false;
   };
 
   const handleValidate = async (demande, typeValidation) => {
-    const typeLabel = typeValidation === 'juridique' ? 'juridique' : 'chef d\'agence';
+    const validationLabels = {
+      juridique: 'chef service juridique',
+      chefAgence: "chef d'agence",
+      chefSectionRC: 'chef section relation clientele',
+    };
+    const typeLabel = validationLabels[typeValidation] || 'profil autorisé';
     const confirmed = await confirmDialog(
       'Confirmer la validation',
       `Êtes-vous sûr de vouloir valider cette demande en tant que ${typeLabel} ?`
@@ -251,148 +265,163 @@ const DemandeList = ({ user }) => {
                     </td>
                   </tr>
                 ) : (
-                  filteredDemandes.map((demande) => (
-                    <tr
-                      key={demande.IdDemande}
-                      className="border-b border-white/5 dark:border-white/5 border-gray-100/50 hover:bg-white/5 dark:hover:bg-white/5 transition-colors"
-                    >
-                      <td className="py-4 px-6">
-                        <span className="font-mono font-semibold dark:text-blue-400 text-blue-600">
-                          {demande.NumeroDemande}
-                        </span>
-                      </td>
-                      <td className="py-4 px-6 text-sm dark:text-gray-300 text-gray-700">
-                        {formatDate(demande.DateDemande)}
-                      </td>
-                      <td className="py-4 px-6">
-                        <div className="text-sm dark:text-gray-300 text-gray-700">
-                          <div className="font-semibold">
-                            {demande.ClientNom} {demande.ClientPrenom}
+                  filteredDemandes.map((demande) => {
+                    const canValidateChefSection = canValidateDemande(demande, 'chefSectionRC');
+                    const canValidateJuridique = canValidateDemande(demande, 'juridique');
+                    const canValidateChefAgence = canValidateDemande(demande, 'chefAgence');
+
+                    return (
+                      <tr
+                        key={demande.IdDemande}
+                        className="border-b border-white/5 dark:border-white/5 border-gray-100/50 hover:bg-white/5 dark:hover:bg-white/5 transition-colors"
+                      >
+                        <td className="py-4 px-6">
+                          <span className="font-mono font-semibold dark:text-blue-400 text-blue-600">
+                            {demande.NumeroDemande}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6 text-sm dark:text-gray-300 text-gray-700">
+                          {formatDate(demande.DateDemande)}
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="text-sm dark:text-gray-300 text-gray-700">
+                            <div className="font-semibold">
+                              {demande.ClientNom} {demande.ClientPrenom}
+                            </div>
+                            {demande.ClientTelephone && (
+                              <div className="text-xs text-gray-400 mt-1">
+                                {demande.ClientTelephone}
+                              </div>
+                            )}
                           </div>
-                          {demande.ClientTelephone && (
-                            <div className="text-xs text-gray-400 mt-1">
-                              {demande.ClientTelephone}
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="py-4 px-6 text-sm dark:text-gray-300 text-gray-700">
-                        {demande.NomAgence}
-                      </td>
-                      <td className="py-4 px-6">
-                        <span className="text-sm dark:text-gray-300 text-gray-700">
-                          {demande.TypeDemande}
-                        </span>
-                      </td>
-                      <td className="py-4 px-6">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatutBadgeClass(
-                            demande.CodeStatut
-                          )}`}
-                        >
-                          {demande.Statut}
-                        </span>
-                      </td>
-                      <td className="py-4 px-6 text-sm dark:text-gray-300 text-gray-700">
-                        {demande.Createur}
-                      </td>
-                      <td className="py-4 px-6 text-sm dark:text-gray-300 text-gray-700">
-                        {demande.DelaiPaiementJours || '—'}
-                      </td>
-                      <td className="py-4 px-6">
-                        <div className="flex flex-col gap-1">
-                          {/* Validation Chef Section RC */}
-                          {demande.ValidationChefSectionRelationClienteleRequise && (
-                            <div className="flex items-center gap-1">
-                              <span className="text-xs text-gray-400">Chef Section RC:</span>
-                              {(() => {
-                                const status = getValidationStatus(demande, 'ChefSectionRelationClientele');
-                                return (
-                                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${status.class}`}>
-                                    {status.label}
-                                  </span>
-                                );
-                              })()}
-                            </div>
-                          )}
-                          {/* Validation Juridique */}
-                          {demande.ValidationJuridiqueRequise && (
-                            <div className="flex items-center gap-1">
-                              <span className="text-xs text-gray-400">Juridique:</span>
-                              {(() => {
-                                const status = getValidationStatus(demande, 'Juridique');
-                                return (
-                                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${status.class}`}>
-                                    {status.label}
-                                  </span>
-                                );
-                              })()}
-                            </div>
-                          )}
-                          {/* Validation Chef Agence */}
-                          {demande.ValidationChefAgenceRequise && (
-                            <div className="flex items-center gap-1">
-                              <span className="text-xs text-gray-400">Chef Agence:</span>
-                              {(() => {
-                                const status = getValidationStatus(demande, 'ChefAgence');
-                                return (
-                                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${status.class}`}>
-                                    {status.label}
-                                  </span>
-                                );
-                              })()}
-                            </div>
-                          )}
-                          {/* Validation Chef Centre */}
-                          {demande.ValidationChefCentreRequise && (
-                            <div className="flex items-center gap-1">
-                              <span className="text-xs text-gray-400">Chef Centre:</span>
-                              {(() => {
-                                const status = getValidationStatus(demande, 'ChefCentre');
-                                return (
-                                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${status.class}`}>
-                                    {status.label}
-                                  </span>
-                                );
-                              })()}
-                            </div>
-                          )}
-                          {/* Si aucune validation requise */}
-                          {!demande.ValidationChefSectionRelationClienteleRequise && 
-                           !demande.ValidationJuridiqueRequise && 
-                           !demande.ValidationChefAgenceRequise && 
-                           !demande.ValidationChefCentreRequise && (
-                            <span className="text-xs text-gray-400">Aucune validation requise</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="py-4 px-6">
-                        <div className="flex gap-2">
-                          {canValidateDemande(demande, 'juridique') && (
-                            <button
-                              onClick={() => handleValidate(demande, 'juridique')}
-                              className="px-3 py-1 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 text-xs font-semibold transition-colors"
-                              title="Valider juridiquement"
-                            >
-                              Valider (Juridique)
-                            </button>
-                          )}
-                          {canValidateDemande(demande, 'chefAgence') && (
-                            <button
-                              onClick={() => handleValidate(demande, 'chefAgence')}
-                              className="px-3 py-1 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 text-xs font-semibold transition-colors"
-                              title="Valider en tant que chef d'agence"
-                            >
-                              Valider (Agence)
-                            </button>
-                          )}
-                          {!canValidateDemande(demande, 'juridique') && !canValidateDemande(demande, 'chefAgence') && (
-                            <span className="text-xs text-gray-400">—</span>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
+                        </td>
+                        <td className="py-4 px-6 text-sm dark:text-gray-300 text-gray-700">
+                          {demande.NomAgence}
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className="text-sm dark:text-gray-300 text-gray-700">
+                            {demande.TypeDemande}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6">
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatutBadgeClass(
+                              demande.CodeStatut
+                            )}`}
+                          >
+                            {demande.Statut}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6 text-sm dark:text-gray-300 text-gray-700">
+                          {demande.Createur}
+                        </td>
+                        <td className="py-4 px-6 text-sm dark:text-gray-300 text-gray-700">
+                          {demande.DelaiPaiementJours || '—'}
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="flex flex-col gap-1">
+                            {/* Validation Chef Section RC */}
+                            {demande.ValidationChefSectionRelationClienteleRequise && (
+                              <div className="flex items-center gap-1">
+                                <span className="text-xs text-gray-400">Chef Section RC:</span>
+                                {(() => {
+                                  const status = getValidationStatus(demande, 'ChefSectionRelationClientele');
+                                  return (
+                                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${status.class}`}>
+                                      {status.label}
+                                    </span>
+                                  );
+                                })()}
+                              </div>
+                            )}
+                            {/* Validation Juridique */}
+                            {demande.ValidationJuridiqueRequise && (
+                              <div className="flex items-center gap-1">
+                                <span className="text-xs text-gray-400">Juridique:</span>
+                                {(() => {
+                                  const status = getValidationStatus(demande, 'Juridique');
+                                  return (
+                                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${status.class}`}>
+                                      {status.label}
+                                    </span>
+                                  );
+                                })()}
+                              </div>
+                            )}
+                            {/* Validation Chef Agence */}
+                            {demande.ValidationChefAgenceRequise && (
+                              <div className="flex items-center gap-1">
+                                <span className="text-xs text-gray-400">Chef Agence:</span>
+                                {(() => {
+                                  const status = getValidationStatus(demande, 'ChefAgence');
+                                  return (
+                                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${status.class}`}>
+                                      {status.label}
+                                    </span>
+                                  );
+                                })()}
+                              </div>
+                            )}
+                            {/* Validation Chef Centre */}
+                            {demande.ValidationChefCentreRequise && (
+                              <div className="flex items-center gap-1">
+                                <span className="text-xs text-gray-400">Chef Centre:</span>
+                                {(() => {
+                                  const status = getValidationStatus(demande, 'ChefCentre');
+                                  return (
+                                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${status.class}`}>
+                                      {status.label}
+                                    </span>
+                                  );
+                                })()}
+                              </div>
+                            )}
+                            {/* Si aucune validation requise */}
+                            {!demande.ValidationChefSectionRelationClienteleRequise &&
+                             !demande.ValidationJuridiqueRequise &&
+                             !demande.ValidationChefAgenceRequise &&
+                             !demande.ValidationChefCentreRequise && (
+                              <span className="text-xs text-gray-400">Aucune validation requise</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="flex gap-2">
+                            {canValidateChefSection && (
+                              <button
+                                onClick={() => handleValidate(demande, 'chefSectionRC')}
+                                className="px-3 py-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 text-xs font-semibold transition-colors"
+                                title="Valider en tant que chef section relation clientele"
+                              >
+                                Valider (Section RC)
+                              </button>
+                            )}
+                            {canValidateJuridique && (
+                              <button
+                                onClick={() => handleValidate(demande, 'juridique')}
+                                className="px-3 py-1 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 text-xs font-semibold transition-colors"
+                                title="Valider juridiquement"
+                              >
+                                Valider (Juridique)
+                              </button>
+                            )}
+                            {canValidateChefAgence && (
+                              <button
+                                onClick={() => handleValidate(demande, 'chefAgence')}
+                                className="px-3 py-1 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 text-xs font-semibold transition-colors"
+                                title="Valider en tant que chef d'agence"
+                              >
+                                Valider (Agence)
+                              </button>
+                            )}
+                            {!canValidateChefSection && !canValidateJuridique && !canValidateChefAgence && (
+                              <span className="text-xs text-gray-400">—</span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>

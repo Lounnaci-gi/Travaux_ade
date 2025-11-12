@@ -2867,7 +2867,7 @@ app.post('/api/demandes/:id/validate', verifyToken, async (req, res) => {
   try {
     const demandeId = parseInt(req.params.id);
     const userId = req.user?.id;
-    const { typeValidation } = req.body; // 'juridique' ou 'chefAgence'
+    const { typeValidation } = req.body; // 'juridique', 'chefAgence' ou 'chefSectionRC'
 
     if (!demandeId || !userId || !typeValidation) {
       return res.status(400).json({ error: 'Paramètres manquants' });
@@ -2896,6 +2896,7 @@ app.post('/api/demandes/:id/validate', verifyToken, async (req, res) => {
       .query(`
         SELECT 
           d.*,
+          dt.ValidationChefSectionRelationClienteleRequise,
           dt.ValidationJuridiqueRequise,
           dt.ValidationChefAgenceRequise,
           a.IdAgence as DemandeIdAgence
@@ -2944,6 +2945,27 @@ app.post('/api/demandes/:id/validate', verifyToken, async (req, res) => {
       if (userData.IdAgence && Number(userData.IdAgence) !== Number(demande.DemandeIdAgence)) {
         return res.status(403).json({ error: 'Vous ne pouvez valider que les demandes de votre agence.' });
       }
+    } else if (typeValidation === 'chefSectionRC') {
+      // Vérifier que l'utilisateur est chef section relation clientele
+      const hasSection = actorRoleLower.includes('section') || actorRoleLower.includes('sect');
+      const hasRelation = actorRoleLower.includes('relation') || actorRoleLower.includes('relat');
+      const hasClientele = actorRoleLower.includes('client');
+      const isChefSectionRC = actorRoleLower.includes('chef') && hasSection && hasRelation && hasClientele;
+      if (!isChefSectionRC) {
+        return res.status(403).json({ error: 'Seul le chef section relation clientele peut valider ce type.' });
+      }
+      // Vérifier que la validation chef section relation clientele est requise pour ce type
+      if (!demande.ValidationChefSectionRelationClienteleRequise) {
+        return res.status(400).json({ error: 'La validation section relation clientele n\'est pas requise pour ce type de demande.' });
+      }
+      // Vérifier que la validation n'a pas déjà été faite
+      if (demande.DateValidationChefSectionRelationClientele) {
+        return res.status(400).json({ error: 'Cette demande a déjà été validée par la section relation clientele.' });
+      }
+      // Vérifier que la demande appartient à l'agence de l'utilisateur le cas échéant
+      if (userData.IdAgence && Number(userData.IdAgence) !== Number(demande.DemandeIdAgence)) {
+        return res.status(403).json({ error: 'Vous ne pouvez valider que les demandes de votre agence.' });
+      }
     } else {
       return res.status(400).json({ error: 'Type de validation invalide' });
     }
@@ -2963,6 +2985,14 @@ app.post('/api/demandes/:id/validate', verifyToken, async (req, res) => {
         UPDATE DemandeTravaux 
         SET DateValidationChefAgence = GETDATE(),
             IdUtilisateurValidationChefAgence = @userId,
+            DateModification = GETDATE()
+        WHERE IdDemande = @demandeId;
+      `;
+    } else if (typeValidation === 'chefSectionRC') {
+      updateQuery = `
+        UPDATE DemandeTravaux 
+        SET DateValidationChefSectionRelationClientele = GETDATE(),
+            IdUtilisateurValidationChefSectionRelationClientele = @userId,
             DateModification = GETDATE()
         WHERE IdDemande = @demandeId;
       `;
