@@ -52,6 +52,7 @@ IF OBJECT_ID('dbo.ModePaiement', 'U') IS NOT NULL DROP TABLE dbo.ModePaiement;
 
 IF OBJECT_ID('dbo.DevisArticle', 'U') IS NOT NULL DROP TABLE dbo.DevisArticle;
 IF OBJECT_ID('dbo.Devis', 'U') IS NOT NULL DROP TABLE dbo.Devis;
+IF OBJECT_ID('dbo.TypeDevis', 'U') IS NOT NULL DROP TABLE dbo.TypeDevis;
 
 IF OBJECT_ID('dbo.ArticlePrixHistorique', 'U') IS NOT NULL DROP TABLE dbo.ArticlePrixHistorique;
 IF OBJECT_ID('dbo.Article', 'U') IS NOT NULL DROP TABLE dbo.Article;
@@ -209,7 +210,7 @@ CREATE TABLE Utilisateur (
     Nom NVARCHAR(100) NOT NULL,
     Prenom NVARCHAR(100) NOT NULL,
     Email NVARCHAR(100) NOT NULL UNIQUE,
-    Telephone NVARCHAR(20),
+    Telephone NVARCHAR(10),
     MotDePasse NVARCHAR(255) NOT NULL,
     Actif BIT NOT NULL DEFAULT 1,
     DateCreation DATETIME NOT NULL DEFAULT GETDATE(),

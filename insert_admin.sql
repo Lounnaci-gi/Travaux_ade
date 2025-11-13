@@ -49,7 +49,7 @@ BEGIN
         'Administrateur',
         'Système',
         'admin',
-        '+221 XX XXX XX XX',
+        '0665847684',
         'admin123',  -- Mot de passe par défaut (À CHANGER en production!)
         1,
         GETDATE()

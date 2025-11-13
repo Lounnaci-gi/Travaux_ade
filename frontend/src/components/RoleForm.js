@@ -3,6 +3,16 @@ import { alertSuccess, alertError, confirmDialog } from '../ui/alerts';
 import { getRoles, createRole, updateRole, deleteRole } from '../services/api';
 import { isAdmin } from '../utils/auth';
 
+const ROLE_OPTIONS = [
+  { code: 'ADMIN', label: 'Administrateur' },
+  { code: 'CHEF_CENTRE', label: 'Chef de centre' },
+  { code: 'CHEF_AGENCE_COMMERCIALE', label: "Chef d'agence commerciale" },
+  { code: 'CHEF_SERVICE_JURIDIQUE', label: 'Chef de service juridique (Contentieux)' },
+  { code: 'CHEF_SECTION_RELATIONS_CLIENTELE', label: 'Chef de section relations clientèle' },
+  { code: 'CHEF_SERVICE_TECHNICO_COMMERCIAL', label: 'Chef de service technico-commercial' },
+  { code: 'UTILISATEUR_STANDARD', label: 'Utilisateur standard' },
+];
+
 const RoleForm = ({ user, onUnauthorized }) => {
   const initialFormState = {
     CodeRole: '',
@@ -66,6 +76,19 @@ const RoleForm = ({ user, onUnauthorized }) => {
     setForm((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
+    }));
+    setError('');
+    setSuccess('');
+  };
+
+  const handleRoleSelect = (e) => {
+    const selectedCode = e.target.value;
+    const selectedOption = ROLE_OPTIONS.find((option) => option.code === selectedCode);
+
+    setForm((prev) => ({
+      ...prev,
+      CodeRole: selectedCode,
+      LibelleRole: selectedOption ? selectedOption.label : selectedCode ? prev.LibelleRole : '',
     }));
     setError('');
     setSuccess('');
@@ -224,18 +247,28 @@ const RoleForm = ({ user, onUnauthorized }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">
-                    Code Rôle * <span className="text-xs text-gray-500">(ex: ADMIN, AGENT, CHEF_AGENCE)</span>
+                    Rôle *
                   </label>
-                  <input
+                  <select
                     name="CodeRole"
                     value={form.CodeRole}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 uppercase"
-                    placeholder="ADMIN"
+                    onChange={handleRoleSelect}
+                    className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
                     required
-                    maxLength={50}
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Lettres, chiffres, tirets et underscores uniquement</p>
+                  >
+                    <option value="">Sélectionner un rôle</option>
+                    {ROLE_OPTIONS.map((option) => (
+                      <option key={option.code} value={option.code} className="text-black">
+                        {option.label}
+                      </option>
+                    ))}
+                    {form.CodeRole &&
+                      !ROLE_OPTIONS.some((option) => option.code === form.CodeRole) && (
+                        <option value={form.CodeRole} className="text-black">
+                          {form.CodeRole}
+                        </option>
+                      )}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Libellé Rôle *</label>
