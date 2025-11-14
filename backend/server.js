@@ -304,14 +304,11 @@ app.post('/api/auth/login', async (req, res) => {
         u.Telephone,
         u.MotDePasse,
         u.Actif,
-        u.IdRole,
+        u.Role,
         u.IdUnite,
         u.IdCentre,
-        u.IdAgence,
-        r.LibelleRole as Role,
-        r.CodeRole as CodeRole
+        u.IdAgence
       FROM Utilisateur u
-      INNER JOIN Role r ON u.IdRole = r.IdRole
       WHERE (u.Email = @email OR u.Matricule = @email) AND u.Actif = 1
     `);
 
@@ -388,7 +385,7 @@ app.post('/api/auth/login', async (req, res) => {
       {
         id: user.IdUtilisateur,
         email: user.Email,
-        role: user.CodeRole,
+        role: user.Role,
       },
       JWT_SECRET,
       { expiresIn: '24h' }
@@ -403,8 +400,7 @@ app.post('/api/auth/login', async (req, res) => {
       email: user.Email,
       telephone: user.Telephone,
       role: user.Role,
-      codeRole: user.CodeRole,
-      idRole: user.IdRole,
+      codeRole: user.Role,
       idUnite: user.IdUnite,
       idCentre: user.IdCentre,
       idAgence: user.IdAgence,
@@ -492,9 +488,8 @@ app.get('/api/stats', verifyToken, async (req, res) => {
     const userInfo = await pool.request()
       .input('id', sql.Int, userId)
       .query(`
-        SELECT u.IdAgence, u.IdCentre, r.CodeRole
+        SELECT u.IdAgence, u.IdCentre, u.Role
         FROM Utilisateur u
-        INNER JOIN Role r ON u.IdRole = r.IdRole
         WHERE u.IdUtilisateur = @id
       `);
 
@@ -503,7 +498,7 @@ app.get('/api/stats', verifyToken, async (req, res) => {
     }
 
     const userData = userInfo.recordset[0];
-    const actorRoleLower = (userData.CodeRole || '').toLowerCase();
+    const actorRoleLower = (userData.Role || '').toLowerCase();
     const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin');
     const isChefCentreRole = actorRoleLower.includes('chef') && actorRoleLower.includes('centre');
 
@@ -1569,123 +1564,70 @@ const normalizeRoleValue = (value) => {
     .replace(/[^a-z0-9]/g, '');
 };
 
-const findSimilarActiveRole = async (codeRole, libelleRole, excludeId = null) => {
-  const candidates = [];
-  if (codeRole) {
-    candidates.push(normalizeRoleValue(codeRole));
-  }
-  if (libelleRole) {
-    candidates.push(normalizeRoleValue(libelleRole));
-  }
-
-  const normalizedCandidates = candidates.filter(Boolean);
-  if (normalizedCandidates.length === 0) {
+const findSimilarActiveRole = async (role, excludeMatricule = null) => {
+  const normalizedRole = normalizeRoleValue(role);
+  if (!normalizedRole) {
     return { conflict: false };
   }
 
   const request = pool.request();
   let query = `
-    SELECT IdRole, CodeRole, LibelleRole
-    FROM Role
+    SELECT Matricule, Role
+    FROM Utilisateur
     WHERE Actif = 1
   `;
 
-  if (excludeId) {
-    request.input('excludeId', sql.Int, excludeId);
-    query += ' AND IdRole != @excludeId';
+  if (excludeMatricule) {
+    request.input('excludeMatricule', sql.NVarChar(50), excludeMatricule);
+    query += ' AND Matricule != @excludeMatricule';
   }
 
   const result = await request.query(query);
 
   for (const existing of result.recordset) {
-    const existingValues = [existing.CodeRole, existing.LibelleRole];
-    for (const val of existingValues) {
-      const normalizedExisting = normalizeRoleValue(val);
-      if (normalizedExisting && normalizedCandidates.includes(normalizedExisting)) {
-        const labelParts = [existing.CodeRole, existing.LibelleRole].filter(Boolean);
-        return {
-          conflict: true,
-          message: `Un rôle similaire existe déjà (${labelParts.join(' - ')})`,
-        };
-      }
+    const normalizedExisting = normalizeRoleValue(existing.Role);
+    if (normalizedExisting && normalizedExisting === normalizedRole) {
+      return {
+        conflict: false, // Pas de conflit car plusieurs utilisateurs peuvent avoir le même rôle
+      };
     }
   }
 
   return { conflict: false };
 };
 
+// Liste des rôles disponibles
+const AVAILABLE_ROLES = [
+  'ADMINISTRATEUR',
+  'CHEF_CENTRE',
+  'CHEF_AGENCE_COMMERCIALE',
+  'CHEF_SERVICE_JURIDIQUE',
+  'CHEF_SECTION_RELATIONS_CLIENTELE',
+  'CHEF_SERVICE_TECHNICO_COMMERCIAL',
+  'UTILISATEUR_STANDARD'
+];
+
 // Liste des rôles
 app.get('/api/roles', async (req, res) => {
   try {
-    const result = await pool.request().query(`
-      SELECT IdRole, CodeRole, LibelleRole, Description, Actif
-      FROM Role
-      WHERE Actif = 1
-      ORDER BY LibelleRole
-    `);
-    res.json(result.recordset);
+    const roles = AVAILABLE_ROLES.map((role, index) => ({
+      IdRole: index + 1,
+      CodeRole: role,
+      LibelleRole: role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+      Description: '',
+      Actif: true
+    }));
+    res.json(roles);
   } catch (error) {
     console.error('Erreur lors de la récupération des rôles:', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
 
-// Création d'un rôle
+// Création d'un rôle (désactivée - rôles en dur)
 app.post('/api/roles', verifyToken, async (req, res) => {
   try {
-    const {
-      CodeRole,
-      LibelleRole,
-      Description,
-      Actif
-    } = req.body;
-
-    const trimmedCodeRole = (CodeRole || '').trim();
-    const trimmedLibelleRole = (LibelleRole || '').trim();
-
-    if (!trimmedCodeRole || !trimmedLibelleRole) {
-      return res.status(400).json({ error: 'CodeRole et LibelleRole sont obligatoires' });
-    }
-
-    const similarityCheck = await findSimilarActiveRole(trimmedCodeRole, trimmedLibelleRole);
-    if (similarityCheck.conflict) {
-      return res.status(400).json({ error: similarityCheck.message });
-    }
-
-    const normalizedCodeRole = trimmedCodeRole.toUpperCase();
-
-    // Vérifier l'unicité du CodeRole
-    const checkRequest = pool.request();
-    checkRequest.input('codeRole', sql.NVarChar(50), normalizedCodeRole);
-    const checkResult = await checkRequest.query(`
-      SELECT CodeRole
-      FROM Role
-      WHERE CodeRole = @codeRole
-    `);
-
-    if (checkResult.recordset.length > 0) {
-      return res.status(400).json({ error: 'Ce code de rôle est déjà utilisé' });
-    }
-
-    const descriptionValue = Description ? Description.toString().trim() : null;
-    const isActive = Actif !== undefined ? (Actif ? 1 : 0) : 1;
-
-    const insert = await pool.request()
-      .input('CodeRole', sql.NVarChar(50), normalizedCodeRole)
-      .input('LibelleRole', sql.NVarChar(100), trimmedLibelleRole)
-      .input('Description', sql.NVarChar(255), descriptionValue)
-      .input('Actif', sql.Bit, isActive)
-      .query(`
-        INSERT INTO Role (
-          CodeRole, LibelleRole, Description, Actif, DateCreation
-        )
-        OUTPUT INSERTED.*
-        VALUES (
-          @CodeRole, @LibelleRole, @Description, @Actif, GETDATE()
-        )
-      `);
-
-    return res.status(201).json(insert.recordset[0]);
+    return res.status(400).json({ error: 'La création de rôles n\'est pas autorisée. Les rôles sont prédéfinis.' });
   } catch (error) {
     console.error('Erreur lors de la création du rôle:', error);
     console.error('Détails:', error.message);
@@ -1694,129 +1636,20 @@ app.post('/api/roles', verifyToken, async (req, res) => {
   }
 });
 
-// Mise à jour d'un rôle
+// Mise à jour d'un rôle (désactivée)
 app.put('/api/roles/:id', verifyToken, async (req, res) => {
   try {
-    const { id } = req.params;
-    const roleId = parseInt(id, 10);
-    if (Number.isNaN(roleId)) {
-      return res.status(400).json({ error: 'Identifiant de rôle invalide' });
-    }
-
-    const {
-      CodeRole,
-      LibelleRole,
-      Description,
-      Actif
-    } = req.body;
-
-    const trimmedCodeRole = (CodeRole || '').trim();
-    const trimmedLibelleRole = (LibelleRole || '').trim();
-
-    if (!trimmedCodeRole || !trimmedLibelleRole) {
-      return res.status(400).json({ error: 'CodeRole et LibelleRole sont obligatoires' });
-    }
-
-    // Vérifier l'existence du rôle
-    const existingRoleResult = await pool.request()
-      .input('id', sql.Int, roleId)
-      .query(`
-        SELECT IdRole, CodeRole, LibelleRole, Description, Actif
-        FROM Role
-        WHERE IdRole = @id
-      `);
-
-    if (existingRoleResult.recordset.length === 0) {
-      return res.status(404).json({ error: 'Rôle introuvable' });
-    }
-
-    const similarityCheck = await findSimilarActiveRole(trimmedCodeRole, trimmedLibelleRole, roleId);
-    if (similarityCheck.conflict) {
-      return res.status(400).json({ error: similarityCheck.message });
-    }
-
-    const normalizedCodeRole = trimmedCodeRole.toUpperCase();
-
-    // Vérifier l'unicité du CodeRole pour les autres rôles
-    const codeCheck = await pool.request()
-      .input('codeRole', sql.NVarChar(50), normalizedCodeRole)
-      .input('id', sql.Int, roleId)
-      .query(`
-        SELECT IdRole
-        FROM Role
-        WHERE CodeRole = @codeRole AND IdRole != @id
-      `);
-
-    if (codeCheck.recordset.length > 0) {
-      return res.status(400).json({ error: 'Ce code de rôle est déjà utilisé par un autre rôle' });
-    }
-
-    const descriptionValue = Description ? Description.toString().trim() : null;
-    const isActive = Actif !== undefined ? (Actif ? 1 : 0) : existingRoleResult.recordset[0].Actif;
-
-    const update = await pool.request()
-      .input('id', sql.Int, roleId)
-      .input('CodeRole', sql.NVarChar(50), normalizedCodeRole)
-      .input('LibelleRole', sql.NVarChar(100), trimmedLibelleRole)
-      .input('Description', sql.NVarChar(255), descriptionValue)
-      .input('Actif', sql.Bit, isActive)
-      .query(`
-        UPDATE Role
-        SET CodeRole = @CodeRole,
-            LibelleRole = @LibelleRole,
-            Description = @Description,
-            Actif = @Actif
-        WHERE IdRole = @id;
-      `);
-
-    // Récupérer le rôle mis à jour
-    const updatedRole = await pool.request()
-      .input('id', sql.Int, roleId)
-      .query(`
-        SELECT * FROM Role WHERE IdRole = @id
-      `);
-
-    return res.json(updatedRole.recordset[0]);
+    return res.status(400).json({ error: 'La modification de rôles n\'est pas autorisée. Les rôles sont prédéfinis.' });
   } catch (error) {
     console.error('Erreur lors de la mise à jour du rôle:', error);
     res.status(500).json({ error: error.message || 'Erreur serveur' });
   }
 });
 
-// Suppression (désactivation) d'un rôle
+// Suppression (désactivation) d'un rôle (désactivée)
 app.delete('/api/roles/:id', verifyToken, async (req, res) => {
   try {
-    const { id } = req.params;
-    const roleId = parseInt(id, 10);
-    if (Number.isNaN(roleId)) {
-      return res.status(400).json({ error: 'Identifiant de rôle invalide' });
-    }
-
-    const existingRoleResult = await pool.request()
-      .input('id', sql.Int, roleId)
-      .query(`
-        SELECT IdRole, Actif
-        FROM Role
-        WHERE IdRole = @id
-      `);
-
-    if (existingRoleResult.recordset.length === 0) {
-      return res.status(404).json({ error: 'Rôle introuvable' });
-    }
-
-    if (!existingRoleResult.recordset[0].Actif) {
-      return res.json({ message: 'Le rôle est déjà désactivé' });
-    }
-
-    await pool.request()
-      .input('id', sql.Int, roleId)
-      .query(`
-        UPDATE Role
-        SET Actif = 0
-        WHERE IdRole = @id
-      `);
-
-    return res.json({ message: 'Rôle supprimé avec succès' });
+    return res.status(400).json({ error: 'La suppression de rôles n\'est pas autorisée. Les rôles sont prédéfinis.' });
   } catch (error) {
     console.error('Erreur lors de la suppression du rôle:', error);
     res.status(500).json({ error: error.message || 'Erreur serveur' });
@@ -1825,29 +1658,17 @@ app.delete('/api/roles/:id', verifyToken, async (req, res) => {
 
 // Fonction de validation des contraintes d'unicité selon le rôle
 // Retourne { valid: false, error: 'message' } si une contrainte est violée, sinon { valid: true }
-const validateUniquenessConstraints = async (IdRole, IdCentre, IdAgence, IdUtilisateur = null) => {
+const validateUniquenessConstraints = async (Role, IdCentre, IdAgence, IdUtilisateur = null) => {
   try {
-    // Récupérer le CodeRole du rôle
-    const roleRequest = pool.request();
-    roleRequest.input('idRole', sql.Int, IdRole);
-    const roleResult = await roleRequest.query(`
-      SELECT CodeRole FROM Role WHERE IdRole = @idRole
-    `);
+    const codeRole = (Role || '').toUpperCase();
     
-    if (roleResult.recordset.length === 0) {
-      return { valid: false, error: 'Rôle introuvable' };
-    }
-    
-    const codeRole = (roleResult.recordset[0].CodeRole || '').toUpperCase();
-    
-    // ADMIN : un seul dans tout le système
-    if (codeRole === 'ADMIN') {
+    // ADMINISTRATEUR : un seul dans tout le système
+    if (codeRole === 'ADMINISTRATEUR') {
       const checkRequest = pool.request();
       let query = `
         SELECT IdUtilisateur 
         FROM Utilisateur u
-        INNER JOIN Role r ON u.IdRole = r.IdRole
-        WHERE r.CodeRole = 'ADMIN' AND u.Actif = 1
+        WHERE u.Role = 'ADMINISTRATEUR' AND u.Actif = 1
       `;
       if (IdUtilisateur) {
         checkRequest.input('idUtilisateur', sql.Int, IdUtilisateur);
@@ -1871,8 +1692,7 @@ const validateUniquenessConstraints = async (IdRole, IdCentre, IdAgence, IdUtili
       let query = `
         SELECT u.IdUtilisateur 
         FROM Utilisateur u
-        INNER JOIN Role r ON u.IdRole = r.IdRole
-        WHERE (r.CodeRole = 'CHEF_CENTRE' OR (r.CodeRole LIKE '%CHEF%' AND r.CodeRole LIKE '%CENTRE%'))
+        WHERE (u.Role = 'CHEF_CENTRE' OR (u.Role LIKE '%CHEF%' AND u.Role LIKE '%CENTRE%'))
         AND u.IdCentre = @idCentre 
         AND u.Actif = 1
       `;
@@ -1887,8 +1707,8 @@ const validateUniquenessConstraints = async (IdRole, IdCentre, IdAgence, IdUtili
       }
     }
     
-    // CHEF_AGENCE : un seul par agence
-    if (codeRole === 'CHEF_AGENCE' || (codeRole.includes('CHEF') && codeRole.includes('AGENCE'))) {
+    // CHEF_AGENCE_COMMERCIALE : un seul par agence
+    if (codeRole === 'CHEF_AGENCE_COMMERCIALE' || codeRole === 'CHEF_AGENCE' || (codeRole.includes('CHEF') && codeRole.includes('AGENCE'))) {
       if (!IdAgence) {
         return { valid: false, error: 'Le chef d\'agence doit être associé à une agence' };
       }
@@ -1898,8 +1718,7 @@ const validateUniquenessConstraints = async (IdRole, IdCentre, IdAgence, IdUtili
       let query = `
         SELECT u.IdUtilisateur 
         FROM Utilisateur u
-        INNER JOIN Role r ON u.IdRole = r.IdRole
-        WHERE (r.CodeRole = 'CHEF_AGENCE' OR (r.CodeRole LIKE '%CHEF%' AND r.CodeRole LIKE '%AGENCE%'))
+        WHERE (u.Role = 'CHEF_AGENCE_COMMERCIALE' OR u.Role = 'CHEF_AGENCE' OR (u.Role LIKE '%CHEF%' AND u.Role LIKE '%AGENCE%'))
         AND u.IdAgence = @idAgence 
         AND u.Actif = 1
       `;
@@ -1914,8 +1733,8 @@ const validateUniquenessConstraints = async (IdRole, IdCentre, IdAgence, IdUtili
       }
     }
     
-    // JURIDIQUE ou CONTENTIEUX : un seul par centre
-    if (codeRole === 'JURIDIQUE' || codeRole === 'CONTENTIEUX' || 
+    // CHEF_SERVICE_JURIDIQUE ou CONTENTIEUX : un seul par centre
+    if (codeRole === 'CHEF_SERVICE_JURIDIQUE' || codeRole === 'JURIDIQUE' || codeRole === 'CONTENTIEUX' || 
         codeRole.includes('JURIDIQUE') || codeRole.includes('CONTENTIEUX')) {
       if (!IdCentre) {
         return { valid: false, error: 'Le juriste doit être associé à un centre' };
@@ -1926,9 +1745,8 @@ const validateUniquenessConstraints = async (IdRole, IdCentre, IdAgence, IdUtili
       let query = `
         SELECT u.IdUtilisateur 
         FROM Utilisateur u
-        INNER JOIN Role r ON u.IdRole = r.IdRole
-        WHERE (r.CodeRole = 'JURIDIQUE' OR r.CodeRole = 'CONTENTIEUX' 
-               OR r.CodeRole LIKE '%JURIDIQUE%' OR r.CodeRole LIKE '%CONTENTIEUX%')
+        WHERE (u.Role = 'CHEF_SERVICE_JURIDIQUE' OR u.Role = 'JURIDIQUE' OR u.Role = 'CONTENTIEUX' 
+               OR u.Role LIKE '%JURIDIQUE%' OR u.Role LIKE '%CONTENTIEUX%')
         AND u.IdCentre = @idCentre 
         AND u.Actif = 1
       `;
@@ -1943,8 +1761,8 @@ const validateUniquenessConstraints = async (IdRole, IdCentre, IdAgence, IdUtili
       }
     }
     
-    // RELATION_CLIENTELE : un seul par agence
-    if (codeRole === 'RELATION_CLIENTELE' || (codeRole.includes('RELATION') && codeRole.includes('CLIENTELE'))) {
+    // CHEF_SECTION_RELATIONS_CLIENTELE : un seul par agence
+    if (codeRole === 'CHEF_SECTION_RELATIONS_CLIENTELE' || codeRole === 'RELATION_CLIENTELE' || (codeRole.includes('RELATION') && codeRole.includes('CLIENTELE'))) {
       if (!IdAgence) {
         return { valid: false, error: 'Le relation clientèle doit être associé à une agence' };
       }
@@ -1954,8 +1772,7 @@ const validateUniquenessConstraints = async (IdRole, IdCentre, IdAgence, IdUtili
       let query = `
         SELECT u.IdUtilisateur 
         FROM Utilisateur u
-        INNER JOIN Role r ON u.IdRole = r.IdRole
-        WHERE (r.CodeRole = 'RELATION_CLIENTELE' OR (r.CodeRole LIKE '%RELATION%' AND r.CodeRole LIKE '%CLIENTELE%'))
+        WHERE (u.Role = 'CHEF_SECTION_RELATIONS_CLIENTELE' OR u.Role = 'RELATION_CLIENTELE' OR (u.Role LIKE '%RELATION%' AND u.Role LIKE '%CLIENTELE%'))
         AND u.IdAgence = @idAgence 
         AND u.Actif = 1
       `;
@@ -1970,8 +1787,8 @@ const validateUniquenessConstraints = async (IdRole, IdCentre, IdAgence, IdUtili
       }
     }
     
-    // TECHNICO_COMMERCIAL : un seul par centre
-    if (codeRole === 'TECHNICO_COMMERCIAL' || (codeRole.includes('TECHNICO') && codeRole.includes('COMMERCIAL'))) {
+    // CHEF_SERVICE_TECHNICO_COMMERCIAL : un seul par centre
+    if (codeRole === 'CHEF_SERVICE_TECHNICO_COMMERCIAL' || codeRole === 'TECHNICO_COMMERCIAL' || (codeRole.includes('TECHNICO') && codeRole.includes('COMMERCIAL'))) {
       if (!IdCentre) {
         return { valid: false, error: 'Le technico-commercial doit être associé à un centre' };
       }
@@ -1981,8 +1798,7 @@ const validateUniquenessConstraints = async (IdRole, IdCentre, IdAgence, IdUtili
       let query = `
         SELECT u.IdUtilisateur 
         FROM Utilisateur u
-        INNER JOIN Role r ON u.IdRole = r.IdRole
-        WHERE (r.CodeRole = 'TECHNICO_COMMERCIAL' OR (r.CodeRole LIKE '%TECHNICO%' AND r.CodeRole LIKE '%COMMERCIAL%'))
+        WHERE (u.Role = 'CHEF_SERVICE_TECHNICO_COMMERCIAL' OR u.Role = 'TECHNICO_COMMERCIAL' OR (u.Role LIKE '%TECHNICO%' AND u.Role LIKE '%COMMERCIAL%'))
         AND u.IdCentre = @idCentre 
         AND u.Actif = 1
       `;
@@ -2037,9 +1853,7 @@ app.get('/api/utilisateurs', verifyToken, async (req, res) => {
         u.Actif,
         u.DateCreation,
         u.DerniereConnexion,
-        u.IdRole,
-        r.CodeRole,
-        r.LibelleRole,
+        u.Role,
         u.IdUnite,
         un.NomUnite,
         u.IdCentre,
@@ -2047,7 +1861,6 @@ app.get('/api/utilisateurs', verifyToken, async (req, res) => {
         u.IdAgence,
         a.NomAgence
       FROM Utilisateur u
-      INNER JOIN Role r ON u.IdRole = r.IdRole
       LEFT JOIN Unite un ON u.IdUnite = un.IdUnite
       LEFT JOIN Centre c ON u.IdCentre = c.IdCentre
       LEFT JOIN AgenceCommerciale a ON u.IdAgence = a.IdAgence
@@ -2067,7 +1880,7 @@ app.get('/api/utilisateurs', verifyToken, async (req, res) => {
 app.post('/api/utilisateurs', verifyToken, async (req, res) => {
   try {
     const {
-      IdRole,
+      Role,
       IdUnite,
       IdCentre,
       IdAgence,
@@ -2079,10 +1892,15 @@ app.post('/api/utilisateurs', verifyToken, async (req, res) => {
       Actif
     } = req.body;
 
-    const required = ['IdRole', 'Nom', 'Prenom', 'Email', 'MotDePasse'];
+    const required = ['Role', 'Nom', 'Prenom', 'Email', 'MotDePasse'];
     const missing = required.filter(f => !req.body[f]);
     if (missing.length) {
       return res.status(400).json({ error: `Champs obligatoires manquants: ${missing.join(', ')}` });
+    }
+
+    // Vérifier que le rôle est valide
+    if (!AVAILABLE_ROLES.includes(Role)) {
+      return res.status(400).json({ error: 'Rôle invalide. Les rôles disponibles sont: ' + AVAILABLE_ROLES.join(', ') });
     }
 
     // Vérifier l'unicité de l'email
@@ -2123,7 +1941,7 @@ app.post('/api/utilisateurs', verifyToken, async (req, res) => {
     }
 
     // Valider les contraintes d'unicité selon le rôle
-    const uniquenessValidation = await validateUniquenessConstraints(IdRole, enforcedIdCentre, IdAgence);
+    const uniquenessValidation = await validateUniquenessConstraints(Role, enforcedIdCentre, IdAgence);
     if (!uniquenessValidation.valid) {
       return res.status(400).json({ error: uniquenessValidation.error });
     }
@@ -2138,7 +1956,7 @@ app.post('/api/utilisateurs', verifyToken, async (req, res) => {
     const Matricule = `UTI-${String(nextNumber).padStart(4, '0')}`;
 
     const insert = await pool.request()
-      .input('IdRole', sql.Int, IdRole)
+      .input('Role', sql.NVarChar(100), Role)
       .input('IdUnite', sql.Int, IdUnite || null)
       .input('IdCentre', sql.Int, enforcedIdCentre || null)
       .input('IdAgence', sql.Int, IdAgence || null)
@@ -2151,12 +1969,12 @@ app.post('/api/utilisateurs', verifyToken, async (req, res) => {
       .input('Actif', sql.Bit, Actif !== undefined ? Actif : 1)
       .query(`
         INSERT INTO Utilisateur (
-          IdRole, IdUnite, IdCentre, IdAgence, Matricule, Nom, Prenom,
+          Role, IdUnite, IdCentre, IdAgence, Matricule, Nom, Prenom,
           Email, Telephone, MotDePasse, Actif, DateCreation
         )
         OUTPUT INSERTED.*
         VALUES (
-          @IdRole, @IdUnite, @IdCentre, @IdAgence, @Matricule, @Nom, @Prenom,
+          @Role, @IdUnite, @IdCentre, @IdAgence, @Matricule, @Nom, @Prenom,
           @Email, @Telephone, @MotDePasse, @Actif, GETDATE()
         )
       `);
@@ -2175,9 +1993,7 @@ app.post('/api/utilisateurs', verifyToken, async (req, res) => {
           u.Telephone,
           u.Actif,
           u.DateCreation,
-          u.IdRole,
-          r.CodeRole,
-          r.LibelleRole,
+          u.Role,
           u.IdUnite,
           un.NomUnite,
           u.IdCentre,
@@ -2185,7 +2001,6 @@ app.post('/api/utilisateurs', verifyToken, async (req, res) => {
           u.IdAgence,
           a.NomAgence
         FROM Utilisateur u
-        INNER JOIN Role r ON u.IdRole = r.IdRole
         LEFT JOIN Unite un ON u.IdUnite = un.IdUnite
         LEFT JOIN Centre c ON u.IdCentre = c.IdCentre
         LEFT JOIN AgenceCommerciale a ON u.IdAgence = a.IdAgence
@@ -2206,7 +2021,7 @@ app.put('/api/utilisateurs/:id', verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
     const {
-      IdRole,
+      Role,  // Changé de IdRole à Role
       IdUnite,
       IdCentre,
       IdAgence,
@@ -2218,10 +2033,15 @@ app.put('/api/utilisateurs/:id', verifyToken, async (req, res) => {
       Actif
     } = req.body;
 
-    const required = ['IdRole', 'Nom', 'Prenom', 'Email'];
+    const required = ['Role', 'Nom', 'Prenom', 'Email'];  // Changé de IdRole à Role
     const missing = required.filter(f => !req.body[f]);
     if (missing.length) {
       return res.status(400).json({ error: `Champs obligatoires manquants: ${missing.join(', ')}` });
+    }
+
+    // Vérifier que le rôle est valide
+    if (!AVAILABLE_ROLES.includes(Role)) {
+      return res.status(400).json({ error: 'Rôle invalide. Les rôles disponibles sont: ' + AVAILABLE_ROLES.join(', ') });
     }
 
     // Vérifier que l'utilisateur existe
@@ -2280,7 +2100,7 @@ app.put('/api/utilisateurs/:id', verifyToken, async (req, res) => {
     }
 
     // Valider les contraintes d'unicité selon le rôle (en excluant l'utilisateur actuel)
-    const uniquenessValidation = await validateUniquenessConstraints(IdRole, enforcedIdCentre, IdAgence, parseInt(id));
+    const uniquenessValidation = await validateUniquenessConstraints(Role, enforcedIdCentre, IdAgence, parseInt(id));  // Changé de IdRole à Role
     if (!uniquenessValidation.valid) {
       return res.status(400).json({ error: uniquenessValidation.error });
     }
@@ -2289,7 +2109,7 @@ app.put('/api/utilisateurs/:id', verifyToken, async (req, res) => {
     const updateFields = [];
     const updateRequest = pool.request();
     updateRequest.input('id', sql.Int, id);
-    updateRequest.input('IdRole', sql.Int, IdRole);
+    updateRequest.input('Role', sql.NVarChar(100), Role);  // Changé de IdRole (Int) à Role (NVarChar)
     updateRequest.input('IdUnite', sql.Int, IdUnite || null);
     updateRequest.input('IdCentre', sql.Int, enforcedIdCentre || null);
     updateRequest.input('IdAgence', sql.Int, IdAgence || null);
@@ -2309,7 +2129,7 @@ app.put('/api/utilisateurs/:id', verifyToken, async (req, res) => {
       updateFields.push('MotDePasse = @MotDePasse');
     }
 
-    updateFields.push('IdRole = @IdRole');
+    updateFields.push('Role = @Role');  // Changé de IdRole à Role
     updateFields.push('IdUnite = @IdUnite');
     updateFields.push('IdCentre = @IdCentre');
     updateFields.push('IdAgence = @IdAgence');
@@ -2341,9 +2161,7 @@ app.put('/api/utilisateurs/:id', verifyToken, async (req, res) => {
           u.Actif,
           u.DateCreation,
           u.DateModification,
-          u.IdRole,
-          r.CodeRole,
-          r.LibelleRole,
+          u.Role,
           u.IdUnite,
           un.NomUnite,
           u.IdCentre,
@@ -2351,7 +2169,6 @@ app.put('/api/utilisateurs/:id', verifyToken, async (req, res) => {
           u.IdAgence,
           a.NomAgence
         FROM Utilisateur u
-        INNER JOIN Role r ON u.IdRole = r.IdRole
         LEFT JOIN Unite un ON u.IdUnite = un.IdUnite
         LEFT JOIN Centre c ON u.IdCentre = c.IdCentre
         LEFT JOIN AgenceCommerciale a ON u.IdAgence = a.IdAgence

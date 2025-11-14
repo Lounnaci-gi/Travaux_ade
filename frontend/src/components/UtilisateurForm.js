@@ -16,7 +16,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
   const [editingUser, setEditingUser] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [form, setForm] = useState({
-    IdRole: '',
+    Role: '',  // Changé de IdRole à Role
     IdUnite: '',
     IdCentre: '',
     IdAgence: '',
@@ -122,7 +122,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
     setSuccess('');
 
     // Validation
-    const required = ['IdRole', 'Nom', 'Prenom', 'Email', 'MotDePasse'];
+    const required = ['Role', 'Nom', 'Prenom', 'Email', 'MotDePasse'];  // Changé de IdRole à Role
     const missing = required.filter((f) => !form[f]);
     if (missing.length) {
       setError(`Veuillez remplir tous les champs obligatoires: ${missing.join(', ')}`);
@@ -139,13 +139,21 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
       return;
     }
 
+    // Validation pour Chef de Centre: peut créer uniquement pour son centre ou agences de son centre
+    if (isChefCentreUser) {
+      if (!form.IdCentre || String(form.IdCentre) !== String(user.idCentre)) {
+        setError('En tant que Chef de Centre, vous pouvez uniquement créer des utilisateurs pour votre centre ou ses agences');
+        return;
+      }
+    }
+
     const confirmed = await confirmDialog('Confirmer', 'Créer cet utilisateur ?');
     if (!confirmed) return;
 
     try {
       setSubmitting(true);
       const payload = {
-        IdRole: Number(form.IdRole),
+        Role: form.Role,  // Changé de IdRole à Role
         IdUnite: form.IdUnite ? Number(form.IdUnite) : null,
         IdCentre: form.IdCentre ? Number(form.IdCentre) : null,
         IdAgence: form.IdAgence ? Number(form.IdAgence) : null,
@@ -161,7 +169,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
       alertSuccess('Succès', `Utilisateur créé: ${created.Matricule}`);
       setSuccess('Utilisateur créé avec succès');
       setForm({
-        IdRole: '',
+        Role: '',  // Changé de IdRole à Role
         IdUnite: '',
         IdCentre: '',
         IdAgence: '',
@@ -189,7 +197,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
   const handleEdit = (utilisateur) => {
     setEditingUser(utilisateur);
     setForm({
-      IdRole: String(utilisateur.IdRole),
+      Role: utilisateur.Role || '',  // Changé de IdRole à Role
       IdUnite: utilisateur.IdUnite ? String(utilisateur.IdUnite) : '',
       IdCentre: utilisateur.IdCentre ? String(utilisateur.IdCentre) : '',
       IdAgence: utilisateur.IdAgence ? String(utilisateur.IdAgence) : '',
@@ -214,7 +222,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
     if (!editingUser) return;
 
     // Validation
-    const required = ['IdRole', 'Nom', 'Prenom', 'Email'];
+    const required = ['Role', 'Nom', 'Prenom', 'Email'];  // Changé de IdRole à Role
     const missing = required.filter((f) => !form[f]);
     if (missing.length) {
       setError(`Veuillez remplir tous les champs obligatoires: ${missing.join(', ')}`);
@@ -231,13 +239,21 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
       return;
     }
 
+    // Validation pour Chef de Centre: peut modifier uniquement pour son centre ou agences de son centre
+    if (isChefCentreUser) {
+      if (!form.IdCentre || String(form.IdCentre) !== String(user.idCentre)) {
+        setError('En tant que Chef de Centre, vous pouvez uniquement modifier des utilisateurs de votre centre ou ses agences');
+        return;
+      }
+    }
+
     const confirmed = await confirmDialog('Confirmer', 'Modifier cet utilisateur ?');
     if (!confirmed) return;
 
     try {
       setSubmitting(true);
       const payload = {
-        IdRole: Number(form.IdRole),
+        Role: form.Role,  // Changé de IdRole à Role
         IdUnite: form.IdUnite ? Number(form.IdUnite) : null,
         IdCentre: form.IdCentre ? Number(form.IdCentre) : null,
         IdAgence: form.IdAgence ? Number(form.IdAgence) : null,
@@ -310,117 +326,228 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
         </div>
 
         {/* Formulaire de création */}
-        <div className="glass-card p-6 space-y-6 mb-6">
-          <h2 className="text-xl font-semibold dark:text-white text-gray-900 mb-4">Créer un nouvel Utilisateur</h2>
+        <div className="glass-card p-8 space-y-8 mb-8">
+          <div className="flex items-center justify-between border-b border-white/10 dark:border-white/10 border-gray-200/50 pb-4">
+            <div>
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                Créer un nouvel Utilisateur
+              </h2>
+              <p className="text-sm dark:text-gray-400 text-gray-600 mt-1">
+                Remplissez les informations ci-dessous pour créer un nouveau compte utilisateur
+              </p>
+            </div>
+            <div className="hidden md:block">
+              <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30">
+                <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
           <form onSubmit={handleSubmit}>
             {error && (
-              <div className="p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-300 text-sm mb-4">{error}</div>
+              <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm flex items-start gap-3">
+                <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>{error}</span>
+              </div>
             )}
             {success && (
-              <div className="p-3 rounded-lg bg-green-500/20 border border-green-500/50 text-green-300 text-sm mb-4">{success}</div>
+              <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/30 text-green-400 text-sm flex items-start gap-3">
+                <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>{success}</span>
+              </div>
             )}
 
-            <div className="space-y-6">
-              <div className="mb-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
-                <p className="text-sm text-blue-300 dark:text-blue-400">
-                  <strong>Note:</strong> Le matricule sera généré automatiquement au format <strong>UTI-XXXX</strong> lors de la création.
-                </p>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Rôle *</label>
-                  <select
-                    name="IdRole"
-                    value={form.IdRole}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
-                    required
-                  >
-                    <option value="">Sélectionner un rôle</option>
-                    {roles.map((r) => (
-                      <option key={r.IdRole} value={r.IdRole} className="text-black">
-                        {r.LibelleRole} ({r.CodeRole})
-                      </option>
-                    ))}
-                  </select>
+            <div className="space-y-8">
+              {/* Informations générales */}
+              <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-blue-500/10">
+                    <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold dark:text-white text-gray-900">Informations personnelles</h3>
                 </div>
-                <div>
-                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Nom *</label>
-                  <input
-                    name="Nom"
-                    value={form.Nom}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
-                    required
-                  />
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="md:col-span-3">
+                    <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
+                      Rôle <span className="text-red-400">*</span>
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg className="w-5 h-5 dark:text-gray-400 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <select
+                        name="Role"
+                        value={form.Role}
+                        onChange={handleChange}
+                        className="w-full pl-10 pr-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        required
+                      >
+                        <option value="">Sélectionner un rôle</option>
+                        {roles.map((r) => (
+                          <option key={r.CodeRole} value={r.CodeRole} className="dark:bg-slate-800 bg-white">
+                            {r.LibelleRole}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
+                      Nom <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      name="Nom"
+                      value={form.Nom}
+                      onChange={handleChange}
+                      placeholder="Dupont"
+                      className="w-full px-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
+                      Prénom <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      name="Prenom"
+                      value={form.Prenom}
+                      onChange={handleChange}
+                      placeholder="Jean"
+                      className="w-full px-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
+                      Téléphone
+                    </label>
+                    <input
+                      name="Telephone"
+                      value={form.Telephone}
+                      onChange={handleChange}
+                      placeholder="0123456789"
+                      maxLength={10}
+                      className="w-full px-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Prénom *</label>
-                  <input
-                    name="Prenom"
-                    value={form.Prenom}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Email *</label>
-                  <input
-                    type="email"
-                    name="Email"
-                    value={form.Email}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Téléphone</label>
-                  <input
-                    name="Telephone"
-                    value={form.Telephone}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Mot de passe *</label>
-                  <input
-                    type="password"
-                    name="MotDePasse"
-                    value={form.MotDePasse}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
-                    required
-                    minLength={6}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Confirmation mot de passe *</label>
-                  <input
-                    type="password"
-                    name="ConfirmationMotDePasse"
-                    value={form.ConfirmationMotDePasse}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
-                    required
-                    minLength={6}
-                  />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
+                      Email <span className="text-red-400">*</span>
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg className="w-5 h-5 dark:text-gray-400 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <input
+                        type="email"
+                        name="Email"
+                        value={form.Email}
+                        onChange={handleChange}
+                        placeholder="jean.dupont@exemple.com"
+                        className="w-full pl-10 pr-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        required
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="border-t border-white/10 dark:border-white/10 border-gray-200/50 pt-4">
-                <h3 className="text-lg font-semibold mb-4 dark:text-white text-gray-900">Affectation hiérarchique</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Sécurité */}
+              <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-purple-500/10">
+                    <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold dark:text-white text-gray-900">Sécurité</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Unité</label>
+                    <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
+                      Mot de passe <span className="text-red-400">*</span>
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg className="w-5 h-5 dark:text-gray-400 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                        </svg>
+                      </div>
+                      <input
+                        type="password"
+                        name="MotDePasse"
+                        value={form.MotDePasse}
+                        onChange={handleChange}
+                        placeholder="••••••••"
+                        className="w-full pl-10 pr-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        required
+                        minLength={6}
+                      />
+                    </div>
+                    <p className="mt-1 text-xs dark:text-gray-400 text-gray-600">Minimum 6 caractères</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
+                      Confirmation <span className="text-red-400">*</span>
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg className="w-5 h-5 dark:text-gray-400 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <input
+                        type="password"
+                        name="ConfirmationMotDePasse"
+                        value={form.ConfirmationMotDePasse}
+                        onChange={handleChange}
+                        placeholder="••••••••"
+                        className="w-full pl-10 pr-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        required
+                        minLength={6}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Affectation hiérarchique */}
+              <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-green-500/10">
+                    <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold dark:text-white text-gray-900">Affectation hiérarchique</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">Unité</label>
                     <select
                       name="IdUnite"
                       value={form.IdUnite}
                       onChange={(e) => {
                         handleChange(e);
-                        // Réinitialiser centre et agence si l'unité change
                         setForm((prev) => ({
                           ...prev,
                           IdUnite: e.target.value,
@@ -428,83 +555,149 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                           IdAgence: '',
                         }));
                       }}
-                      className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                      className="w-full px-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                       disabled={isChefCentreUser}
                     >
                       <option value="">Aucune</option>
-                    {(isChefCentreUser ? unites.filter((u) => String(u.IdUnite) === String(form.IdUnite)) : unites).map((u) => (
-                        <option key={u.IdUnite} value={u.IdUnite} className="text-black">
+                      {(isChefCentreUser ? unites.filter((u) => String(u.IdUnite) === String(form.IdUnite)) : unites).map((u) => (
+                        <option key={u.IdUnite} value={u.IdUnite} className="dark:bg-slate-800 bg-white">
                           {u.CodeUnite} - {u.NomUnite}
                         </option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Centre</label>
+                    <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">Centre</label>
                     <select
                       name="IdCentre"
                       value={form.IdCentre}
                       onChange={(e) => {
                         handleChange(e);
-                        // Réinitialiser agence si le centre change
                         setForm((prev) => ({
                           ...prev,
                           IdCentre: e.target.value,
                           IdAgence: '',
                         }));
                       }}
-                      className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                      className="w-full px-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                       disabled={!form.IdUnite || isChefCentreUser}
                     >
                       <option value="">Aucun</option>
                       {filteredCentres.map((c) => (
-                        <option key={c.IdCentre} value={c.IdCentre} className="text-black">
+                        <option key={c.IdCentre} value={c.IdCentre} className="dark:bg-slate-800 bg-white">
                           {c.CodeCentre} - {c.NomCentre}
                         </option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Agence</label>
+                    <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">Agence</label>
                     <select
                       name="IdAgence"
                       value={form.IdAgence}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                      className="w-full px-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                       disabled={!form.IdCentre}
                     >
                       <option value="">Aucune</option>
                       {filteredAgences.map((a) => (
-                        <option key={a.IdAgence} value={a.IdAgence} className="text-black">
+                        <option key={a.IdAgence} value={a.IdAgence} className="dark:bg-slate-800 bg-white">
                           {a.CodeAgence} - {a.NomAgence}
                         </option>
                       ))}
                     </select>
                   </div>
                 </div>
+                
+                <div className="p-4 rounded-lg bg-blue-500/5 border border-blue-500/20">
+                  <div className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div className="text-sm dark:text-blue-300 text-blue-600">
+                      <p className="font-medium mb-1">Information</p>
+                      <p>Le matricule sera généré automatiquement au format <strong>UTI-XXXX</strong> lors de la création de l'utilisateur.</p>
+                      {isChefCentreUser && (
+                        <p className="mt-2">
+                          <strong>Note :</strong> En tant que Chef de Centre, vous pouvez créer des utilisateurs uniquement pour votre centre ou pour les agences affectées à votre centre.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className="border-t border-white/10 dark:border-white/10 border-gray-200/50 pt-4">
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="Actif"
-                    checked={form.Actif}
-                    onChange={handleChange}
-                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <label className="ml-2 text-sm dark:text-gray-300 text-gray-700">Utilisateur actif</label>
+              {/* Statut */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-amber-500/10">
+                    <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold dark:text-white text-gray-900">Statut du compte</h3>
+                </div>
+                
+                <div className="p-4 rounded-lg dark:bg-slate-700/30 bg-gray-50 border dark:border-slate-600/30 border-gray-200">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="Actif"
+                      checked={form.Actif}
+                      onChange={handleChange}
+                      className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                    />
+                    <div>
+                      <span className="text-sm font-medium dark:text-white text-gray-900">Compte actif</span>
+                      <p className="text-xs dark:text-gray-400 text-gray-600">L'utilisateur pourra se connecter immédiatement</p>
+                    </div>
+                  </label>
                 </div>
               </div>
             </div>
 
-            <div className="flex justify-end pt-4">
+            {/* Boutons d'action */}
+            <div className="flex justify-end gap-4 pt-6 border-t border-white/10 dark:border-white/10 border-gray-200/50">
+              <button
+                type="button"
+                onClick={() => setForm({
+                  Role: '',
+                  IdUnite: '',
+                  IdCentre: '',
+                  IdAgence: '',
+                  Nom: '',
+                  Prenom: '',
+                  Email: '',
+                  Telephone: '',
+                  MotDePasse: '',
+                  ConfirmationMotDePasse: '',
+                  Actif: true,
+                })}
+                className="px-6 py-3 rounded-lg bg-gray-500/10 hover:bg-gray-500/20 dark:text-gray-300 text-gray-700 font-semibold transition-all border dark:border-gray-600/30 border-gray-300"
+              >
+                Réinitialiser
+              </button>
               <button
                 type="submit"
                 disabled={submitting}
-                className="px-6 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold shadow-lg shadow-blue-500/50 hover:shadow-xl hover:shadow-blue-500/60 transition-all disabled:opacity-50"
+                className="px-8 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                {submitting ? 'Enregistrement...' : 'Créer l\'Utilisateur'}
+                {submitting ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Enregistrement...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Créer l'Utilisateur
+                  </>
+                )}
               </button>
             </div>
           </form>
@@ -542,7 +735,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                         <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{utilisateur.Matricule}</td>
                         <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{utilisateur.Nom} {utilisateur.Prenom}</td>
                         <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{utilisateur.Email}</td>
-                        <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{utilisateur.LibelleRole}</td>
+                        <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{utilisateur.Role}</td>
                         <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{utilisateur.NomUnite || '—'}</td>
                         <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{utilisateur.NomCentre || '—'}</td>
                         <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{utilisateur.NomAgence || '—'}</td>
@@ -633,8 +826,8 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                   <div>
                     <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Rôle *</label>
                     <select
-                      name="IdRole"
-                      value={form.IdRole}
+                      name="Role"
+                      value={form.Role}
                       onChange={handleChange}
                       className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
                       required
@@ -642,8 +835,8 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                     >
                       <option value="">Sélectionner un rôle</option>
                       {roles.map((r) => (
-                        <option key={r.IdRole} value={r.IdRole} className="text-black">
-                          {r.LibelleRole} ({r.CodeRole})
+                        <option key={r.CodeRole} value={r.CodeRole} className="text-black">
+                          {r.LibelleRole}
                         </option>
                       ))}
                     </select>
@@ -685,6 +878,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                       name="Telephone"
                       value={form.Telephone}
                       onChange={handleChange}
+                      maxLength={10}
                       className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
                     />
                   </div>

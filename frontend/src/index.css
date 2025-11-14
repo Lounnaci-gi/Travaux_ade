@@ -13,9 +13,9 @@
     @apply bg-gradient-to-br from-gray-50 via-blue-50 to-gray-100 text-gray-900;
   }
   
-  /* Dark mode styles */
+  /* Dark mode styles - Thème sombre amélioré (pas trop sombre) */
   .dark body {
-    @apply bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white;
+    @apply bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800 text-gray-100;
   }
 }
 
@@ -25,7 +25,8 @@
   }
   
   .dark .glass-effect {
-    @apply bg-white/10 backdrop-blur-md border border-white/20;
+    @apply bg-slate-700/40 backdrop-blur-md border border-slate-600/30;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
   }
   
   :root:not(.dark) .glass-effect {
@@ -38,6 +39,11 @@
   
   :root:not(.dark) .glass-card {
     @apply shadow-lg hover:shadow-xl;
+  }
+  
+  .dark .glass-card {
+    @apply shadow-2xl;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
   }
 }
 

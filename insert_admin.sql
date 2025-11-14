@@ -1,78 +1,77 @@
 -- ============================================================================
 -- Script d'insertion d'un utilisateur administrateur
--- AquaConnect - Système de Gestion des Branchements
+-- AquaConnect - Système de Gestion des Branchements (Version 4.0)
+-- Note: Table Role supprimée, rôle intégré directement dans Utilisateur
 -- ============================================================================
-
 USE AquaConnect_DB;
 GO
 
 -- ============================================================================
--- 1. CRÉATION DU RÔLE ADMINISTRATEUR (si n'existe pas)
--- ============================================================================
-
-IF NOT EXISTS (SELECT * FROM Role WHERE CodeRole = 'ADMIN')
-BEGIN
-    INSERT INTO Role (CodeRole, LibelleRole, Description, Actif)
-    VALUES ('ADMIN', 'Administrateur', 'Administrateur système avec tous les droits', 1);
-    PRINT '✅ Rôle Administrateur créé';
-END
-ELSE
-BEGIN
-    PRINT 'ℹ️  Rôle Administrateur existe déjà';
-END
-GO
-
--- ============================================================================
--- 2. CRÉATION DE L'UTILISATEUR ADMINISTRATEUR
+-- CRÉATION DE L'UTILISATEUR ADMINISTRATEUR
 -- ============================================================================
 
 -- Vérifier si l'utilisateur existe déjà
-IF NOT EXISTS (SELECT * FROM Utilisateur WHERE Email = 'admin@aquaconnect.local' OR Matricule = 'ADMIN001')
+IF NOT EXISTS (SELECT * FROM Utilisateur WHERE Email = 'admin' OR Matricule = 'ADMIN001')
 BEGIN
-    DECLARE @IdRoleAdmin INT;
-    SELECT @IdRoleAdmin = IdRole FROM Role WHERE CodeRole = 'ADMIN';
-    
     INSERT INTO Utilisateur (
-        IdRole,
+        Role,
         Matricule,
         Nom,
         Prenom,
         Email,
         Telephone,
         MotDePasse,
+        IdUnite,
+        IdCentre,
+        IdAgence,
         Actif,
         DateCreation
     )
     VALUES (
-        @IdRoleAdmin,
-        'ADMIN001',
-        'Administrateur',
-        'Système',
-        'admin',
-        '0665847684',
-        'admin123',  -- Mot de passe par défaut (À CHANGER en production!)
-        1,
-        GETDATE()
+        'ADMINISTRATEUR',           -- Rôle directement dans la table
+        'ADMIN001',                 -- Matricule
+        'Administrateur',           -- Nom
+        'Système',                  -- Prénom
+        'admin',                    -- Email
+        '0665847684',               -- Téléphone
+        'admin123',                 -- Mot de passe par défaut (À CHANGER en production!)
+        NULL,                       -- Pas d'unité spécifique (accès global)
+        NULL,                       -- Pas de centre spécifique
+        NULL,                       -- Pas d'agence spécifique
+        1,                          -- Actif
+        GETDATE()                   -- Date création
     );
     
+    PRINT '============================================================================';
     PRINT '✅ Utilisateur Administrateur créé avec succès!';
-    PRINT '📧 Email: admin';
-    PRINT '🔑 Matricule: ADMIN001';
-    PRINT '🔒 Mot de passe: admin123';
+    PRINT '============================================================================';
+    PRINT '📧 Email      : admin';
+    PRINT '🔑 Matricule  : ADMIN001';
+    PRINT '🔒 Mot de passe : admin123';
+    PRINT '👤 Rôle       : ADMINISTRATEUR';
+    PRINT '📱 Téléphone  : 0665847684';
     PRINT '';
     PRINT '⚠️  IMPORTANT: Changez le mot de passe après la première connexion!';
+    PRINT '============================================================================';
 END
 ELSE
 BEGIN
+    PRINT '============================================================================';
     PRINT 'ℹ️  Utilisateur Administrateur existe déjà';
-    PRINT '📧 Email: admin@aquaconnect.local';
-    PRINT '🔑 Matricule: ADMIN001';
+    PRINT '============================================================================';
+    PRINT '📧 Email      : admin';
+    PRINT '🔑 Matricule  : ADMIN001';
+    PRINT '============================================================================';
 END
 GO
 
 -- ============================================================================
--- 3. VÉRIFICATION
+-- VÉRIFICATION - Affichage de l'utilisateur créé
 -- ============================================================================
+PRINT '';
+PRINT '============================================================================';
+PRINT 'VÉRIFICATION - Informations de l''utilisateur Administrateur';
+PRINT '============================================================================';
 
 SELECT 
     u.IdUtilisateur,
@@ -80,20 +79,40 @@ SELECT
     u.Nom + ' ' + u.Prenom as NomComplet,
     u.Email,
     u.Telephone,
-    r.LibelleRole as Role,
-    r.CodeRole,
+    u.Role,
+    -- Libellé lisible du rôle
+    CASE u.Role
+        WHEN 'ADMINISTRATEUR' THEN 'Administrateur Système'
+        WHEN 'CHEF_CENTRE' THEN 'Chef de Centre'
+        WHEN 'CHEF_AGENCE_COMMERCIALE' THEN 'Chef d''Agence Commerciale'
+        WHEN 'CHEF_SERVICE_JURIDIQUE' THEN 'Chef de Service Juridique'
+        WHEN 'CHEF_SECTION_RELATIONS_CLIENTELE' THEN 'Chef de Section Relations Clientèle'
+        WHEN 'CHEF_SERVICE_TECHNICO_COMMERCIAL' THEN 'Chef de Service Technico-Commercial'
+        WHEN 'UTILISATEUR_STANDARD' THEN 'Utilisateur Standard'
+    END AS LibelleRole,
+    u.IdUnite,
+    u.IdCentre,
+    u.IdAgence,
     u.Actif,
     u.DateCreation,
+    u.DateModification,
     u.DerniereConnexion
 FROM Utilisateur u
-INNER JOIN Role r ON u.IdRole = r.IdRole
-WHERE u.Email = 'admin@aquaconnect.local' OR u.Matricule = 'ADMIN001';
+WHERE u.Email = 'admin' OR u.Matricule = 'ADMIN001';
 GO
 
+PRINT '';
 PRINT '============================================================================';
-PRINT 'Utilisateur Administrateur prêt à être utilisé!';
+PRINT '✅ Utilisateur Administrateur prêt à être utilisé!';
+PRINT '============================================================================';
+PRINT '';
+PRINT '📝 Liste des rôles disponibles dans le système:';
+PRINT '   1. ADMINISTRATEUR';
+PRINT '   2. CHEF_CENTRE';
+PRINT '   3. CHEF_AGENCE_COMMERCIALE';
+PRINT '   4. CHEF_SERVICE_JURIDIQUE';
+PRINT '   5. CHEF_SECTION_RELATIONS_CLIENTELE';
+PRINT '   6. CHEF_SERVICE_TECHNICO_COMMERCIAL';
+PRINT '   7. UTILISATEUR_STANDARD';
 PRINT '============================================================================';
 GO
-
-
-
