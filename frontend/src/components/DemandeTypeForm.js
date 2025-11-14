@@ -19,7 +19,7 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
   const [form, setForm] = useState({
     LibelleType: '',
     Description: '',
-    RolesAutorises: [], // Liste des IdRole autorisés
+    RolesAutorises: [], // Liste des codes de rôles autorisés (strings)
     ValidationChefSectionRelationClienteleRequise: false,
     ValidationJuridiqueRequise: false,
     ValidationChefAgenceRequise: false,
@@ -232,11 +232,11 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
     setLibelleSuggestions([]);
   };
 
-  const handleRoleChange = (roleId, checked) => {
+  const handleRoleChange = (roleCode, checked) => {
     setForm((prev) => {
       const roles = checked
-        ? [...prev.RolesAutorises, roleId]
-        : prev.RolesAutorises.filter(id => id !== roleId);
+        ? [...prev.RolesAutorises, roleCode]
+        : prev.RolesAutorises.filter(code => code !== roleCode);
       return { ...prev, RolesAutorises: roles };
     });
   };
@@ -615,17 +615,17 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                       {rolesWithoutAdmin.map((role) => (
                         <label 
-                          key={role.IdRole} 
+                          key={role.CodeRole} 
                           className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
-                            form.RolesAutorises.includes(role.IdRole)
+                            form.RolesAutorises.includes(role.CodeRole)
                               ? 'bg-purple-500/20 border-purple-500/50 dark:bg-purple-500/10'
                               : 'dark:bg-white/5 bg-gray-50 dark:border-white/10 border-gray-200 hover:bg-white/10'
                           }`}
                         >
                           <input
                             type="checkbox"
-                            checked={form.RolesAutorises.includes(role.IdRole)}
-                            onChange={(e) => handleRoleChange(role.IdRole, e.target.checked)}
+                            checked={form.RolesAutorises.includes(role.CodeRole)}
+                            onChange={(e) => handleRoleChange(role.CodeRole, e.target.checked)}
                             className="w-5 h-5 accent-purple-500 cursor-pointer"
                           />
                           <div className="flex-1">
@@ -969,9 +969,9 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
                             return <span className="text-gray-400 text-xs">Tous les rôles</span>;
                           }
                           // Trouver les noms des rôles
-                          const roleNames = rolesAutorises.map(roleId => {
-                            const role = roles.find(r => r.IdRole === roleId);
-                            return role ? role.LibelleRole : `ID:${roleId}`;
+                          const roleNames = rolesAutorises.map(roleCode => {
+                            const role = roles.find(r => r.CodeRole === roleCode);
+                            return role ? role.LibelleRole : roleCode;
                           });
                           return (
                             <div className="flex flex-wrap gap-1">

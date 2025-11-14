@@ -2247,7 +2247,6 @@ app.delete('/api/utilisateurs/:id', verifyToken, async (req, res) => {
 // Liste des types de demandes
 app.get('/api/demandes/types', async (req, res) => {
   try {
-    console.log('GET /api/demandes/types - Début de la requête');
     const result = await pool.request().query(`
       SELECT 
         IdDemandeType, 
@@ -2265,7 +2264,6 @@ app.get('/api/demandes/types', async (req, res) => {
       FROM DemandeType
       ORDER BY DateCreation DESC, LibelleType
     `);
-    console.log(`GET /api/demandes/types - ${result.recordset.length} types trouvés`);
     res.json(result.recordset);
   } catch (error) {
     console.error('Erreur lors de la récupération des types de demandes:', error);
@@ -2433,6 +2431,28 @@ app.put('/api/demandes/types/:id', verifyToken, async (req, res) => {
 app.post('/api/demandes', verifyToken, async (req, res) => {
   const transaction = new sql.Transaction(pool);
   try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Utilisateur non authentifié' });
+    }
+
+    // Récupérer les informations de l'utilisateur (rôle)
+    const userInfo = await pool.request()
+      .input('id', sql.Int, userId)
+      .query(`
+        SELECT u.Role
+        FROM Utilisateur u
+        WHERE u.IdUtilisateur = @id
+      `);
+
+    if (userInfo.recordset.length === 0) {
+      return res.status(404).json({ error: 'Utilisateur introuvable' });
+    }
+
+    const userData = userInfo.recordset[0];
+    const userRole = userData.Role || '';
+    const isAdmin = userRole === 'ADMINISTRATEUR';
+
     const {
       idAgence,
       idClient,
@@ -2444,6 +2464,69 @@ app.post('/api/demandes', verifyToken, async (req, res) => {
 
     if (!idAgence || !idDemandeType) {
       return res.status(400).json({ error: 'idAgence et idDemandeType sont requis' });
+    }
+
+    // Vérifier que l'utilisateur peut créer ce type de demande
+    // Récupérer le type de demande
+    const typeRequest = await pool.request()
+      .input('id', sql.Int, idDemandeType)
+      .query(`
+        SELECT IdDemandeType, Description, Actif
+        FROM DemandeType
+        WHERE IdDemandeType = @id
+      `);
+
+    if (typeRequest.recordset.length === 0) {
+      return res.status(404).json({ error: 'Type de demande introuvable' });
+    }
+
+    const demandeType = typeRequest.recordset[0];
+    
+    // Vérifier que le type est actif
+    if (!demandeType.Actif) {
+      return res.status(400).json({ error: 'Ce type de demande est inactif' });
+    }
+
+    // Vérifier les permissions de l'utilisateur
+    if (!isAdmin) {
+      // Parser la description pour vérifier les rôles autorisés
+      let rolesAutorises = [];
+      if (demandeType.Description) {
+        try {
+          const parsed = JSON.parse(demandeType.Description);
+          rolesAutorises = parsed.r || parsed.roles || [];
+        } catch (e) {
+          // Si ce n'est pas du JSON, c'est une description simple
+          // Dans ce cas, tous les rôles peuvent créer
+        }
+      }
+      
+      // Si des rôles sont spécifiés, vérifier si l'utilisateur en fait partie
+      if (rolesAutorises.length > 0) {
+        // Vérifier si le rôle de l'utilisateur est dans la liste des rôles autorisés
+        const userRoleUpper = userRole.toUpperCase();
+        const isAuthorized = rolesAutorises.some(role => {
+          // Si c'est un nombre (ID de rôle), on ne peut pas le comparer directement
+          // Pour les anciens types avec IDs, on refuse l'accès par défaut
+          // TODO: Migrer tous les types pour utiliser des codes de rôle
+          if (typeof role === 'number') {
+            return false;
+          }
+          
+          // Si c'est une string (code de rôle)
+          if (typeof role === 'string') {
+            return role.toUpperCase() === userRoleUpper || 
+                   role.toUpperCase().includes(userRoleUpper) ||
+                   userRoleUpper.includes(role.toUpperCase());
+          }
+          
+          return false;
+        });
+        
+        if (!isAuthorized) {
+          return res.status(403).json({ error: 'Vous n\'êtes pas autorisé à créer ce type de demande' });
+        }
+      }
     }
 
     await transaction.begin();
@@ -2697,9 +2780,8 @@ app.get('/api/demandes', verifyToken, async (req, res) => {
     const userInfo = await pool.request()
       .input('id', sql.Int, userId)
       .query(`
-        SELECT u.IdAgence, u.IdCentre, r.CodeRole
+        SELECT u.IdAgence, u.IdCentre, u.Role
         FROM Utilisateur u
-        INNER JOIN Role r ON u.IdRole = r.IdRole
         WHERE u.IdUtilisateur = @id
       `);
 
@@ -2708,7 +2790,7 @@ app.get('/api/demandes', verifyToken, async (req, res) => {
     }
 
     const userData = userInfo.recordset[0];
-    const actorRoleLower = (userData.CodeRole || '').toLowerCase();
+    const actorRoleLower = (userData.Role || '').toLowerCase();
     const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin');
     const isChefCentreRole = actorRoleLower.includes('chef') && actorRoleLower.includes('centre');
 
@@ -2761,6 +2843,9 @@ app.get('/api/demandes', verifyToken, async (req, res) => {
         dt.ValidationJuridiqueRequise,
         dt.ValidationChefAgenceRequise,
         dt.ValidationChefCentreRequise,
+        dt.ValidationOE_ChefSectionRelationClienteleRequise,
+        dt.ValidationOE_ChefAgenceRequise,
+        dt.ValidationOE_ChefCentreRequise,
         a.IdAgence,
         a.NomAgence,
         c.IdClient,
@@ -2799,9 +2884,8 @@ app.post('/api/demandes/:id/validate', verifyToken, async (req, res) => {
     const userInfo = await pool.request()
       .input('id', sql.Int, userId)
       .query(`
-        SELECT u.IdAgence, u.IdCentre, r.CodeRole
+        SELECT u.IdAgence, u.IdCentre, u.Role
         FROM Utilisateur u
-        INNER JOIN Role r ON u.IdRole = r.IdRole
         WHERE u.IdUtilisateur = @id
       `);
 
@@ -2810,7 +2894,7 @@ app.post('/api/demandes/:id/validate', verifyToken, async (req, res) => {
     }
 
     const userData = userInfo.recordset[0];
-    const actorRoleLower = (userData.CodeRole || '').toLowerCase();
+    const actorRoleLower = (userData.Role || '').toLowerCase();
 
     // Récupérer la demande avec son type
     const demandeInfo = await pool.request()
@@ -2821,6 +2905,10 @@ app.post('/api/demandes/:id/validate', verifyToken, async (req, res) => {
           dt.ValidationChefSectionRelationClienteleRequise,
           dt.ValidationJuridiqueRequise,
           dt.ValidationChefAgenceRequise,
+          dt.ValidationChefCentreRequise,
+          dt.ValidationOE_ChefSectionRelationClienteleRequise,
+          dt.ValidationOE_ChefAgenceRequise,
+          dt.ValidationOE_ChefCentreRequise,
           a.IdAgence as DemandeIdAgence
         FROM DemandeTravaux d
         INNER JOIN DemandeType dt ON d.IdDemandeType = dt.IdDemandeType

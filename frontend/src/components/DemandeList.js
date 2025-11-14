@@ -20,11 +20,15 @@ const DemandeList = ({ user }) => {
   const loadDemandes = async () => {
     try {
       setLoading(true);
+      console.log('Chargement des demandes...');
       const data = await getDemandes();
+      console.log('Demandes récupérées:', data);
       setDemandes(data);
     } catch (error) {
       console.error('Erreur lors du chargement des demandes:', error);
-      alertError('Erreur', 'Impossible de charger les demandes');
+      console.error('Détails de l\'erreur:', error.response);
+      const errorMsg = error.response?.data?.error || error.message || 'Impossible de charger les demandes';
+      alertError('Erreur', errorMsg);
     } finally {
       setLoading(false);
     }
