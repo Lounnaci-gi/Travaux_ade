@@ -2247,6 +2247,7 @@ app.delete('/api/utilisateurs/:id', verifyToken, async (req, res) => {
 // Liste des types de demandes
 app.get('/api/demandes/types', async (req, res) => {
   try {
+    console.log('GET /api/demandes/types - Début de la requête');
     const result = await pool.request().query(`
       SELECT 
         IdDemandeType, 
@@ -2264,10 +2265,11 @@ app.get('/api/demandes/types', async (req, res) => {
       FROM DemandeType
       ORDER BY DateCreation DESC, LibelleType
     `);
+    console.log(`GET /api/demandes/types - ${result.recordset.length} types trouvés`);
     res.json(result.recordset);
   } catch (error) {
     console.error('Erreur lors de la récupération des types de demandes:', error);
-    res.status(500).json({ error: 'Erreur serveur' });
+    res.status(500).json({ error: 'Erreur serveur lors de la récupération des types de demandes' });
   }
 });
 

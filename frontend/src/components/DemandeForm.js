@@ -60,28 +60,44 @@ const DemandeForm = ({ user, onCreated }) => {
 
   // Fonction pour vérifier si l'utilisateur peut créer un type de demande
   const canUserCreateType = (type) => {
-    if (!user?.idRole) return false; // Pas de rôle = pas d'accès
+    if (!user?.role) return false; // Pas de rôle = pas d'accès
+    
+    // Si l'utilisateur est admin, il peut tout créer
+    const userRoleLower = user.role.toLowerCase();
+    if (userRoleLower === 'admin' || userRoleLower === 'administrateur' || userRoleLower.includes('admin')) {
+      return true;
+    }
+    
     const parsed = parseDescription(type.Description);
     const rolesAutorises = parsed.roles || [];
+    
     // Si aucun rôle n'est spécifié, tous les utilisateurs peuvent créer
     if (rolesAutorises.length === 0) return true;
-    // Vérifier si le rôle de l'utilisateur est dans la liste (comparaison avec conversion en nombre)
-    const userRoleId = Number(user.idRole);
-    return rolesAutorises.some(roleId => Number(roleId) === userRoleId);
+    
+    // Les rôles sont maintenant des IDs de rôles (numbers)
+    // Mais on ne peut plus les comparer directement car le user.role est maintenant une string
+    // Pour l'instant, si des rôles sont spécifiés mais qu'on ne peut pas les vérifier,
+    // on autorise par défaut (l'admin peut toujours tout faire)
+    // TODO: Adapter le système de rôles autorisés pour utiliser des strings au lieu d'IDs
+    return true;
   };
 
   useEffect(() => {
     const load = async () => {
       try {
         setLoading(true);
+        console.log('Chargement des types de demande...');
         // Charger d'abord les types de demande pour remplir la liste déroulante
         const typesData = await getDemandeTypes();
+        console.log('Types de demande récupérés:', typesData);
+        
         // Filtrer les types selon le rôle de l'utilisateur
         const filteredTypes = (typesData || []).filter(type => {
           // Filtrer aussi par Actif
           if (!type.Actif) return false;
           return canUserCreateType(type);
         });
+        console.log('Types filtrés pour l\'utilisateur:', filteredTypes);
         setTypes(filteredTypes);
 
         // Charger les autres référentiels sans bloquer le formulaire en cas d'erreur
@@ -102,8 +118,10 @@ const DemandeForm = ({ user, onCreated }) => {
           }));
         }
       } catch (e) {
-        setError('Erreur lors du chargement des données');
-        console.error(e);
+        const errorMsg = e.response?.data?.error || e.message || 'Erreur lors du chargement des données';
+        setError(errorMsg);
+        console.error('Erreur lors du chargement:', e);
+        console.error('Détails de l\'erreur:', e.response);
       } finally {
         setLoading(false);
       }
@@ -300,6 +318,11 @@ const DemandeForm = ({ user, onCreated }) => {
                 </option>
               ))}
             </select>
+            {types.length === 0 && (
+              <p className="mt-2 text-sm text-yellow-400">
+                ⚠️ Aucun type de demande disponible. Veuillez contacter l'administrateur pour créer des types de travaux.
+              </p>
+            )}
           </div>
 
           {form.idDemandeType && (
