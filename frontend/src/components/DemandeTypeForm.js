@@ -11,6 +11,11 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [editingId, setEditingId] = useState(null);
+  const [expandedSections, setExpandedSections] = useState({
+    roles: false,
+    validationsDemande: false,
+    validationsOE: false,
+  });
   const [form, setForm] = useState({
     LibelleType: '',
     Description: '',
@@ -24,27 +29,138 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
     ValidationOE_ChefCentreRequise: false,
     Actif: true,
   });
+  // Stockage des validations supplémentaires (rôles sans champ BDD)
+  const [validationsDemandeExtra, setValidationsDemandeExtra] = useState({}); // { CodeRole: boolean }
+  const [validationsOEExtra, setValidationsOEExtra] = useState({}); // { CodeRole: boolean }
+
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  // Filtrer les rôles pour exclure l'Admin
+  const getRolesWithoutAdmin = () => {
+    return roles.filter(role => 
+      role.CodeRole?.toUpperCase() !== 'ADMINISTRATEUR' && 
+      role.CodeRole?.toUpperCase() !== 'ADMIN'
+    );
+  };
+
+  // Mapping des rôles vers les champs de validation pour la Demande
+  const getValidationFieldForDemande = (codeRole) => {
+    const mapping = {
+      'CHEF_SECTION_RELATIONS_CLIENTELE': 'ValidationChefSectionRelationClienteleRequise',
+      'CHEF_SERVICE_JURIDIQUE': 'ValidationJuridiqueRequise',
+      'CHEF_AGENCE_COMMERCIALE': 'ValidationChefAgenceRequise',
+      'CHEF_CENTRE': 'ValidationChefCentreRequise',
+    };
+    return mapping[codeRole?.toUpperCase()];
+  };
+
+  // Mapping des rôles vers les champs de validation pour l'Ordre d'Exécution
+  const getValidationFieldForOE = (codeRole) => {
+    const mapping = {
+      'CHEF_SECTION_RELATIONS_CLIENTELE': 'ValidationOE_ChefSectionRelationClienteleRequise',
+      'CHEF_AGENCE_COMMERCIALE': 'ValidationOE_ChefAgenceRequise',
+      'CHEF_CENTRE': 'ValidationOE_ChefCentreRequise',
+    };
+    return mapping[codeRole?.toUpperCase()];
+  };
+
+  // Vérifier si un rôle peut valider une demande
+  const canRoleValidateDemande = (codeRole) => {
+    return ['CHEF_SECTION_RELATIONS_CLIENTELE', 'CHEF_SERVICE_JURIDIQUE', 'CHEF_AGENCE_COMMERCIALE', 'CHEF_CENTRE'].includes(codeRole?.toUpperCase());
+  };
+
+  // Vérifier si un rôle peut valider un ordre d'exécution
+  const canRoleValidateOE = (codeRole) => {
+    return ['CHEF_SECTION_RELATIONS_CLIENTELE', 'CHEF_AGENCE_COMMERCIALE', 'CHEF_CENTRE'].includes(codeRole?.toUpperCase());
+  };
+
+  // Handler pour les validations de demande par rôle
+  const handleValidationDemandeChange = (codeRole, checked) => {
+    const fieldName = getValidationFieldForDemande(codeRole);
+    if (fieldName) {
+      // Rôle avec champ BDD
+      setForm(prev => ({ ...prev, [fieldName]: checked }));
+    } else {
+      // Rôle sans champ BDD, stocker dans l'état extra
+      setValidationsDemandeExtra(prev => ({
+        ...prev,
+        [codeRole?.toUpperCase()]: checked
+      }));
+    }
+  };
+
+  // Handler pour les validations d'ordre d'exécution par rôle
+  const handleValidationOEChange = (codeRole, checked) => {
+    const fieldName = getValidationFieldForOE(codeRole);
+    if (fieldName) {
+      // Rôle avec champ BDD
+      setForm(prev => ({ ...prev, [fieldName]: checked }));
+    } else {
+      // Rôle sans champ BDD, stocker dans l'état extra
+      setValidationsOEExtra(prev => ({
+        ...prev,
+        [codeRole?.toUpperCase()]: checked
+      }));
+    }
+  };
+
+  // Obtenir la valeur de validation pour une demande
+  const getValidationDemandeValue = (codeRole) => {
+    const fieldName = getValidationFieldForDemande(codeRole);
+    if (fieldName) {
+      return form[fieldName];
+    }
+    // Si pas de champ BDD, utiliser le stockage extra
+    return validationsDemandeExtra[codeRole?.toUpperCase()] || false;
+  };
+
+  // Obtenir la valeur de validation pour un ordre d'exécution
+  const getValidationOEValue = (codeRole) => {
+    const fieldName = getValidationFieldForOE(codeRole);
+    if (fieldName) {
+      return form[fieldName];
+    }
+    // Si pas de champ BDD, utiliser le stockage extra
+    return validationsOEExtra[codeRole?.toUpperCase()] || false;
+  };
 
   // Fonction pour parser la Description (format JSON ou texte simple)
   const parseDescription = (desc) => {
-    if (!desc) return { description: '', roles: [] };
+    if (!desc) return { description: '', roles: [], validationsDemande: {}, validationsOE: {} };
     try {
       const parsed = JSON.parse(desc);
       return {
         description: parsed.d || parsed.description || '',
-        roles: parsed.r || parsed.roles || []
+        roles: parsed.r || parsed.roles || [],
+        validationsDemande: parsed.vd || parsed.validationsDemande || {},
+        validationsOE: parsed.vo || parsed.validationsOE || {}
       };
     } catch {
       // Si ce n'est pas du JSON, c'est une description simple
-      return { description: desc, roles: [] };
+      return { description: desc, roles: [], validationsDemande: {}, validationsOE: {} };
     }
   };
 
-  // Fonction pour formater la Description avec les rôles
-  const formatDescription = (description, roles) => {
-    if (!description && (!roles || roles.length === 0)) return null;
-    if (!roles || roles.length === 0) return description;
-    return JSON.stringify({ d: description || '', r: roles });
+  // Fonction pour formater la Description avec les rôles et validations
+  const formatDescription = (description, roles, validationsDemande = {}, validationsOE = {}) => {
+    const hasRoles = roles && roles.length > 0;
+    const hasValidationsDemande = Object.keys(validationsDemande).length > 0;
+    const hasValidationsOE = Object.keys(validationsOE).length > 0;
+    
+    if (!description && !hasRoles && !hasValidationsDemande && !hasValidationsOE) return null;
+    if (!hasRoles && !hasValidationsDemande && !hasValidationsOE) return description;
+    
+    return JSON.stringify({ 
+      d: description || '', 
+      r: roles || [],
+      vd: validationsDemande,
+      vo: validationsOE
+    });
   };
 
   const load = async () => {
@@ -110,15 +226,36 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
       ValidationOE_ChefCentreRequise: false,
       Actif: true
     });
+    setValidationsDemandeExtra({});
+    setValidationsOEExtra({});
     setEditingId(null);
+    setExpandedSections({
+      roles: false,
+      validationsDemande: false,
+      validationsOE: false,
+    });
   };
 
   const handleEdit = (type) => {
     const parsed = parseDescription(type.Description);
+    const rolesAutorises = parsed.roles || [];
+    const validationsDemandeExtra = parsed.validationsDemande || {};
+    const validationsOEExtra = parsed.validationsOE || {};
+    
+    const hasValidationsDemande = type.ValidationChefSectionRelationClienteleRequise || 
+                                   type.ValidationJuridiqueRequise || 
+                                   type.ValidationChefAgenceRequise || 
+                                   type.ValidationChefCentreRequise ||
+                                   Object.keys(validationsDemandeExtra).length > 0;
+    const hasValidationsOE = type.ValidationOE_ChefSectionRelationClienteleRequise || 
+                             type.ValidationOE_ChefAgenceRequise || 
+                             type.ValidationOE_ChefCentreRequise ||
+                             Object.keys(validationsOEExtra).length > 0;
+    
     setForm({
       LibelleType: type.LibelleType || '',
       Description: parsed.description,
-      RolesAutorises: parsed.roles || [],
+      RolesAutorises: rolesAutorises,
       ValidationChefSectionRelationClienteleRequise: type.ValidationChefSectionRelationClienteleRequise || false,
       ValidationJuridiqueRequise: type.ValidationJuridiqueRequise || false,
       ValidationChefAgenceRequise: type.ValidationChefAgenceRequise || false,
@@ -128,6 +265,17 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
       ValidationOE_ChefCentreRequise: type.ValidationOE_ChefCentreRequise || false,
       Actif: type.Actif !== false,
     });
+    
+    setValidationsDemandeExtra(validationsDemandeExtra);
+    setValidationsOEExtra(validationsOEExtra);
+    
+    // Ouvrir automatiquement les sections qui ont des valeurs
+    setExpandedSections({
+      roles: rolesAutorises.length > 0,
+      validationsDemande: hasValidationsDemande,
+      validationsOE: hasValidationsOE,
+    });
+    
     setEditingId(type.IdDemandeType);
     setError('');
     setSuccess('');
@@ -162,8 +310,13 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
     
     try {
       setSubmitting(true);
-      // Formater la description avec les rôles autorisés
-      const descriptionFormatted = formatDescription(form.Description, form.RolesAutorises);
+      // Formater la description avec les rôles autorisés et les validations supplémentaires
+      const descriptionFormatted = formatDescription(
+        form.Description, 
+        form.RolesAutorises,
+        validationsDemandeExtra,
+        validationsOEExtra
+      );
       const formData = {
         ...form,
         Description: descriptionFormatted
@@ -228,118 +381,460 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
           <p className="dark:text-gray-400 text-gray-600">Créer et lister les types de travaux (DemandeType)</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="glass-card p-6 space-y-4 mb-6">
-          {error && <div className="p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-300 text-sm">{error}</div>}
-          {success && <div className="p-3 rounded-lg bg-green-500/20 border border-green-500/50 text-green-300 text-sm">{success}</div>}
+        <form onSubmit={handleSubmit} className="glass-card p-6 mb-6">
+          {/* Messages d'alerte */}
+          {error && (
+            <div className="mb-4 p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-300 text-sm flex items-center gap-2">
+              <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+              <span>{error}</span>
+            </div>
+          )}
+          {success && (
+            <div className="mb-4 p-3 rounded-lg bg-green-500/20 border border-green-500/50 text-green-300 text-sm flex items-center gap-2">
+              <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <span>{success}</span>
+            </div>
+          )}
           
+          {/* Bannière d'édition */}
           {editingId && (
-            <div className="p-3 rounded-lg bg-blue-500/20 border border-blue-500/50 text-blue-300 text-sm flex items-center justify-between">
-              <span>Mode édition - Modification du type ID: {editingId}</span>
+            <div className="mb-6 p-4 rounded-lg bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/50 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                <div>
+                  <span className="text-blue-300 font-semibold">Mode édition</span>
+                  <span className="text-blue-400/70 text-sm ml-2">ID: {editingId}</span>
+                </div>
+              </div>
               <button
                 type="button"
                 onClick={handleCancelEdit}
-                className="px-3 py-1 rounded bg-blue-500/30 hover:bg-blue-500/40 text-sm"
+                className="px-4 py-2 rounded-lg bg-blue-500/30 hover:bg-blue-500/40 text-blue-200 text-sm font-medium transition-colors"
               >
                 Annuler
               </button>
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Libellé *</label>
-              <input name="LibelleType" value={form.LibelleType} onChange={handleChange} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" placeholder="Ex: Branchement nouveau" />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Description</label>
-              <input name="Description" value={form.Description} onChange={handleChange} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" placeholder="Description optionnelle" />
-            </div>
-            <div className="md:col-span-2 border-t border-white/10 dark:border-white/10 border-gray-200/50 pt-4">
-              <h3 className="text-lg font-semibold mb-4 dark:text-white text-gray-900">Rôles autorisés à créer ce type de demande</h3>
-              <p className="text-xs text-gray-400 mb-3">Sélectionnez les rôles qui peuvent créer ce type de demande. Si aucun rôle n'est sélectionné, tous les utilisateurs peuvent créer ce type.</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {roles.map((role) => (
-                  <label key={role.IdRole} className="inline-flex items-center gap-2 text-sm dark:text-gray-300 text-gray-700 cursor-pointer hover:bg-white/5 p-2 rounded">
-                    <input
-                      type="checkbox"
-                      checked={form.RolesAutorises.includes(role.IdRole)}
-                      onChange={(e) => handleRoleChange(role.IdRole, e.target.checked)}
-                      className="accent-blue-500"
+          {/* Section: Informations de base */}
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold mb-4 dark:text-white text-gray-900 flex items-center gap-2">
+              <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Informations de base
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
+                  Libellé <span className="text-red-400">*</span>
+                </label>
+                <input 
+                  name="LibelleType" 
+                  value={form.LibelleType} 
+                  onChange={handleChange} 
+                  className="w-full px-4 py-2.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all" 
+                  placeholder="Ex: Branchement nouveau" 
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
+                  Statut
+                </label>
+                {editingId ? (
+                  <label className="flex items-center gap-3 h-full px-4 py-2.5 rounded-lg dark:bg-white/5 bg-gray-50 border dark:border-white/10 border-gray-200 cursor-pointer hover:bg-white/10 transition-colors">
+                    <input 
+                      type="checkbox" 
+                      name="Actif" 
+                      checked={form.Actif} 
+                      onChange={handleChange} 
+                      className="w-5 h-5 accent-green-500 cursor-pointer" 
                     />
-                    <span>{role.LibelleRole} ({role.CodeRole})</span>
+                    <div>
+                      <span className="text-sm font-medium dark:text-gray-300 text-gray-700">
+                        {form.Actif ? 'Actif' : 'Inactif'}
+                      </span>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {form.Actif ? 'Visible dans les listes' : 'Masqué des listes'}
+                      </p>
+                    </div>
                   </label>
-                ))}
-              </div>
-              {roles.length === 0 && (
-                <p className="text-xs text-gray-400">Aucun rôle disponible</p>
-              )}
-            </div>
-            <div className="border-t border-white/10 dark:border-white/10 border-gray-200/50 pt-4">
-              <h3 className="text-lg font-semibold mb-4 dark:text-white text-gray-900">Validations requises pour la Demande</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <label className="inline-flex items-center gap-2 text-sm dark:text-gray-300 text-gray-700">
-                  <input type="checkbox" name="ValidationChefSectionRelationClienteleRequise" checked={form.ValidationChefSectionRelationClienteleRequise} onChange={handleChange} className="accent-cyan-500" />
-                  Validation Chef Section Relation Clientèle
-                </label>
-                <label className="inline-flex items-center gap-2 text-sm dark:text-gray-300 text-gray-700">
-                  <input type="checkbox" name="ValidationJuridiqueRequise" checked={form.ValidationJuridiqueRequise} onChange={handleChange} className="accent-blue-500" />
-                  Validation Juridique
-                </label>
-                <label className="inline-flex items-center gap-2 text-sm dark:text-gray-300 text-gray-700">
-                  <input type="checkbox" name="ValidationChefAgenceRequise" checked={form.ValidationChefAgenceRequise} onChange={handleChange} className="accent-purple-500" />
-                  Validation Chef d'agence
-                </label>
-                <label className="inline-flex items-center gap-2 text-sm dark:text-gray-300 text-gray-700">
-                  <input type="checkbox" name="ValidationChefCentreRequise" checked={form.ValidationChefCentreRequise} onChange={handleChange} className="accent-green-500" />
-                  Validation Chef de centre
-                </label>
+                ) : (
+                  <div className="flex items-center h-full px-4 py-2.5 rounded-lg dark:bg-white/5 bg-gray-50 border dark:border-white/10 border-gray-200">
+                    <span className="text-sm text-gray-400">Défini lors de l'édition</span>
+                  </div>
+                )}
               </div>
             </div>
+            <div className="mt-4">
+              <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
+                Description
+              </label>
+              <textarea 
+                name="Description" 
+                value={form.Description} 
+                onChange={handleChange} 
+                rows="3"
+                className="w-full px-4 py-2.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all resize-none" 
+                placeholder="Description optionnelle du type de travaux"
+              />
+            </div>
+          </div>
 
-            <div className="border-t border-white/10 dark:border-white/10 border-gray-200/50 pt-4">
-              <h3 className="text-lg font-semibold mb-4 dark:text-white text-gray-900">Validations requises pour l'Ordre d'Exécution</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <label className="inline-flex items-center gap-2 text-sm dark:text-gray-300 text-gray-700">
-                  <input type="checkbox" name="ValidationOE_ChefSectionRelationClienteleRequise" checked={form.ValidationOE_ChefSectionRelationClienteleRequise} onChange={handleChange} className="accent-cyan-500" />
-                  Validation OE - Chef Section Relation Clientèle
-                </label>
-                <label className="inline-flex items-center gap-2 text-sm dark:text-gray-300 text-gray-700">
-                  <input type="checkbox" name="ValidationOE_ChefAgenceRequise" checked={form.ValidationOE_ChefAgenceRequise} onChange={handleChange} className="accent-purple-500" />
-                  Validation OE - Chef d'agence
-                </label>
-                <label className="inline-flex items-center gap-2 text-sm dark:text-gray-300 text-gray-700">
-                  <input type="checkbox" name="ValidationOE_ChefCentreRequise" checked={form.ValidationOE_ChefCentreRequise} onChange={handleChange} className="accent-green-500" />
-                  Validation OE - Chef de centre
-                </label>
-              </div>
-            </div>
-
-            {editingId && (
-              <div className="border-t border-white/10 dark:border-white/10 border-gray-200/50 pt-4">
-                <label className="inline-flex items-center gap-2 text-sm dark:text-gray-300 text-gray-700">
-                  <input type="checkbox" name="Actif" checked={form.Actif} onChange={handleChange} className="accent-green-500" />
-                  Actif
-                </label>
-                <p className="text-xs text-gray-400 mt-1 ml-6">Désactiver ce type pour le masquer des listes</p>
+          {/* Section: Rôles autorisés (repliable) */}
+          <div className="mb-6 border-t dark:border-white/10 border-gray-200/50 pt-6">
+            <button
+              type="button"
+              onClick={() => toggleSection('roles')}
+              className="w-full flex items-center justify-between text-left mb-4 group"
+            >
+              <h3 className="text-lg font-semibold dark:text-white text-gray-900 flex items-center gap-2">
+                <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Rôles autorisés
+                {form.RolesAutorises.length > 0 && (
+                  <span className="ml-2 px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400 text-xs font-medium">
+                    {form.RolesAutorises.length} sélectionné{form.RolesAutorises.length > 1 ? 's' : ''}
+                  </span>
+                )}
+              </h3>
+              <svg 
+                className={`w-5 h-5 text-gray-400 transition-transform ${expandedSections.roles ? 'rotate-180' : ''}`} 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {expandedSections.roles && (
+              <div className="space-y-3">
+                <p className="text-sm text-gray-400 mb-4">
+                  Sélectionnez les rôles autorisés à créer ce type de demande. Si aucun rôle n'est sélectionné, tous les utilisateurs peuvent créer ce type. <span className="text-purple-400 font-medium">L'Administrateur a une autorisation globale et n'apparaît pas dans cette liste.</span>
+                </p>
+                {(() => {
+                  const rolesWithoutAdmin = getRolesWithoutAdmin();
+                  return rolesWithoutAdmin.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {rolesWithoutAdmin.map((role) => (
+                        <label 
+                          key={role.IdRole} 
+                          className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                            form.RolesAutorises.includes(role.IdRole)
+                              ? 'bg-purple-500/20 border-purple-500/50 dark:bg-purple-500/10'
+                              : 'dark:bg-white/5 bg-gray-50 dark:border-white/10 border-gray-200 hover:bg-white/10'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={form.RolesAutorises.includes(role.IdRole)}
+                            onChange={(e) => handleRoleChange(role.IdRole, e.target.checked)}
+                            className="w-5 h-5 accent-purple-500 cursor-pointer"
+                          />
+                          <div className="flex-1">
+                            <span className="text-sm font-medium dark:text-gray-300 text-gray-700 block">
+                              {role.LibelleRole}
+                            </span>
+                            <span className="text-xs text-gray-400">{role.CodeRole}</span>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-400 text-center py-4">Aucun rôle disponible</p>
+                  );
+                })()}
               </div>
             )}
           </div>
 
-          <div className="flex justify-end gap-3">
+          {/* Section: Validations Demande (repliable) */}
+          <div className="mb-6 border-t dark:border-white/10 border-gray-200/50 pt-6">
+            <button
+              type="button"
+              onClick={() => toggleSection('validationsDemande')}
+              className="w-full flex items-center justify-between text-left mb-4 group"
+            >
+              <h3 className="text-lg font-semibold dark:text-white text-gray-900 flex items-center gap-2">
+                <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Validations requises - Demande
+                {(() => {
+                  const rolesWithoutAdmin = getRolesWithoutAdmin();
+                  const count = rolesWithoutAdmin.filter(role => getValidationDemandeValue(role.CodeRole)).length;
+                  return count > 0 ? (
+                    <span className="ml-2 px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 text-xs font-medium">
+                      {count} validation{count > 1 ? 's' : ''}
+                    </span>
+                  ) : null;
+                })()}
+              </h3>
+              <svg 
+                className={`w-5 h-5 text-gray-400 transition-transform ${expandedSections.validationsDemande ? 'rotate-180' : ''}`} 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {expandedSections.validationsDemande && (
+              <div className="space-y-3">
+                <p className="text-sm text-gray-400 mb-4">
+                  Sélectionnez les rôles qui doivent valider ce type de demande. <span className="text-cyan-400 font-medium">L'Administrateur a une autorisation globale et n'apparaît pas dans cette liste.</span>
+                </p>
+                {(() => {
+                  const rolesWithoutAdmin = getRolesWithoutAdmin();
+                  const colors = ['cyan', 'blue', 'purple', 'green', 'orange', 'pink', 'indigo', 'teal'];
+                  
+                  // Mapping des couleurs par code de rôle
+                  const getColorClasses = (codeRole, isChecked, index) => {
+                    const colorMap = {
+                      'CHEF_SECTION_RELATIONS_CLIENTELE': {
+                        checked: 'bg-cyan-500/20 border-cyan-500/50 dark:bg-cyan-500/10',
+                        accent: 'accent-cyan-500'
+                      },
+                      'CHEF_SERVICE_JURIDIQUE': {
+                        checked: 'bg-blue-500/20 border-blue-500/50 dark:bg-blue-500/10',
+                        accent: 'accent-blue-500'
+                      },
+                      'CHEF_AGENCE_COMMERCIALE': {
+                        checked: 'bg-purple-500/20 border-purple-500/50 dark:bg-purple-500/10',
+                        accent: 'accent-purple-500'
+                      },
+                      'CHEF_CENTRE': {
+                        checked: 'bg-green-500/20 border-green-500/50 dark:bg-green-500/10',
+                        accent: 'accent-green-500'
+                      },
+                      'CHEF_SERVICE_TECHNICO_COMMERCIAL': {
+                        checked: 'bg-orange-500/20 border-orange-500/50 dark:bg-orange-500/10',
+                        accent: 'accent-orange-500'
+                      },
+                      'UTILISATEUR_STANDARD': {
+                        checked: 'bg-pink-500/20 border-pink-500/50 dark:bg-pink-500/10',
+                        accent: 'accent-pink-500'
+                      }
+                    };
+                    const mappedColors = colorMap[codeRole?.toUpperCase()];
+                    if (mappedColors) {
+                      return {
+                        container: isChecked ? mappedColors.checked : 'dark:bg-white/5 bg-gray-50 dark:border-white/10 border-gray-200 hover:bg-white/10',
+                        checkbox: mappedColors.accent
+                      };
+                    }
+                    // Pour les autres rôles, utiliser une couleur par défaut
+                    return {
+                      container: isChecked ? 'bg-indigo-500/20 border-indigo-500/50 dark:bg-indigo-500/10' : 'dark:bg-white/5 bg-gray-50 dark:border-white/10 border-gray-200 hover:bg-white/10',
+                      checkbox: 'accent-indigo-500'
+                    };
+                  };
+                  
+                  return rolesWithoutAdmin.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {rolesWithoutAdmin.map((role, index) => {
+                        const isChecked = getValidationDemandeValue(role.CodeRole);
+                        const colorClasses = getColorClasses(role.CodeRole, isChecked, index);
+                        return (
+                          <label 
+                            key={role.IdRole}
+                            className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${colorClasses.container}`}
+                          >
+                            <input 
+                              type="checkbox" 
+                              checked={isChecked}
+                              onChange={(e) => handleValidationDemandeChange(role.CodeRole, e.target.checked)} 
+                              className={`w-5 h-5 ${colorClasses.checkbox} cursor-pointer`}
+                            />
+                            <div className="flex-1">
+                              <span className="text-sm font-medium dark:text-gray-300 text-gray-700 block">
+                                {role.LibelleRole}
+                              </span>
+                              <span className="text-xs text-gray-400">Validation pour la demande</span>
+                            </div>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-400 text-center py-4">
+                      Aucun rôle disponible pour la validation des demandes
+                    </p>
+                  );
+                })()}
+              </div>
+            )}
+          </div>
+
+          {/* Section: Validations Ordre d'Exécution (repliable) */}
+          <div className="mb-6 border-t dark:border-white/10 border-gray-200/50 pt-6">
+            <button
+              type="button"
+              onClick={() => toggleSection('validationsOE')}
+              className="w-full flex items-center justify-between text-left mb-4 group"
+            >
+              <h3 className="text-lg font-semibold dark:text-white text-gray-900 flex items-center gap-2">
+                <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                Validations requises - Ordre d'Exécution
+                {(() => {
+                  const rolesWithoutAdmin = getRolesWithoutAdmin();
+                  const count = rolesWithoutAdmin.filter(role => getValidationOEValue(role.CodeRole)).length;
+                  return count > 0 ? (
+                    <span className="ml-2 px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 text-xs font-medium">
+                      {count} validation{count > 1 ? 's' : ''}
+                    </span>
+                  ) : null;
+                })()}
+              </h3>
+              <svg 
+                className={`w-5 h-5 text-gray-400 transition-transform ${expandedSections.validationsOE ? 'rotate-180' : ''}`} 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {expandedSections.validationsOE && (
+              <div className="space-y-3">
+                <p className="text-sm text-gray-400 mb-4">
+                  Sélectionnez les rôles qui doivent valider l'ordre d'exécution. <span className="text-green-400 font-medium">L'Administrateur a une autorisation globale et n'apparaît pas dans cette liste.</span>
+                </p>
+                {(() => {
+                  const rolesWithoutAdmin = getRolesWithoutAdmin();
+                  const colors = ['cyan', 'blue', 'purple', 'green', 'orange', 'pink', 'indigo', 'teal'];
+                  
+                  // Mapping des couleurs par code de rôle pour OE
+                  const getColorClassesOE = (codeRole, isChecked, index) => {
+                    const colorMap = {
+                      'CHEF_SECTION_RELATIONS_CLIENTELE': {
+                        checked: 'bg-cyan-500/20 border-cyan-500/50 dark:bg-cyan-500/10',
+                        accent: 'accent-cyan-500'
+                      },
+                      'CHEF_AGENCE_COMMERCIALE': {
+                        checked: 'bg-purple-500/20 border-purple-500/50 dark:bg-purple-500/10',
+                        accent: 'accent-purple-500'
+                      },
+                      'CHEF_CENTRE': {
+                        checked: 'bg-green-500/20 border-green-500/50 dark:bg-green-500/10',
+                        accent: 'accent-green-500'
+                      },
+                      'CHEF_SERVICE_JURIDIQUE': {
+                        checked: 'bg-blue-500/20 border-blue-500/50 dark:bg-blue-500/10',
+                        accent: 'accent-blue-500'
+                      },
+                      'CHEF_SERVICE_TECHNICO_COMMERCIAL': {
+                        checked: 'bg-orange-500/20 border-orange-500/50 dark:bg-orange-500/10',
+                        accent: 'accent-orange-500'
+                      },
+                      'UTILISATEUR_STANDARD': {
+                        checked: 'bg-pink-500/20 border-pink-500/50 dark:bg-pink-500/10',
+                        accent: 'accent-pink-500'
+                      }
+                    };
+                    const mappedColors = colorMap[codeRole?.toUpperCase()];
+                    if (mappedColors) {
+                      return {
+                        container: isChecked ? mappedColors.checked : 'dark:bg-white/5 bg-gray-50 dark:border-white/10 border-gray-200 hover:bg-white/10',
+                        checkbox: mappedColors.accent
+                      };
+                    }
+                    // Pour les autres rôles, utiliser une couleur par défaut
+                    return {
+                      container: isChecked ? 'bg-indigo-500/20 border-indigo-500/50 dark:bg-indigo-500/10' : 'dark:bg-white/5 bg-gray-50 dark:border-white/10 border-gray-200 hover:bg-white/10',
+                      checkbox: 'accent-indigo-500'
+                    };
+                  };
+                  
+                  return rolesWithoutAdmin.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {rolesWithoutAdmin.map((role, index) => {
+                        const isChecked = getValidationOEValue(role.CodeRole);
+                        const colorClasses = getColorClassesOE(role.CodeRole, isChecked, index);
+                        return (
+                          <label 
+                            key={role.IdRole}
+                            className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${colorClasses.container}`}
+                          >
+                            <input 
+                              type="checkbox" 
+                              checked={isChecked}
+                              onChange={(e) => handleValidationOEChange(role.CodeRole, e.target.checked)} 
+                              className={`w-5 h-5 ${colorClasses.checkbox} cursor-pointer`}
+                            />
+                            <div className="flex-1">
+                              <span className="text-sm font-medium dark:text-gray-300 text-gray-700 block">
+                                {role.LibelleRole}
+                              </span>
+                              <span className="text-xs text-gray-400">Validation pour l'ordre d'exécution</span>
+                            </div>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-400 text-center py-4">
+                      Aucun rôle disponible pour la validation des ordres d'exécution
+                    </p>
+                  );
+                })()}
+              </div>
+            )}
+          </div>
+
+          {/* Boutons d'action */}
+          <div className="flex justify-end gap-3 pt-4 border-t dark:border-white/10 border-gray-200/50">
             {editingId && (
               <button
                 type="button"
                 onClick={handleCancelEdit}
-                className="px-6 py-3 rounded-lg bg-gray-500 text-white font-semibold shadow-lg hover:opacity-90"
+                className="px-6 py-2.5 rounded-lg bg-gray-500/80 hover:bg-gray-500 text-white font-medium shadow-lg transition-colors"
               >
                 Annuler
               </button>
             )}
-            <button type="submit" disabled={submitting} className="px-6 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold shadow-lg disabled:opacity-50">
-              {submitting 
-                ? (editingId ? 'Modification...' : 'Création...') 
-                : (editingId ? 'Modifier le type' : 'Créer le type')
-              }
+            <button 
+              type="submit" 
+              disabled={submitting} 
+              className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium shadow-lg hover:from-blue-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+            >
+              {submitting ? (
+                <>
+                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  {editingId ? 'Modification...' : 'Création...'}
+                </>
+              ) : (
+                <>
+                  {editingId ? (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Modifier le type
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      Créer le type
+                    </>
+                  )}
+                </>
+              )}
             </button>
           </div>
         </form>
