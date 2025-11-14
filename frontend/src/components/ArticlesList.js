@@ -34,6 +34,11 @@ const ArticlesList = ({ user, onUnauthorized }) => {
   });
   const [matiereSearch, setMatiereSearch] = useState('');
   const [showMatiereDropdown, setShowMatiereDropdown] = useState(false);
+  const [hoveredArticle, setHoveredArticle] = useState(null);
+  const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
+  const [hoveredArticleDetails, setHoveredArticleDetails] = useState(null);
+  const [loadingHoverDetails, setLoadingHoverDetails] = useState(false);
+  const [showHoverCard, setShowHoverCard] = useState(false);
 
   // Liste des unités de mesure prédéfinies
   const unitesMesure = [
@@ -368,7 +373,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
   };
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen p-6 relative">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
           Gestion des Articles
@@ -376,97 +381,117 @@ const ArticlesList = ({ user, onUnauthorized }) => {
 
         {/* Formulaire de création/modification */}
         <div className="glass-card p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4 dark:text-white text-gray-900">
-            {editingId ? 'Modifier un Article' : 'Créer un Nouvel Article'}
-          </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-            Le code article sera généré automatiquement au format <strong>ART-XXXXXXX</strong> (7 chiffres).
-          </p>
+          <div className="mb-6">
+            <h2 className="text-2xl font-semibold mb-2 dark:text-white text-gray-900 flex items-center gap-2">
+              <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              {editingId ? 'Modifier un Article' : 'Créer un Nouvel Article'}
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Le code article sera généré automatiquement au format <strong className="text-blue-400">ART-XXXXXXX</strong> (7 chiffres).
+            </p>
+          </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-sm">
-              {error}
+            <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-sm flex items-center gap-2">
+              <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+              <span>{error}</span>
             </div>
           )}
 
           {success && (
-            <div className="mb-4 p-3 bg-green-500/20 border border-green-500/50 rounded-lg text-green-400 text-sm">
-              {success}
+            <div className="mb-4 p-3 bg-green-500/20 border border-green-500/50 rounded-lg text-green-400 text-sm flex items-center gap-2">
+              <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <span>{success}</span>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm dark:text-gray-300 text-gray-700">
-                    Famille d'Article *
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setShowFamilleModal(true)}
-                    className="text-xs px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors flex items-center gap-1"
-                    title="Créer une nouvelle famille"
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Section: Informations principales */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4 dark:text-white text-gray-900 flex items-center gap-2">
+                <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Informations principales
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium dark:text-gray-300 text-gray-700">
+                      Famille d'Article <span className="text-red-400">*</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowFamilleModal(true)}
+                      className="text-xs px-3 py-1.5 bg-blue-500/80 hover:bg-blue-600 text-white rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
+                      title="Créer une nouvelle famille"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      Nouvelle famille
+                    </button>
+                  </div>
+                  <select
+                    name="IdFamille"
+                    value={form.IdFamille}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                    required
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    Nouvelle famille
-                  </button>
+                    <option value="">Sélectionner une famille</option>
+                    {familles.map((famille) => (
+                      <option key={famille.IdFamille} value={famille.IdFamille}>
+                        {famille.LibelleFamille}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-                <select
-                  name="IdFamille"
-                  value={form.IdFamille}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
-                  required
-                >
-                  <option value="">Sélectionner une famille</option>
-                  {familles.map((famille) => (
-                    <option key={famille.IdFamille} value={famille.IdFamille}>
-                      {famille.LibelleFamille}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">
-                  Unité *
-                </label>
-                <select
-                  name="Unite"
-                  value={form.Unite}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
-                  required
-                >
-                  <option value="">Sélectionner une unité</option>
-                  {unitesMesure.map((unite) => (
-                    <option key={unite} value={unite}>
-                      {unite}
-                    </option>
-                  ))}
-                </select>
+                <div>
+                  <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
+                    Unité <span className="text-red-400">*</span>
+                  </label>
+                  <select
+                    name="Unite"
+                    value={form.Unite}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                    required
+                  >
+                    <option value="">Sélectionner une unité</option>
+                    {unitesMesure.map((unite) => (
+                      <option key={unite} value={unite}>
+                        {unite}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">
-                Désignation *
+              <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
+                Désignation <span className="text-red-400">*</span>
               </label>
               <input
                 name="Designation"
                 value={form.Designation}
                 onChange={handleChange}
                 maxLength={200}
-                placeholder="Ex: Tuyau,Raccord, Manchon, Coude, Bouchon, Compteur d'eau, Réducteur de pression"
-                className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                placeholder="Ex: Tuyau, Raccord, Manchon, Coude, Bouchon, Compteur d'eau, Réducteur de pression"
+                className="w-full px-4 py-2.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">
+              <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
                 Description
               </label>
               <textarea
@@ -475,194 +500,237 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                 onChange={handleChange}
                 maxLength={500}
                 rows={3}
-                className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                placeholder="Description détaillée de l'article..."
+                className="w-full px-4 py-2.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all resize-none"
               />
             </div>
 
-            <div className="border-t border-white/10 dark:border-white/10 border-gray-200/50 pt-4">
-              <h3 className="text-lg font-semibold mb-4 dark:text-white text-gray-900">
-                Variantes (optionnel)
+            {/* Section: Variantes (optionnel) */}
+            <div className="border-t dark:border-white/10 border-gray-200/50 pt-6">
+              <h3 className="text-lg font-semibold mb-4 dark:text-white text-gray-900 flex items-center gap-2">
+                <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                </svg>
+                Variantes <span className="text-sm font-normal text-gray-400">(optionnel)</span>
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">
-                    Diamètre
-                  </label>
-                  <input
-                    name="Diametre"
-                    value={form.Diametre}
-                    onChange={handleChange}
-                    maxLength={20}
-                    placeholder="Ex: DN15, DN20, DN25, DN32, DN40"
-                    className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
-                  />
-                </div>
-                <div className="relative matiere-dropdown-container">
-                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">
-                    Matière
-                  </label>
-                  <div className="relative">
+              
+              {/* Grille compacte pour les variantes - 3 colonnes sur desktop, 2 sur tablette */}
+              <div className="max-w-4xl">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium dark:text-gray-300 text-gray-700 mb-1.5">
+                      Diamètre
+                    </label>
                     <input
-                      type="text"
-                      value={form.Matiere}
-                      onChange={handleMatiereSearchChange}
-                      onFocus={() => {
-                        setShowMatiereDropdown(true);
-                        setMatiereSearch(form.Matiere);
-                      }}
-                      maxLength={50}
-                      placeholder="Rechercher une matière..."
-                      className="w-full px-4 py-3 pr-10 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                      name="Diametre"
+                      value={form.Diametre}
+                      onChange={handleChange}
+                      maxLength={20}
+                      placeholder="Ex: DN15, DN20"
+                      className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all"
                     />
-                    <svg
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    {showMatiereDropdown && (
-                      <>
-                        {filteredMatieres.length > 0 ? (
-                          <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border dark:border-white/20 border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                            {filteredMatieres.map((matiere) => (
-                              <button
-                                key={matiere}
-                                type="button"
-                                onClick={() => handleMatiereSelect(matiere)}
-                                className="w-full text-left px-4 py-2 hover:bg-blue-500/20 dark:hover:bg-blue-500/20 dark:text-white text-gray-900 transition-colors first:rounded-t-lg last:rounded-b-lg"
-                              >
-                                {matiere}
-                              </button>
-                            ))}
-                          </div>
-                        ) : (
-                          matiereSearch && (
-                            <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border dark:border-white/20 border-gray-300 rounded-lg shadow-lg p-4">
-                              <p className="text-sm text-gray-500 dark:text-gray-400">Aucune matière trouvée</p>
+                  </div>
+                  
+                  <div className="relative matiere-dropdown-container">
+                    <label className="block text-xs font-medium dark:text-gray-300 text-gray-700 mb-1.5">
+                      Matière
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={form.Matiere}
+                        onChange={handleMatiereSearchChange}
+                        onFocus={() => {
+                          setShowMatiereDropdown(true);
+                          setMatiereSearch(form.Matiere);
+                        }}
+                        maxLength={50}
+                        placeholder="Rechercher..."
+                        className="w-full px-3 py-2 pr-8 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all"
+                      />
+                      <svg
+                        className="absolute right-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                      {showMatiereDropdown && (
+                        <>
+                          {filteredMatieres.length > 0 ? (
+                            <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border dark:border-white/20 border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                              {filteredMatieres.map((matiere) => (
+                                <button
+                                  key={matiere}
+                                  type="button"
+                                  onClick={() => handleMatiereSelect(matiere)}
+                                  className="w-full text-left px-3 py-2 text-sm hover:bg-purple-500/20 dark:hover:bg-purple-500/20 dark:text-white text-gray-900 transition-colors first:rounded-t-lg last:rounded-b-lg"
+                                >
+                                  {matiere}
+                                </button>
+                              ))}
                             </div>
-                          )
-                        )}
-                      </>
-                    )}
+                          ) : (
+                            matiereSearch && (
+                              <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border dark:border-white/20 border-gray-300 rounded-lg shadow-lg p-3">
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Aucune matière trouvée</p>
+                              </div>
+                            )
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium dark:text-gray-300 text-gray-700 mb-1.5">
+                      Classe
+                    </label>
+                    <input
+                      name="Classe"
+                      value={form.Classe}
+                      onChange={handleChange}
+                      maxLength={20}
+                      placeholder="Ex: C6, C10"
+                      className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium dark:text-gray-300 text-gray-700 mb-1.5">
+                      Pression
+                    </label>
+                    <input
+                      name="Pression"
+                      value={form.Pression}
+                      onChange={handleChange}
+                      maxLength={20}
+                      placeholder="Ex: PN10, PN16"
+                      className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium dark:text-gray-300 text-gray-700 mb-1.5">
+                      Longueur
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      name="Longueur"
+                      value={form.Longueur}
+                      onChange={handleChange}
+                      placeholder="cm ou m"
+                      className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium dark:text-gray-300 text-gray-700 mb-1.5">
+                      Largeur
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      name="Largeur"
+                      value={form.Largeur}
+                      onChange={handleChange}
+                      placeholder="cm"
+                      className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium dark:text-gray-300 text-gray-700 mb-1.5">
+                      Épaisseur
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      name="Epaisseur"
+                      value={form.Epaisseur}
+                      onChange={handleChange}
+                      placeholder="mm ou cm"
+                      className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium dark:text-gray-300 text-gray-700 mb-1.5">
+                      Couleur
+                    </label>
+                    <input
+                      name="Couleur"
+                      value={form.Couleur}
+                      onChange={handleChange}
+                      maxLength={30}
+                      placeholder="Ex: Bleu, Vert"
+                      className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all"
+                    />
                   </div>
                 </div>
-                <div>
-                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">
-                    Classe
+                
+                <div className="mt-4">
+                  <label className="block text-xs font-medium dark:text-gray-300 text-gray-700 mb-1.5">
+                    Caractéristiques
                   </label>
-                  <input
-                    name="Classe"
-                    value={form.Classe}
+                  <textarea
+                    name="Caracteristiques"
+                    value={form.Caracteristiques}
                     onChange={handleChange}
-                    maxLength={20}
-                    placeholder="Ex: C6, C10, Classe A, Classe B,Classe C"
-                    className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                    maxLength={500}
+                    rows={2}
+                    placeholder="Informations complémentaires..."
+                    className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all resize-none"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">
-                    Pression
-                  </label>
-                  <input
-                    name="Pression"
-                    value={form.Pression}
-                    onChange={handleChange}
-                    maxLength={20}
-                    placeholder="Ex: PN10, PN16, PN20, PN25"
-                    className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">
-                    Longueur (cm ou m)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    name="Longueur"
-                    value={form.Longueur}
-                    onChange={handleChange}
-                    placeholder="Ex: 100.5"
-                    className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">
-                    Largeur (cm)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    name="Largeur"
-                    value={form.Largeur}
-                    onChange={handleChange}
-                    placeholder="Ex: 50.2"
-                    className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">
-                    Épaisseur (mm ou cm)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    name="Epaisseur"
-                    value={form.Epaisseur}
-                    onChange={handleChange}
-                    placeholder="Ex: 2.5"
-                    className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">
-                    Couleur
-                  </label>
-                  <input
-                    name="Couleur"
-                    value={form.Couleur}
-                    onChange={handleChange}
-                    maxLength={30}
-                    placeholder="Ex: Bleu, Vert, Rouge"
-                    className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
-                  />
-                </div>
-              </div>
-              <div className="mt-4">
-                <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">
-                  Caractéristiques
-                </label>
-                <textarea
-                  name="Caracteristiques"
-                  value={form.Caracteristiques}
-                  onChange={handleChange}
-                  maxLength={500}
-                  rows={3}
-                  placeholder="Informations complémentaires texte libre"
-                  className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
-                />
               </div>
             </div>
 
-            <div className="flex gap-4">
-              <button
-                type="submit"
-                disabled={submitting}
-                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-              >
-                {submitting ? 'En cours...' : editingId ? 'Modifier' : 'Créer'}
-              </button>
+            <div className="flex justify-end gap-3 pt-4 border-t dark:border-white/10 border-gray-200/50">
               {editingId && (
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-all"
+                  className="px-6 py-2.5 bg-gray-500/80 hover:bg-gray-500 text-white rounded-lg font-medium shadow-lg transition-colors"
                 >
                   Annuler
                 </button>
               )}
+              <button
+                type="submit"
+                disabled={submitting}
+                className="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-medium shadow-lg hover:from-blue-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+              >
+                {submitting ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    En cours...
+                  </>
+                ) : (
+                  <>
+                    {editingId ? (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Modifier
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                        Créer
+                      </>
+                    )}
+                  </>
+                )}
+              </button>
             </div>
           </form>
         </div>
@@ -752,7 +820,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
               <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto relative">
               <table className="w-full">
                 <thead>
                   <tr className="border-b dark:border-white/10 border-gray-200">
@@ -775,7 +843,99 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     articles.map((article) => (
                       <tr
                         key={article.IdArticle}
-                        className="border-b dark:border-white/5 border-gray-100 hover:dark:bg-white/5 hover:bg-gray-50"
+                        className="border-b dark:border-white/5 border-gray-100 hover:dark:bg-white/5 hover:bg-gray-50 relative"
+                        onMouseEnter={(e) => {
+                          e.stopPropagation();
+                          const articleToShow = article;
+                          setHoveredArticle(articleToShow);
+                          
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          const viewportWidth = window.innerWidth;
+                          const viewportHeight = window.innerHeight;
+                          const cardWidth = 320; // w-80 = 320px
+                          const cardHeight = 400; // estimation
+                          
+                          // Pour fixed, utiliser getBoundingClientRect qui donne déjà les coordonnées par rapport à la fenêtre
+                          let x = rect.right + 10;
+                          let y = rect.top;
+                          
+                          // Ajuster si la carte sort à droite
+                          if (x + cardWidth > viewportWidth - 10) {
+                            x = rect.left - cardWidth - 10;
+                            // Si ça sort aussi à gauche, mettre à droite mais ajuster
+                            if (x < 10) {
+                              x = Math.max(10, viewportWidth - cardWidth - 10);
+                            }
+                          }
+                          
+                          // Ajuster si la carte sort en bas
+                          if (y + cardHeight > viewportHeight - 10) {
+                            y = Math.max(10, viewportHeight - cardHeight - 10);
+                          }
+                          
+                          // S'assurer que la carte ne sorte pas en haut
+                          if (y < 10) {
+                            y = 10;
+                          }
+                          
+                          const finalX = Math.max(10, x);
+                          const finalY = Math.max(10, y);
+                          
+                          setHoverPosition({ x: finalX, y: finalY });
+                          setShowHoverCard(true);
+                          
+                          // Charger les détails complets de l'article de manière asynchrone
+                          const loadDetails = async () => {
+                            try {
+                              setLoadingHoverDetails(true);
+                              const details = await getArticleById(articleToShow.IdArticle);
+                              setHoveredArticleDetails(details);
+                            } catch (error) {
+                              console.error('Erreur lors du chargement des détails:', error);
+                              setHoveredArticleDetails(null);
+                            } finally {
+                              setLoadingHoverDetails(false);
+                            }
+                          };
+                          loadDetails();
+                        }}
+                        onMouseLeave={() => {
+                          setShowHoverCard(false);
+                          // Petit délai pour permettre le mouvement vers la carte
+                          setTimeout(() => {
+                            setHoveredArticle(null);
+                            setHoveredArticleDetails(null);
+                          }, 100);
+                        }}
+                        onMouseMove={(e) => {
+                          if (hoveredArticle?.IdArticle === article.IdArticle) {
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            const viewportWidth = window.innerWidth;
+                            const viewportHeight = window.innerHeight;
+                            const cardWidth = 384;
+                            const cardHeight = 400;
+                            
+                            let x = rect.right + 10;
+                            let y = rect.top;
+                            
+                            if (x + cardWidth > viewportWidth - 10) {
+                              x = rect.left - cardWidth - 10;
+                              if (x < 10) {
+                                x = viewportWidth - cardWidth - 10;
+                              }
+                            }
+                            
+                            if (y + cardHeight > viewportHeight - 10) {
+                              y = viewportHeight - cardHeight - 10;
+                            }
+                            
+                            if (y < 10) {
+                              y = 10;
+                            }
+                            
+                            setHoverPosition({ x, y });
+                          }
+                        }}
                       >
                         <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700 font-mono">
                           {article.CodeArticle}
@@ -811,6 +971,144 @@ const ArticlesList = ({ user, onUnauthorized }) => {
             </div>
           )}
         </div>
+
+        {/* Carte d'information au survol */}
+        {hoveredArticle && hoverPosition.x > 0 && hoverPosition.y > 0 && (
+          <div
+            className="fixed z-[9999] p-4 shadow-2xl border-2 dark:border-white/30 border-gray-400 rounded-lg max-w-sm w-80 pointer-events-auto bg-white dark:bg-gray-800 backdrop-blur-xl"
+            style={{
+              left: `${hoverPosition.x}px`,
+              top: `${hoverPosition.y}px`,
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              display: 'block',
+              visibility: 'visible',
+              opacity: 1,
+            }}
+            onMouseEnter={(e) => {
+              e.stopPropagation();
+              setShowHoverCard(true);
+            }}
+            onMouseLeave={() => {
+              setShowHoverCard(false);
+              setTimeout(() => {
+                setHoveredArticle(null);
+                setHoveredArticleDetails(null);
+              }, 200);
+            }}
+          >
+            <div className="space-y-3">
+              <div className="flex items-center justify-between border-b dark:border-white/10 border-gray-200 pb-2">
+                <h3 className="text-lg font-semibold dark:text-white text-gray-900 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
+                  {hoveredArticle.Designation}
+                </h3>
+              </div>
+              
+              {loadingHoverDetails ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
+                </div>
+              ) : hoveredArticleDetails ? (
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-start gap-2">
+                    <span className="font-medium dark:text-gray-300 text-gray-700 min-w-[100px]">Code:</span>
+                    <span className="dark:text-gray-400 text-gray-600 font-mono">{hoveredArticleDetails.CodeArticle}</span>
+                  </div>
+                  
+                  <div className="flex items-start gap-2">
+                    <span className="font-medium dark:text-gray-300 text-gray-700 min-w-[100px]">Famille:</span>
+                    <span className="dark:text-gray-400 text-gray-600">{hoveredArticleDetails.LibelleFamille || '—'}</span>
+                  </div>
+                  
+                  <div className="flex items-start gap-2">
+                    <span className="font-medium dark:text-gray-300 text-gray-700 min-w-[100px]">Unité:</span>
+                    <span className="dark:text-gray-400 text-gray-600">{hoveredArticleDetails.Unite}</span>
+                  </div>
+                  
+                  {hoveredArticleDetails.Description && (
+                    <div className="flex items-start gap-2">
+                      <span className="font-medium dark:text-gray-300 text-gray-700 min-w-[100px]">Description:</span>
+                      <span className="dark:text-gray-400 text-gray-600">{hoveredArticleDetails.Description}</span>
+                    </div>
+                  )}
+                  
+                  {(hoveredArticleDetails.Diametre || hoveredArticleDetails.Matiere || hoveredArticleDetails.Classe || hoveredArticleDetails.Pression) && (
+                    <div className="pt-2 border-t dark:border-white/10 border-gray-200">
+                      <div className="text-xs font-semibold dark:text-gray-400 text-gray-500 mb-1.5">Variantes:</div>
+                      <div className="space-y-1">
+                        {hoveredArticleDetails.Diametre && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400">Diamètre: {hoveredArticleDetails.Diametre}</span>
+                          </div>
+                        )}
+                        {hoveredArticleDetails.Matiere && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs px-2 py-0.5 rounded bg-purple-500/20 text-purple-400">Matière: {hoveredArticleDetails.Matiere}</span>
+                          </div>
+                        )}
+                        {hoveredArticleDetails.Classe && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs px-2 py-0.5 rounded bg-green-500/20 text-green-400">Classe: {hoveredArticleDetails.Classe}</span>
+                          </div>
+                        )}
+                        {hoveredArticleDetails.Pression && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs px-2 py-0.5 rounded bg-orange-500/20 text-orange-400">Pression: {hoveredArticleDetails.Pression}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {(hoveredArticleDetails.Longueur || hoveredArticleDetails.Largeur || hoveredArticleDetails.Epaisseur || hoveredArticleDetails.Couleur) && (
+                    <div className="pt-2 border-t dark:border-white/10 border-gray-200">
+                      <div className="text-xs font-semibold dark:text-gray-400 text-gray-500 mb-1.5">Dimensions:</div>
+                      <div className="space-y-1 text-xs dark:text-gray-400 text-gray-600">
+                        {hoveredArticleDetails.Longueur && <div>Longueur: {hoveredArticleDetails.Longueur}</div>}
+                        {hoveredArticleDetails.Largeur && <div>Largeur: {hoveredArticleDetails.Largeur}</div>}
+                        {hoveredArticleDetails.Epaisseur && <div>Épaisseur: {hoveredArticleDetails.Epaisseur}</div>}
+                        {hoveredArticleDetails.Couleur && <div>Couleur: {hoveredArticleDetails.Couleur}</div>}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {hoveredArticleDetails.Caracteristiques && (
+                    <div className="pt-2 border-t dark:border-white/10 border-gray-200">
+                      <div className="text-xs font-semibold dark:text-gray-400 text-gray-500 mb-1">Caractéristiques:</div>
+                      <p className="text-xs dark:text-gray-400 text-gray-600 line-clamp-3">{hoveredArticleDetails.Caracteristiques}</p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-start gap-2">
+                    <span className="font-medium dark:text-gray-300 text-gray-700 min-w-[100px]">Code:</span>
+                    <span className="dark:text-gray-400 text-gray-600 font-mono">{hoveredArticle.CodeArticle}</span>
+                  </div>
+                  
+                  <div className="flex items-start gap-2">
+                    <span className="font-medium dark:text-gray-300 text-gray-700 min-w-[100px]">Famille:</span>
+                    <span className="dark:text-gray-400 text-gray-600">{hoveredArticle.LibelleFamille || '—'}</span>
+                  </div>
+                  
+                  <div className="flex items-start gap-2">
+                    <span className="font-medium dark:text-gray-300 text-gray-700 min-w-[100px]">Unité:</span>
+                    <span className="dark:text-gray-400 text-gray-600">{hoveredArticle.Unite}</span>
+                  </div>
+                  
+                  {hoveredArticle.Description && (
+                    <div className="flex items-start gap-2">
+                      <span className="font-medium dark:text-gray-300 text-gray-700 min-w-[100px]">Description:</span>
+                      <span className="dark:text-gray-400 text-gray-600">{hoveredArticle.Description}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

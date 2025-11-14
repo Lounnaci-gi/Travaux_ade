@@ -32,6 +32,10 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
   // Stockage des validations supplémentaires (rôles sans champ BDD)
   const [validationsDemandeExtra, setValidationsDemandeExtra] = useState({}); // { CodeRole: boolean }
   const [validationsOEExtra, setValidationsOEExtra] = useState({}); // { CodeRole: boolean }
+  // État pour l'autocomplétion du libellé
+  const [libelleSuggestions, setLibelleSuggestions] = useState([]);
+  const [showLibelleSuggestions, setShowLibelleSuggestions] = useState(false);
+  const [libelleSearchTerm, setLibelleSearchTerm] = useState('');
 
   const toggleSection = (section) => {
     setExpandedSections(prev => ({
@@ -201,6 +205,31 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
     setForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     setError('');
     setSuccess('');
+    
+    // Gestion de l'autocomplétion pour le libellé
+    if (name === 'LibelleType') {
+      setLibelleSearchTerm(value);
+      if (value.length > 0) {
+        // Filtrer les libellés existants (exclure celui en cours d'édition)
+        const filtered = types
+          .filter(t => t.IdDemandeType !== editingId && t.LibelleType && t.LibelleType.toLowerCase().includes(value.toLowerCase()))
+          .map(t => t.LibelleType)
+          .filter((libelle, index, self) => self.indexOf(libelle) === index) // Supprimer les doublons
+          .slice(0, 5); // Limiter à 5 suggestions
+        setLibelleSuggestions(filtered);
+        setShowLibelleSuggestions(filtered.length > 0);
+      } else {
+        setLibelleSuggestions([]);
+        setShowLibelleSuggestions(false);
+      }
+    }
+  };
+
+  const handleLibelleSelect = (libelle) => {
+    setForm(prev => ({ ...prev, LibelleType: libelle }));
+    setLibelleSearchTerm(libelle);
+    setShowLibelleSuggestions(false);
+    setLibelleSuggestions([]);
   };
 
   const handleRoleChange = (roleId, checked) => {
@@ -228,6 +257,9 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
     });
     setValidationsDemandeExtra({});
     setValidationsOEExtra({});
+    setLibelleSearchTerm('');
+    setLibelleSuggestions([]);
+    setShowLibelleSuggestions(false);
     setEditingId(null);
     setExpandedSections({
       roles: false,
@@ -268,6 +300,9 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
     
     setValidationsDemandeExtra(validationsDemandeExtra);
     setValidationsOEExtra(validationsOEExtra);
+    setLibelleSearchTerm(type.LibelleType || '');
+    setLibelleSuggestions([]);
+    setShowLibelleSuggestions(false);
     
     // Ouvrir automatiquement les sections qui ont des valeurs
     setExpandedSections({
@@ -431,18 +466,72 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
               Informations de base
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+              <div className="relative">
                 <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
                   Libellé <span className="text-red-400">*</span>
                 </label>
-                <input 
-                  name="LibelleType" 
-                  value={form.LibelleType} 
-                  onChange={handleChange} 
-                  className="w-full px-4 py-2.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all" 
-                  placeholder="Ex: Branchement nouveau" 
-                  required
-                />
+                <div className="relative">
+                  <input 
+                    name="LibelleType" 
+                    value={form.LibelleType} 
+                    onChange={handleChange}
+                    onFocus={() => {
+                      if (form.LibelleType.length > 0 && libelleSuggestions.length > 0) {
+                        setShowLibelleSuggestions(true);
+                      }
+                    }}
+                    onBlur={() => {
+                      // Délai pour permettre le clic sur une suggestion
+                      setTimeout(() => setShowLibelleSuggestions(false), 200);
+                    }}
+                    className="w-full px-4 py-2.5 pr-10 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all" 
+                    placeholder="Ex: Branchement nouveau" 
+                    required
+                    autoComplete="off"
+                  />
+                  {form.LibelleType && (
+                    <svg 
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  )}
+                  {showLibelleSuggestions && libelleSuggestions.length > 0 && (
+                    <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border dark:border-white/20 border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      <div className="p-2 text-xs text-gray-500 dark:text-gray-400 border-b dark:border-white/10 border-gray-200">
+                        Suggestions basées sur les types existants
+                      </div>
+                      {libelleSuggestions.map((suggestion, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={() => handleLibelleSelect(suggestion)}
+                          className="w-full text-left px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-blue-500/20 transition-colors flex items-center gap-2 group"
+                        >
+                          <svg 
+                            className="w-4 h-4 text-gray-400 group-hover:text-blue-500" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                          <span className="text-sm dark:text-gray-300 text-gray-700 group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                            {suggestion}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {libelleSuggestions.length > 0 && form.LibelleType && (
+                  <p className="mt-1 text-xs text-gray-400">
+                    {libelleSuggestions.length} suggestion{libelleSuggestions.length > 1 ? 's' : ''} trouvée{libelleSuggestions.length > 1 ? 's' : ''}
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
