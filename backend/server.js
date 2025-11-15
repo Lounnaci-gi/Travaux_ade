@@ -2793,13 +2793,15 @@ app.get('/api/demandes', verifyToken, async (req, res) => {
     const actorRoleLower = (userData.Role || '').toLowerCase();
     const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin');
     const isChefCentreRole = actorRoleLower.includes('chef') && actorRoleLower.includes('centre');
+    const isChefServiceJuridiqueRole = actorRoleLower.includes('chef') && (actorRoleLower.includes('juridique') || actorRoleLower.includes('jurid'));
+    const isChefWithCenterAccess = isChefCentreRole || isChefServiceJuridiqueRole;
 
     // Construire la clause WHERE selon le rôle
     let whereClause = 'WHERE d.Actif = 1';
     let request = pool.request();
 
     if (!isAdminRole) {
-      if (isChefCentreRole) {
+      if (isChefWithCenterAccess) {
         // Chef de centre : voir toutes les demandes de son centre
         if (userData.IdCentre) {
           whereClause += ' AND a.IdCentre = @centreId';

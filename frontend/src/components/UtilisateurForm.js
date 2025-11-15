@@ -31,6 +31,15 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
 
   const isChefCentreUser = isChefCentre(user);
 
+  // Check if user is Chef Service Juridique
+  const isChefServiceJuridiqueUser = (u) => {
+    if (!u || !u.role) return false;
+    const role = u.role.toString().toLowerCase();
+    return role.includes('chef') && (role.includes('juridique') || role.includes('jurid'));
+  };
+
+  const isChefServiceJuridiqueCurrentUser = isChefServiceJuridiqueUser(user);
+
   useEffect(() => {
     if (!isAdmin(user) && !isChefCentreUser) {
       if (onUnauthorized) {
@@ -103,6 +112,28 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
     setSuccess('');
   };
 
+  // Function to check if a role requires center assignment
+  const isRoleRequiringCenter = (role) => {
+    if (!role) return false;
+    const roleStr = role.toString().toLowerCase();
+    return (
+      roleStr.includes('chef') && roleStr.includes('centre') ||
+      roleStr.includes('juridique') || roleStr.includes('jurid') ||
+      roleStr.includes('technico') && roleStr.includes('commercial')
+    );
+  };
+
+  // Function to check if a role requires agency assignment
+  const isRoleRequiringAgency = (role) => {
+    if (!role) return false;
+    const roleStr = role.toString().toLowerCase();
+    return (
+      roleStr.includes('agence') && !roleStr.includes('centre') &&
+      !roleStr.includes('juridique') && !roleStr.includes('jurid') &&
+      !(roleStr.includes('technico') && roleStr.includes('commercial'))
+    );
+  };
+
   // Filtrer les centres selon l'unité sélectionnée
   const centresByUnite = form.IdUnite
     ? centres.filter((c) => c.IdUnite === Number(form.IdUnite))
@@ -116,13 +147,37 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
     ? agences.filter((a) => a.IdCentre === Number(form.IdCentre))
     : [];
 
+  // Determine if center selection should be disabled
+  const shouldDisableCenterSelection = () => {
+    // If user is Chef de Centre, they can only assign to their own center
+    if (isChefCentreUser) return true;
+    
+    // If role requires center assignment, center selection should be enabled
+    if (isRoleRequiringCenter(form.Role)) return false;
+    
+    // For other roles, follow normal logic
+    return !form.IdUnite || isChefCentreUser;
+  };
+
+  // Determine if agency selection should be disabled
+  const shouldDisableAgencySelection = () => {
+    // If role requires center assignment, agency should be disabled
+    if (isRoleRequiringCenter(form.Role)) return true;
+    
+    // If role requires agency assignment, agency selection should be enabled when center is selected
+    if (isRoleRequiringAgency(form.Role)) return !form.IdCentre;
+    
+    // For other roles, follow normal logic
+    return !form.IdCentre;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
 
     // Validation
-    const required = ['Role', 'Nom', 'Prenom', 'Email', 'MotDePasse'];  // Changé de IdRole à Role
+    const required = ['Role', 'Nom', 'Prenom', 'Email', 'MotDePasse'];
     const missing = required.filter((f) => !form[f]);
     if (missing.length) {
       setError(`Veuillez remplir tous les champs obligatoires: ${missing.join(', ')}`);
@@ -143,6 +198,22 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
     if (isChefCentreUser) {
       if (!form.IdCentre || String(form.IdCentre) !== String(user.idCentre)) {
         setError('En tant que Chef de Centre, vous pouvez uniquement créer des utilisateurs pour votre centre ou ses agences');
+        return;
+      }
+    }
+
+    // Validation spécifique pour les rôles qui nécessitent un centre
+    if (isRoleRequiringCenter(form.Role)) {
+      if (!form.IdCentre) {
+        setError('Ce rôle doit être associé à un centre');
+        return;
+      }
+    }
+
+    // Validation spécifique pour les rôles qui nécessitent une agence
+    if (isRoleRequiringAgency(form.Role)) {
+      if (!form.IdAgence) {
+        setError('Ce rôle doit être associé à une agence');
         return;
       }
     }
@@ -222,7 +293,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
     if (!editingUser) return;
 
     // Validation
-    const required = ['Role', 'Nom', 'Prenom', 'Email'];  // Changé de IdRole à Role
+    const required = ['Role', 'Nom', 'Prenom', 'Email'];
     const missing = required.filter((f) => !form[f]);
     if (missing.length) {
       setError(`Veuillez remplir tous les champs obligatoires: ${missing.join(', ')}`);
@@ -243,6 +314,22 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
     if (isChefCentreUser) {
       if (!form.IdCentre || String(form.IdCentre) !== String(user.idCentre)) {
         setError('En tant que Chef de Centre, vous pouvez uniquement modifier des utilisateurs de votre centre ou ses agences');
+        return;
+      }
+    }
+
+    // Validation spécifique pour les rôles qui nécessitent un centre
+    if (isRoleRequiringCenter(form.Role)) {
+      if (!form.IdCentre) {
+        setError('Ce rôle doit être associé à un centre');
+        return;
+      }
+    }
+
+    // Validation spécifique pour les rôles qui nécessitent une agence
+    if (isRoleRequiringAgency(form.Role)) {
+      if (!form.IdAgence) {
+        setError('Ce rôle doit être associé à une agence');
         return;
       }
     }
@@ -349,7 +436,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
             {error && (
               <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm flex items-start gap-3">
                 <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0z" />
                 </svg>
                 <span>{error}</span>
               </div>
@@ -474,7 +561,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-purple-500/10">
                     <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m4 0a6 6 0 11-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                     </svg>
                   </div>
                   <h3 className="text-lg font-semibold dark:text-white text-gray-900">Sécurité</h3>
@@ -576,11 +663,11 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                         setForm((prev) => ({
                           ...prev,
                           IdCentre: e.target.value,
-                          IdAgence: '',
+                          IdAgence: isRoleRequiringCenter(form.Role) ? '' : prev.IdAgence,
                         }));
                       }}
                       className="w-full px-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                      disabled={!form.IdUnite || isChefCentreUser}
+                      disabled={shouldDisableCenterSelection()}
                     >
                       <option value="">Aucun</option>
                       {filteredCentres.map((c) => (
@@ -597,7 +684,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                       value={form.IdAgence}
                       onChange={handleChange}
                       className="w-full px-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                      disabled={!form.IdCentre}
+                      disabled={shouldDisableAgencySelection()}
                     >
                       <option value="">Aucune</option>
                       {filteredAgences.map((a) => (
@@ -620,6 +707,16 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                       {isChefCentreUser && (
                         <p className="mt-2">
                           <strong>Note :</strong> En tant que Chef de Centre, vous pouvez créer des utilisateurs uniquement pour votre centre ou pour les agences affectées à votre centre.
+                        </p>
+                      )}
+                      {isRoleRequiringCenter(form.Role) && (
+                        <p className="mt-2">
+                          <strong>Note :</strong> Le rôle sélectionné doit être affecté à un centre.
+                        </p>
+                      )}
+                      {isRoleRequiringAgency(form.Role) && (
+                        <p className="mt-2">
+                          <strong>Note :</strong> Le rôle sélectionné doit être affecté à une agence.
                         </p>
                       )}
                     </div>
@@ -975,6 +1072,17 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                         ))}
                       </select>
                     </div>
+                  </div>
+                  <div className="mt-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/30 text-sm dark:text-blue-300 text-blue-600">
+                    {isRoleRequiringCenter(form.Role) && (
+                      <p><strong>Note:</strong> Le rôle sélectionné doit être affecté à un centre.</p>
+                    )}
+                    {isRoleRequiringAgency(form.Role) && (
+                      <p><strong>Note:</strong> Le rôle sélectionné doit être affecté à une agence.</p>
+                    )}
+                    {isChefCentreUser && (
+                      <p><strong>Note:</strong> En tant que Chef de Centre, vous pouvez uniquement modifier des utilisateurs de votre centre.</p>
+                    )}
                   </div>
                 </div>
 

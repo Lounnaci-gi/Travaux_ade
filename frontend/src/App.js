@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ThemeProvider } from './contexts/ThemeContext';
 import Navbar from './components/Navbar';
 import Login from './components/Login';
@@ -20,6 +20,64 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showIdleWarning, setShowIdleWarning] = useState(false);
+  
+  // Refs for tracking idle time
+  const idleTimer = useRef(null);
+  const idleWarningTimer = useRef(null);
+  const IDLE_TIMEOUT = 10 * 60 * 1000; // 10 minutes in milliseconds
+  const WARNING_TIME = 60 * 1000; // 1 minute warning before logout
+
+  // Function to reset the idle timer
+  const resetIdleTimer = () => {
+    // Clear existing timers
+    if (idleTimer.current) clearTimeout(idleTimer.current);
+    if (idleWarningTimer.current) clearTimeout(idleWarningTimer.current);
+    
+    // Hide warning if it was shown
+    setShowIdleWarning(false);
+    
+    // Set new timer for logout
+    idleTimer.current = setTimeout(() => {
+      // Show warning 1 minute before actual logout
+      setShowIdleWarning(true);
+      
+      // Set timer for actual logout
+      idleWarningTimer.current = setTimeout(() => {
+        handleLogout();
+      }, WARNING_TIME);
+    }, IDLE_TIMEOUT - WARNING_TIME);
+  };
+
+  // Function to handle user activity
+  const handleUserActivity = () => {
+    if (isAuthenticated) {
+      resetIdleTimer();
+    }
+  };
+
+  useEffect(() => {
+    // Add event listeners for user activity
+    if (isAuthenticated) {
+      window.addEventListener('mousemove', handleUserActivity);
+      window.addEventListener('keypress', handleUserActivity);
+      window.addEventListener('click', handleUserActivity);
+      window.addEventListener('scroll', handleUserActivity);
+      
+      // Start the idle timer
+      resetIdleTimer();
+    }
+
+    // Cleanup function
+    return () => {
+      if (idleTimer.current) clearTimeout(idleTimer.current);
+      if (idleWarningTimer.current) clearTimeout(idleWarningTimer.current);
+      window.removeEventListener('mousemove', handleUserActivity);
+      window.removeEventListener('keypress', handleUserActivity);
+      window.removeEventListener('click', handleUserActivity);
+      window.removeEventListener('scroll', handleUserActivity);
+    };
+  }, [isAuthenticated]);
 
   useEffect(() => {
     // Vérifier si l'utilisateur est déjà connecté et valider le token
@@ -81,11 +139,16 @@ function App() {
   };
 
   const handleLogout = () => {
+    // Clear timers
+    if (idleTimer.current) clearTimeout(idleTimer.current);
+    if (idleWarningTimer.current) clearTimeout(idleWarningTimer.current);
+    
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
     setIsAuthenticated(false);
     setCurrentView('dashboard');
+    setShowIdleWarning(false);
   };
 
   if (loading) {
@@ -150,6 +213,22 @@ function App() {
   return (
     <ThemeProvider>
       <div className="min-h-screen">
+        {/* Idle warning modal */}
+        {showIdleWarning && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="glass-card p-6 max-w-md mx-4">
+              <h3 className="text-xl font-bold mb-2 text-yellow-400">Inactivité détectée</h3>
+              <p className="mb-4 dark:text-gray-300 text-gray-700">
+                Vous allez être déconnecté automatiquement dans 1 minute pour des raisons de sécurité.
+                Bougez votre souris ou appuyez sur une touche pour annuler.
+              </p>
+              <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                <div className="bg-yellow-500 h-2.5 rounded-full animate-pulse" style={{width: '100%'}}></div>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {/* Navigation */}
         <Navbar currentView={currentView} setCurrentView={setCurrentView} onLogout={handleLogout} user={user} />
 
