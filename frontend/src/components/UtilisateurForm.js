@@ -695,33 +695,6 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                     </select>
                   </div>
                 </div>
-                
-                <div className="p-4 rounded-lg bg-blue-500/5 border border-blue-500/20">
-                  <div className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div className="text-sm dark:text-blue-300 text-blue-600">
-                      <p className="font-medium mb-1">Information</p>
-                      <p>Le matricule sera généré automatiquement au format <strong>UTI-XXXX</strong> lors de la création de l'utilisateur.</p>
-                      {isChefCentreUser && (
-                        <p className="mt-2">
-                          <strong>Note :</strong> En tant que Chef de Centre, vous pouvez créer des utilisateurs uniquement pour votre centre ou pour les agences affectées à votre centre.
-                        </p>
-                      )}
-                      {isRoleRequiringCenter(form.Role) && (
-                        <p className="mt-2">
-                          <strong>Note :</strong> Le rôle sélectionné doit être affecté à un centre.
-                        </p>
-                      )}
-                      {isRoleRequiringAgency(form.Role) && (
-                        <p className="mt-2">
-                          <strong>Note :</strong> Le rôle sélectionné doit être affecté à une agence.
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
               </div>
 
               {/* Statut */}

@@ -138,9 +138,8 @@ const DemandeForm = ({ user, onCreated }) => {
               console.warn(`- Types actifs: ${activeCount}, Types inactifs: ${inactiveCount}`);
               console.warn(`- Rôle utilisateur: ${userRoleDisplay}`);
               
-              // Ne PAS activer le mode fallback automatiquement
-              // Si aucun type n'est disponible, afficher un message clair
-              setError(`Aucun type de demande disponible pour votre rôle (${userRoleDisplay}). ${activeCount > 0 ? `${activeCount} type(s) actif(s) trouvé(s) mais non autorisé(s) pour votre rôle. Veuillez contacter l'administrateur ou le chef de centre pour configurer les permissions.` : 'Veuillez contacter l\'administrateur ou le chef de centre pour créer des types de travaux.'}`);
+              // Utiliser SweetAlert2 pour afficher un message simple et compréhensible
+              alertError('Aucun type de demande disponible', `Aucun type de demande n'est disponible pour votre rôle (${userRoleDisplay}). Veuillez contacter l'administrateur ou le chef de centre pour configurer les permissions.`);
               setTypes([]); // Ne pas afficher de types si aucun n'est autorisé
             }
           } else {
@@ -354,11 +353,6 @@ const DemandeForm = ({ user, onCreated }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="glass-card p-6 space-y-6">
-          {error && (
-            <div className="p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-300 text-sm">
-              {error}
-            </div>
-          )}
           {success && (
             <div className="p-3 rounded-lg bg-green-500/20 border border-green-500/50 text-green-300 text-sm">
               {success}
