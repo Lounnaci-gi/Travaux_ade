@@ -775,6 +775,13 @@ app.post('/api/clients', verifyToken, async (req, res) => {
 // Création d'un type de client (CodeType auto CTC-XXXX)
 app.post('/api/clients/types', verifyToken, async (req, res) => {
   try {
+    // Vérifier que seul l'admin peut créer des types de clients
+    const actorRoleLower = (req.user?.role || '').toLowerCase();
+    const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin');
+    if (!isAdminRole) {
+      return res.status(403).json({ error: 'Seuls les administrateurs peuvent créer des types de clients.' });
+    }
+
     const { LibelleType, Description, Actif } = req.body;
     if (!LibelleType) {
       return res.status(400).json({ error: 'LibelleType est requis' });
@@ -1607,6 +1614,51 @@ const AVAILABLE_ROLES = [
   'UTILISATEUR_STANDARD'
 ];
 
+// Fonction pour normaliser un rôle (identique à celle du frontend)
+const normalizeRole = (role) => {
+  if (!role) return '';
+  return String(role)
+    .toUpperCase()
+    .trim()
+    .replace(/\s+/g, '_')           // Espaces -> underscores
+    .replace(/-/g, '_')             // Tirets -> underscores
+    .replace(/_+/g, '_')            // Multiples underscores -> un seul
+    .replace(/^_+|_+$/g, '');       // Enlever underscores en début/fin
+};
+
+// Fonction pour vérifier si deux rôles correspondent
+const rolesMatch = (role1, role2) => {
+  if (!role1 || !role2) return false;
+  
+  const normalized1 = normalizeRole(role1);
+  const normalized2 = normalizeRole(role2);
+  
+  // 1. Comparaison exacte après normalisation
+  if (normalized1 === normalized2) {
+    return true;
+  }
+  
+  // 2. Comparaison par mots-clés (si au moins 2 mots correspondent)
+  const words1 = normalized1.split('_').filter(w => w.length > 2);
+  const words2 = normalized2.split('_').filter(w => w.length > 2);
+  
+  if (words1.length >= 2 && words2.length >= 2) {
+    const matchingWords = words1.filter(word => words2.includes(word));
+    if (matchingWords.length >= 2) {
+      return true;
+    }
+  }
+  
+  // 3. Comparaison partielle (pour les chaînes longues)
+  if (normalized1.length >= 10 && normalized2.length >= 10) {
+    if (normalized1.includes(normalized2) || normalized2.includes(normalized1)) {
+      return true;
+    }
+  }
+  
+  return false;
+};
+
 // Liste des rôles
 app.get('/api/roles', async (req, res) => {
   try {
@@ -2274,11 +2326,13 @@ app.get('/api/demandes/types', async (req, res) => {
 // Création d'un type de travaux (DemandeType)
 app.post('/api/demandes/types', verifyToken, async (req, res) => {
   try {
-    // Vérifier que seul l'admin peut créer des types de travaux
+    // Vérifier que seul l'admin et le chef de centre peuvent créer des types de travaux
     const actorRoleLower = (req.user?.role || '').toLowerCase();
     const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin');
-    if (!isAdminRole) {
-      return res.status(403).json({ error: 'Seuls les administrateurs peuvent créer des types de travaux.' });
+    const isChefCentreRole = actorRoleLower.includes('chef') && actorRoleLower.includes('centre');
+    
+    if (!isAdminRole && !isChefCentreRole) {
+      return res.status(403).json({ error: 'Seuls les administrateurs et les chefs de centre peuvent créer des types de travaux.' });
     }
 
     const { 
@@ -2356,11 +2410,13 @@ app.post('/api/demandes/types', verifyToken, async (req, res) => {
 // Modification d'un type de demande
 app.put('/api/demandes/types/:id', verifyToken, async (req, res) => {
   try {
-    // Vérifier que seul l'admin peut modifier des types de travaux
+    // Vérifier que seul l'admin et le chef de centre peuvent modifier des types de travaux
     const actorRoleLower = (req.user?.role || '').toLowerCase();
     const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin');
-    if (!isAdminRole) {
-      return res.status(403).json({ error: 'Seuls les administrateurs peuvent modifier des types de travaux.' });
+    const isChefCentreRole = actorRoleLower.includes('chef') && actorRoleLower.includes('centre');
+    
+    if (!isAdminRole && !isChefCentreRole) {
+      return res.status(403).json({ error: 'Seuls les administrateurs et les chefs de centre peuvent modifier des types de travaux.' });
     }
 
     console.log('PUT /api/demandes/types/:id - ID:', req.params.id);
@@ -2421,6 +2477,236 @@ app.put('/api/demandes/types/:id', verifyToken, async (req, res) => {
   } catch (error) {
     console.error('Erreur lors de la modification du type de travaux:', error);
     res.status(500).json({ error: error.message || 'Erreur serveur' });
+  }
+});
+
+// ============================================================================
+// DIAGNOSTIC DES TYPES DE TRAVAUX
+// ============================================================================
+
+// Endpoint pour tester les autorisations de tous les utilisateurs
+app.get('/api/demandes/types/test-authorizations', verifyToken, async (req, res) => {
+  try {
+    // Vérifier que seul l'admin et le chef de centre peuvent accéder
+    const actorRoleLower = (req.user?.role || '').toLowerCase();
+    const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin');
+    const isChefCentreRole = actorRoleLower.includes('chef') && actorRoleLower.includes('centre');
+    if (!isAdminRole && !isChefCentreRole) {
+      return res.status(403).json({ error: 'Seuls les administrateurs et les chefs de centre peuvent accéder à ce test.' });
+    }
+
+    // Récupérer tous les utilisateurs actifs
+    const usersResult = await pool.request().query(`
+      SELECT IdUtilisateur, Role, Nom, Prenom, Email
+      FROM Utilisateur
+      WHERE Actif = 1
+      ORDER BY Role, Nom
+    `);
+
+    // Récupérer tous les types de travaux actifs
+    const typesResult = await pool.request().query(`
+      SELECT 
+        IdDemandeType, 
+        CodeType, 
+        LibelleType,
+        Description,
+        Actif
+      FROM DemandeType
+      WHERE Actif = 1
+      ORDER BY LibelleType
+    `);
+
+    const users = usersResult.recordset;
+    const types = typesResult.recordset;
+
+    const testResults = {
+      dateTest: new Date().toISOString(),
+      totalUsers: users.length,
+      totalTypes: types.length,
+      results: []
+    };
+
+    // Pour chaque utilisateur, tester l'accès à chaque type
+    users.forEach(user => {
+      const userRole = normalizeRole(user.Role);
+      const userResults = {
+        userId: user.IdUtilisateur,
+        userRole: user.Role,
+        userRoleNormalized: userRole,
+        userName: `${user.Nom} ${user.Prenom}`,
+        userEmail: user.Email,
+        accessibleTypes: [],
+        inaccessibleTypes: [],
+        totalAccessible: 0,
+        totalInaccessible: 0
+      };
+
+      types.forEach(type => {
+        let rolesAutorises = [];
+        
+        if (type.Description) {
+          try {
+            const parsed = JSON.parse(type.Description);
+            rolesAutorises = parsed.r || parsed.roles || [];
+          } catch (e) {
+            // Description n'est pas du JSON, donc pas de restrictions
+          }
+        }
+
+        // Vérifier si l'utilisateur peut créer ce type
+        let canCreate = false;
+        
+        // Si admin, peut tout créer
+        if (userRole === 'ADMINISTRATEUR' || userRole.includes('ADMIN')) {
+          canCreate = true;
+        }
+        // Si aucun rôle spécifié, tous peuvent créer
+        else if (rolesAutorises.length === 0) {
+          canCreate = true;
+        }
+        // Sinon, vérifier si le rôle de l'utilisateur est dans la liste
+        else {
+          canCreate = rolesAutorises.some(role => {
+            if (typeof role === 'number') return false;
+            if (typeof role === 'string') {
+              return rolesMatch(userRole, role);
+            }
+            return false;
+          });
+        }
+
+        if (canCreate) {
+          userResults.accessibleTypes.push({
+            id: type.IdDemandeType,
+            code: type.CodeType,
+            libelle: type.LibelleType
+          });
+          userResults.totalAccessible++;
+        } else {
+          userResults.inaccessibleTypes.push({
+            id: type.IdDemandeType,
+            code: type.CodeType,
+            libelle: type.LibelleType,
+            rolesAutorises: rolesAutorises
+          });
+          userResults.totalInaccessible++;
+        }
+      });
+
+      testResults.results.push(userResults);
+    });
+
+    res.json(testResults);
+  } catch (error) {
+    console.error('Erreur lors du test des autorisations:', error);
+    res.status(500).json({ error: 'Erreur serveur lors du test' });
+  }
+});
+
+// Endpoint pour diagnostiquer les problèmes d'autorisation des types de travaux
+app.get('/api/demandes/types/diagnostic', verifyToken, async (req, res) => {
+  try {
+    // Vérifier que seul l'admin et le chef de centre peuvent accéder
+    const actorRoleLower = (req.user?.role || '').toLowerCase();
+    const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin');
+    const isChefCentreRole = actorRoleLower.includes('chef') && actorRoleLower.includes('centre');
+    if (!isAdminRole && !isChefCentreRole) {
+      return res.status(403).json({ error: 'Seuls les administrateurs et les chefs de centre peuvent accéder au diagnostic.' });
+    }
+
+    const result = await pool.request().query(`
+      SELECT 
+        IdDemandeType, 
+        CodeType, 
+        LibelleType,
+        Description,
+        Actif
+      FROM DemandeType
+      ORDER BY LibelleType
+    `);
+
+    const types = result.recordset;
+    const diagnostic = {
+      totalTypes: types.length,
+      typesActifs: types.filter(t => t.Actif === true || t.Actif === 1).length,
+      typesInactifs: types.filter(t => t.Actif === false || t.Actif === 0).length,
+      typesAvecRoles: 0,
+      typesSansRoles: 0,
+      typesAvecProblemes: [],
+      rolesUtilises: new Set(),
+      recommandations: []
+    };
+
+    types.forEach(type => {
+      let rolesAutorises = [];
+      let hasDescription = false;
+      
+      if (type.Description) {
+        hasDescription = true;
+        try {
+          const parsed = JSON.parse(type.Description);
+          rolesAutorises = parsed.r || parsed.roles || [];
+        } catch (e) {
+          // Description n'est pas du JSON, donc pas de restrictions
+        }
+      }
+
+      if (rolesAutorises.length > 0) {
+        diagnostic.typesAvecRoles++;
+        rolesAutorises.forEach(role => {
+          if (typeof role === 'string') {
+            diagnostic.rolesUtilises.add(normalizeRole(role));
+          }
+        });
+
+        // Vérifier si les rôles sont valides
+        const rolesInvalides = rolesAutorises.filter(role => {
+          if (typeof role === 'number') return true; // IDs ne sont plus supportés
+          if (typeof role === 'string') {
+            const normalized = normalizeRole(role);
+            return !AVAILABLE_ROLES.some(availableRole => rolesMatch(normalized, availableRole));
+          }
+          return true;
+        });
+
+        if (rolesInvalides.length > 0) {
+          diagnostic.typesAvecProblemes.push({
+            id: type.IdDemandeType,
+            code: type.CodeType,
+            libelle: type.LibelleType,
+            probleme: 'Rôles invalides ou non reconnus',
+            rolesInvalides: rolesInvalides,
+            rolesAutorises: rolesAutorises
+          });
+        }
+      } else {
+        diagnostic.typesSansRoles++;
+      }
+    });
+
+    // Générer des recommandations
+    if (diagnostic.typesAvecProblemes.length > 0) {
+      diagnostic.recommandations.push({
+        type: 'error',
+        message: `${diagnostic.typesAvecProblemes.length} type(s) ont des rôles invalides ou des IDs au lieu de codes de rôles.`,
+        action: 'Corriger les rôles dans la Description de ces types.'
+      });
+    }
+
+    if (diagnostic.typesSansRoles > 0) {
+      diagnostic.recommandations.push({
+        type: 'info',
+        message: `${diagnostic.typesSansRoles} type(s) n'ont pas de restrictions de rôles (accessibles par tous).`,
+        action: 'C\'est normal si vous voulez que tous les utilisateurs puissent créer ces types.'
+      });
+    }
+
+    diagnostic.rolesUtilises = Array.from(diagnostic.rolesUtilises);
+
+    res.json(diagnostic);
+  } catch (error) {
+    console.error('Erreur lors du diagnostic des types de travaux:', error);
+    res.status(500).json({ error: 'Erreur serveur lors du diagnostic' });
   }
 });
 
@@ -2504,20 +2790,17 @@ app.post('/api/demandes', verifyToken, async (req, res) => {
       // Si des rôles sont spécifiés, vérifier si l'utilisateur en fait partie
       if (rolesAutorises.length > 0) {
         // Vérifier si le rôle de l'utilisateur est dans la liste des rôles autorisés
-        const userRoleUpper = userRole.toUpperCase();
+        const userRoleNormalized = normalizeRole(userRole);
         const isAuthorized = rolesAutorises.some(role => {
           // Si c'est un nombre (ID de rôle), on ne peut pas le comparer directement
           // Pour les anciens types avec IDs, on refuse l'accès par défaut
-          // TODO: Migrer tous les types pour utiliser des codes de rôle
           if (typeof role === 'number') {
             return false;
           }
           
-          // Si c'est une string (code de rôle)
+          // Si c'est une string (code de rôle), utiliser la fonction de comparaison robuste
           if (typeof role === 'string') {
-            return role.toUpperCase() === userRoleUpper || 
-                   role.toUpperCase().includes(userRoleUpper) ||
-                   userRoleUpper.includes(role.toUpperCase());
+            return rolesMatch(userRoleNormalized, role);
           }
           
           return false;

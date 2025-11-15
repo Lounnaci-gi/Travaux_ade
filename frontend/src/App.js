@@ -180,7 +180,7 @@ function App() {
       case 'demandes-create':
         return <DemandeForm user={user} onCreated={() => setCurrentView('demandes-list')} />;
       case 'clients-types':
-        return <ClientTypeForm />;
+        return <ClientTypeForm user={user} />;
       case 'unites-create':
         return <UniteForm user={user} onUnauthorized={() => setCurrentView('dashboard')} />;
       case 'centres-create':

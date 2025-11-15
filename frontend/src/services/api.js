@@ -172,6 +172,16 @@ export const updateDemandeType = async (id, payload) => {
   return response.data;
 };
 
+export const getDemandeTypesDiagnostic = async () => {
+  const response = await api.get('/demandes/types/diagnostic');
+  return response.data;
+};
+
+export const testDemandeTypesAuthorizations = async () => {
+  const response = await api.get('/demandes/types/test-authorizations');
+  return response.data;
+};
+
 export const createDemande = async (payload) => {
   const response = await api.post('/demandes', payload);
   return response.data;

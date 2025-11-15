@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { alertSuccess, alertError, confirmDialog } from '../ui/alerts';
-import { getDemandeTypes, createDemandeType, updateDemandeType, getRoles } from '../services/api';
-import { isAdmin } from '../utils/auth';
+import { getDemandeTypes, createDemandeType, updateDemandeType, getRoles, getDemandeTypesDiagnostic, testDemandeTypesAuthorizations } from '../services/api';
+import { isAdmin, isChefCentre } from '../utils/auth';
 
 const DemandeTypeForm = ({ user, onUnauthorized }) => {
   const [types, setTypes] = useState([]);
@@ -11,6 +11,12 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [editingId, setEditingId] = useState(null);
+  const [diagnostic, setDiagnostic] = useState(null);
+  const [loadingDiagnostic, setLoadingDiagnostic] = useState(false);
+  const [showDiagnostic, setShowDiagnostic] = useState(false);
+  const [testResults, setTestResults] = useState(null);
+  const [loadingTest, setLoadingTest] = useState(false);
+  const [showTest, setShowTest] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
     roles: false,
     validationsDemande: false,
@@ -183,19 +189,47 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
     }
   };
 
+  const loadDiagnostic = async () => {
+    try {
+      setLoadingDiagnostic(true);
+      const data = await getDemandeTypesDiagnostic();
+      setDiagnostic(data);
+      setShowDiagnostic(true);
+    } catch (e) {
+      console.error('Erreur lors du chargement du diagnostic:', e);
+      alertError('Erreur', 'Impossible de charger le diagnostic des types de travaux');
+    } finally {
+      setLoadingDiagnostic(false);
+    }
+  };
+
+  const loadTestAuthorizations = async () => {
+    try {
+      setLoadingTest(true);
+      const data = await testDemandeTypesAuthorizations();
+      setTestResults(data);
+      setShowTest(true);
+    } catch (e) {
+      console.error('Erreur lors du test des autorisations:', e);
+      alertError('Erreur', 'Impossible de tester les autorisations');
+    } finally {
+      setLoadingTest(false);
+    }
+  };
+
   useEffect(() => {
-    // Vérifier que seul l'admin peut accéder
-    if (!isAdmin(user)) {
+    // Vérifier que seul l'admin et le chef de centre peuvent accéder
+    if (!isAdmin(user) && !isChefCentre(user)) {
       if (onUnauthorized) {
         onUnauthorized();
       } else {
-        alertError('Accès refusé', 'Seuls les administrateurs peuvent gérer les types de travaux.');
+        alertError('Accès refusé', 'Seuls les administrateurs et les chefs de centre peuvent gérer les types de travaux.');
       }
     }
   }, [user, onUnauthorized]);
 
   useEffect(() => {
-    if (isAdmin(user)) {
+    if (isAdmin(user) || isChefCentre(user)) {
       load();
     }
   }, [user]);
@@ -269,33 +303,79 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
   };
 
   const handleEdit = (type) => {
+    console.log('handleEdit - Type sélectionné:', type);
+    
     const parsed = parseDescription(type.Description);
-    const rolesAutorises = parsed.roles || [];
+    console.log('handleEdit - Description parsée:', parsed);
+    
+    // Extraire les rôles autorisés et s'assurer qu'ils sont des strings
+    let rolesAutorises = parsed.roles || [];
+    // Convertir les nombres en strings si nécessaire (pour compatibilité avec les anciens formats)
+    rolesAutorises = rolesAutorises.map(role => {
+      if (typeof role === 'number') {
+        // Si c'est un nombre, essayer de trouver le code de rôle correspondant
+        const roleObj = roles.find(r => r.IdRole === role);
+        return roleObj ? roleObj.CodeRole : String(role);
+      }
+      return String(role); // S'assurer que c'est une string
+    });
+    console.log('handleEdit - Rôles autorisés (normalisés):', rolesAutorises);
+    
     const validationsDemandeExtra = parsed.validationsDemande || {};
     const validationsOEExtra = parsed.validationsOE || {};
     
-    const hasValidationsDemande = type.ValidationChefSectionRelationClienteleRequise || 
-                                   type.ValidationJuridiqueRequise || 
-                                   type.ValidationChefAgenceRequise || 
-                                   type.ValidationChefCentreRequise ||
+    // Fonction helper pour convertir les valeurs BIT (0/1, true/false, etc.) en booléen
+    const toBoolean = (value) => {
+      if (value === true || value === 1 || value === '1' || value === 'true') return true;
+      if (value === false || value === 0 || value === '0' || value === 'false') return false;
+      return Boolean(value);
+    };
+    
+    // Charger les validations depuis les champs BDD
+    const validationChefSectionRC = toBoolean(type.ValidationChefSectionRelationClienteleRequise);
+    const validationJuridique = toBoolean(type.ValidationJuridiqueRequise);
+    const validationChefAgence = toBoolean(type.ValidationChefAgenceRequise);
+    const validationChefCentre = toBoolean(type.ValidationChefCentreRequise);
+    const validationOE_ChefSectionRC = toBoolean(type.ValidationOE_ChefSectionRelationClienteleRequise);
+    const validationOE_ChefAgence = toBoolean(type.ValidationOE_ChefAgenceRequise);
+    const validationOE_ChefCentre = toBoolean(type.ValidationOE_ChefCentreRequise);
+    const isActive = toBoolean(type.Actif);
+    
+    const hasValidationsDemande = validationChefSectionRC || 
+                                   validationJuridique || 
+                                   validationChefAgence || 
+                                   validationChefCentre ||
                                    Object.keys(validationsDemandeExtra).length > 0;
-    const hasValidationsOE = type.ValidationOE_ChefSectionRelationClienteleRequise || 
-                             type.ValidationOE_ChefAgenceRequise || 
-                             type.ValidationOE_ChefCentreRequise ||
+    const hasValidationsOE = validationOE_ChefSectionRC || 
+                             validationOE_ChefAgence || 
+                             validationOE_ChefCentre ||
                              Object.keys(validationsOEExtra).length > 0;
+    
+    console.log('handleEdit - Validations chargées:', {
+      validationChefSectionRC,
+      validationJuridique,
+      validationChefAgence,
+      validationChefCentre,
+      validationOE_ChefSectionRC,
+      validationOE_ChefAgence,
+      validationOE_ChefCentre,
+      isActive,
+      validationsDemandeExtra,
+      validationsOEExtra
+    });
     
     setForm({
       LibelleType: type.LibelleType || '',
-      Description: parsed.description,
+      Description: parsed.description || '',
       RolesAutorises: rolesAutorises,
-      ValidationChefSectionRelationClienteleRequise: type.ValidationChefSectionRelationClienteleRequise || false,
-      ValidationJuridiqueRequise: type.ValidationJuridiqueRequise || false,
-      ValidationChefAgenceRequise: type.ValidationChefAgenceRequise || false,
-      ValidationChefCentreRequise: type.ValidationChefCentreRequise || false,
-      ValidationOE_ChefSectionRelationClienteleRequise: type.ValidationOE_ChefSectionRelationClienteleRequise || false,
-      ValidationOE_ChefAgenceRequise: type.ValidationOE_ChefAgenceRequise || false,
-      ValidationOE_ChefCentreRequise: type.ValidationOE_ChefCentreRequise || false,
-      Actif: type.Actif !== false,
+      ValidationChefSectionRelationClienteleRequise: validationChefSectionRC,
+      ValidationJuridiqueRequise: validationJuridique,
+      ValidationChefAgenceRequise: validationChefAgence,
+      ValidationChefCentreRequise: validationChefCentre,
+      ValidationOE_ChefSectionRelationClienteleRequise: validationOE_ChefSectionRC,
+      ValidationOE_ChefAgenceRequise: validationOE_ChefAgence,
+      ValidationOE_ChefCentreRequise: validationOE_ChefCentre,
+      Actif: isActive,
     });
     
     setValidationsDemandeExtra(validationsDemandeExtra);
@@ -314,6 +394,9 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
     setEditingId(type.IdDemandeType);
     setError('');
     setSuccess('');
+    
+    console.log('handleEdit - Formulaire chargé avec succès');
+    
     // Scroll vers le formulaire
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -394,13 +477,13 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
     }
   };
 
-  // Si l'utilisateur n'est pas admin, ne rien afficher
-  if (!isAdmin(user)) {
+  // Si l'utilisateur n'est pas admin ni chef de centre, ne rien afficher
+  if (!isAdmin(user) && !isChefCentre(user)) {
     return (
       <div className="min-h-screen p-6 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4 dark:text-white text-gray-900">Accès refusé</h2>
-          <p className="dark:text-gray-400 text-gray-600">Seuls les administrateurs peuvent gérer les types de travaux.</p>
+          <p className="dark:text-gray-400 text-gray-600">Seuls les administrateurs et les chefs de centre peuvent gérer les types de travaux.</p>
         </div>
       </div>
     );
@@ -927,6 +1010,199 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
             </button>
           </div>
         </form>
+
+        {/* Section Diagnostic */}
+        <div className="glass-card p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold dark:text-white text-gray-900">Diagnostic des autorisations</h2>
+            <div className="flex gap-2">
+              <button
+                onClick={loadTestAuthorizations}
+                disabled={loadingTest}
+                className="px-4 py-2 rounded-lg bg-green-500/20 hover:bg-green-500/30 text-green-400 text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                {loadingTest ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Test...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    Tester tous les utilisateurs
+                  </>
+                )}
+              </button>
+              <button
+                onClick={loadDiagnostic}
+                disabled={loadingDiagnostic}
+                className="px-4 py-2 rounded-lg bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400 text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                {loadingDiagnostic ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Chargement...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Vérifier les types
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+          
+          {showTest && testResults && (
+            <div className="space-y-4 mt-4">
+              <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/30">
+                <div className="text-sm text-blue-300">
+                  <strong>Test effectué le:</strong> {new Date(testResults.dateTest).toLocaleString('fr-FR')}
+                </div>
+                <div className="text-sm text-blue-300 mt-1">
+                  <strong>Utilisateurs testés:</strong> {testResults.totalUsers} | <strong>Types testés:</strong> {testResults.totalTypes}
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                {testResults.results.map((userResult) => (
+                  <div key={userResult.userId} className="p-4 rounded-lg border dark:border-white/10 border-gray-200/50">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <div className="font-semibold text-white">{userResult.userName}</div>
+                        <div className="text-sm text-gray-400">{userResult.userEmail}</div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          Rôle: <span className="font-mono">{userResult.userRole}</span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-green-400">{userResult.totalAccessible}</div>
+                        <div className="text-xs text-gray-400">accessibles</div>
+                        {userResult.totalInaccessible > 0 && (
+                          <>
+                            <div className="text-lg font-bold text-red-400 mt-1">{userResult.totalInaccessible}</div>
+                            <div className="text-xs text-gray-400">inaccessibles</div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {userResult.inaccessibleTypes.length > 0 && (
+                      <div className="mt-3 pt-3 border-t dark:border-white/10 border-gray-200/50">
+                        <div className="text-sm font-medium text-red-400 mb-2">Types inaccessibles:</div>
+                        <div className="space-y-1">
+                          {userResult.inaccessibleTypes.map((type) => (
+                            <div key={type.id} className="text-xs text-red-300">
+                              • {type.libelle} ({type.code})
+                              {type.rolesAutorises && type.rolesAutorises.length > 0 && (
+                                <span className="text-red-400/70 ml-2">
+                                  [Rôles requis: {type.rolesAutorises.join(', ')}]
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {showDiagnostic && diagnostic && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="p-4 rounded-lg bg-blue-500/20 border border-blue-500/50">
+                  <div className="text-2xl font-bold text-blue-400">{diagnostic.totalTypes}</div>
+                  <div className="text-sm text-gray-400">Total types</div>
+                </div>
+                <div className="p-4 rounded-lg bg-green-500/20 border border-green-500/50">
+                  <div className="text-2xl font-bold text-green-400">{diagnostic.typesActifs}</div>
+                  <div className="text-sm text-gray-400">Types actifs</div>
+                </div>
+                <div className="p-4 rounded-lg bg-purple-500/20 border border-purple-500/50">
+                  <div className="text-2xl font-bold text-purple-400">{diagnostic.typesAvecRoles}</div>
+                  <div className="text-sm text-gray-400">Avec restrictions</div>
+                </div>
+                <div className="p-4 rounded-lg bg-red-500/20 border border-red-500/50">
+                  <div className="text-2xl font-bold text-red-400">{diagnostic.typesAvecProblemes.length}</div>
+                  <div className="text-sm text-gray-400">Avec problèmes</div>
+                </div>
+              </div>
+
+              {diagnostic.typesAvecProblemes.length > 0 && (
+                <div className="mt-4 p-4 rounded-lg bg-red-500/10 border border-red-500/30">
+                  <h3 className="text-lg font-semibold text-red-400 mb-3">Types avec problèmes</h3>
+                  <div className="space-y-2">
+                    {diagnostic.typesAvecProblemes.map((type) => (
+                      <div key={type.id} className="p-3 rounded-lg bg-red-500/5 border border-red-500/20">
+                        <div className="font-medium text-red-300">{type.libelle} ({type.code})</div>
+                        <div className="text-sm text-red-400/80 mt-1">
+                          <div>Problème: {type.probleme}</div>
+                          <div className="mt-1">Rôles invalides: {JSON.stringify(type.rolesInvalides)}</div>
+                          <button
+                            onClick={() => {
+                              const typeToEdit = types.find(t => t.IdDemandeType === type.id);
+                              if (typeToEdit) {
+                                handleEdit(typeToEdit);
+                                setShowDiagnostic(false);
+                              }
+                            }}
+                            className="mt-2 px-3 py-1 rounded bg-red-500/20 hover:bg-red-500/30 text-red-300 text-xs"
+                          >
+                            Corriger ce type
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {diagnostic.recommandations.length > 0 && (
+                <div className="mt-4 space-y-2">
+                  {diagnostic.recommandations.map((rec, idx) => (
+                    <div
+                      key={idx}
+                      className={`p-3 rounded-lg ${
+                        rec.type === 'error'
+                          ? 'bg-red-500/10 border border-red-500/30 text-red-300'
+                          : 'bg-blue-500/10 border border-blue-500/30 text-blue-300'
+                      }`}
+                    >
+                      <div className="font-medium">{rec.message}</div>
+                      <div className="text-sm mt-1 opacity-80">{rec.action}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {diagnostic.rolesUtilises.length > 0 && (
+                <div className="mt-4 p-4 rounded-lg bg-gray-500/10 border border-gray-500/30">
+                  <h3 className="text-lg font-semibold text-gray-300 mb-2">Rôles utilisés</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {diagnostic.rolesUtilises.map((role, idx) => (
+                      <span key={idx} className="px-2 py-1 rounded-full bg-gray-500/20 text-gray-300 text-xs">
+                        {role}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         <div className="glass-card p-6">
           <h2 className="text-xl font-semibold mb-4 dark:text-white text-gray-900">Types existants</h2>

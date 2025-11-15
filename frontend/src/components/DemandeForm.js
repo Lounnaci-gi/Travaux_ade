@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { alertSuccess, alertError, confirmDialog } from '../ui/alerts';
 import { getClients, getClientById, getClientTypes, getAgences, getDemandeTypes, createClient, createDemande } from '../services/api';
 import { isAdmin } from '../utils/auth';
+import { canUserCreateDemandeType, normalizeRole } from '../utils/roleUtils';
 
 const DemandeForm = ({ user, onCreated }) => {
   const [clients, setClients] = useState([]);
@@ -59,72 +60,117 @@ const DemandeForm = ({ user, onCreated }) => {
   };
 
   // Fonction pour vérifier si l'utilisateur peut créer un type de demande
+  // Utilise la fonction utilitaire centralisée
   const canUserCreateType = (type) => {
-    if (!user?.role) return false; // Pas de rôle = pas d'accès
+    const canCreate = canUserCreateDemandeType(user, type);
     
-    // Si l'utilisateur est admin, il peut tout créer
-    const userRoleLower = user.role.toLowerCase();
-    if (userRoleLower === 'admin' || userRoleLower === 'administrateur' || userRoleLower.includes('admin')) {
-      return true;
+    // Logs de débogage uniquement si nécessaire
+    if (!canCreate && user) {
+      const userRoleRaw = user.role || user.codeRole || user.Role || user.CodeRole;
+      const parsed = parseDescription(type.Description);
+      const rolesAutorises = parsed.roles || [];
+      
+      console.log('canUserCreateType: ❌ Accès REFUSÉ pour', type.LibelleType);
+      console.log('  - Rôle utilisateur:', normalizeRole(userRoleRaw));
+      console.log('  - Rôles autorisés:', rolesAutorises);
+      console.log('  - Description:', type.Description);
     }
     
-    const parsed = parseDescription(type.Description);
-    const rolesAutorises = parsed.roles || [];
-    
-    // Si aucun rôle n'est spécifié, tous les utilisateurs peuvent créer
-    if (rolesAutorises.length === 0) return true;
-    
-    // Vérifier si le rôle de l'utilisateur est dans la liste des rôles autorisés
-    // Convertir le rôle de l'utilisateur en majuscules pour la comparaison
-    const userRoleUpper = user.role.toUpperCase();
-    
-    // Comparer avec les rôles autorisés (qui peuvent être des strings ou des IDs)
-    return rolesAutorises.some(role => {
-      // Si c'est un nombre (ID de rôle), on ne peut pas le comparer directement
-      // Pour les anciens types avec IDs, on refuse l'accès par défaut
-      // TODO: Migrer tous les types pour utiliser des codes de rôle
-      if (typeof role === 'number') {
-        return false;
-      }
-      
-      // Si c'est une string (code de rôle)
-      if (typeof role === 'string') {
-        return role.toUpperCase() === userRoleUpper || 
-               role.toUpperCase().includes(userRoleUpper) ||
-               userRoleUpper.includes(role.toUpperCase());
-      }
-      
-      return false;
-    });
+    return canCreate;
   };
 
   useEffect(() => {
     const load = async () => {
       try {
         setLoading(true);
+        setError('');
         console.log('Chargement des types de demande...');
-        // Charger d'abord les types de demande pour remplir la liste déroulante
-        const typesData = await getDemandeTypes();
-        console.log('Types de demande récupérés:', typesData);
         
-        // Filtrer les types selon le rôle de l'utilisateur
-        const filteredTypes = (typesData || []).filter(type => {
-          // Filtrer aussi par Actif
-          if (!type.Actif) return false;
-          return canUserCreateType(type);
-        });
-        console.log('Types filtrés pour l\'utilisateur:', filteredTypes);
-        setTypes(filteredTypes);
-
-        // Charger les autres référentiels sans bloquer le formulaire en cas d'erreur
-        const [clientsRes, agencesRes, clientTypesRes] = await Promise.allSettled([
+        // Charger tous les référentiels en parallèle sans bloquer le formulaire en cas d'erreur
+        const [typesRes, clientsRes, agencesRes, clientTypesRes] = await Promise.allSettled([
+          getDemandeTypes(),
           getClients(),
           getAgences(),
           getClientTypes(),
         ]);
-        if (clientsRes.status === 'fulfilled') setClients(clientsRes.value);
-        if (agencesRes.status === 'fulfilled') setAgences(agencesRes.value);
-        if (clientTypesRes.status === 'fulfilled') setClientTypes(clientTypesRes.value);
+        
+        // Traiter les types de demande
+        if (typesRes.status === 'fulfilled') {
+          const typesData = typesRes.value || [];
+          console.log('Types de demande récupérés:', typesData);
+          console.log('Nombre total de types récupérés:', typesData.length);
+          console.log('Utilisateur actuel:', user);
+          
+          // Filtrer les types selon le rôle de l'utilisateur
+          const filteredTypes = typesData.filter(type => {
+            // Filtrer par Actif (gérer les valeurs BIT de SQL Server: 0/1 ou true/false)
+            const isActive = type.Actif === true || type.Actif === 1 || type.Actif === '1' || (typeof type.Actif === 'boolean' && type.Actif);
+            if (!isActive) {
+              console.log('Type filtré (inactif):', type.LibelleType, '- Actif:', type.Actif, '- Type:', typeof type.Actif);
+              return false;
+            }
+            
+            // Vérifier les permissions
+            const canCreate = canUserCreateType(type);
+            if (!canCreate) {
+              console.log('Type filtré (permissions):', type.LibelleType);
+            }
+            return canCreate;
+          });
+          
+          console.log('Types filtrés pour l\'utilisateur:', filteredTypes);
+          console.log('Nombre de types après filtrage:', filteredTypes.length);
+          setTypes(filteredTypes);
+          
+          if (filteredTypes.length === 0) {
+            if (typesData.length === 0) {
+              console.warn('Aucun type de demande dans la base de données');
+              setError('Aucun type de demande trouvé dans la base de données. Veuillez contacter l\'administrateur.');
+            } else {
+              const activeTypes = typesData.filter(t => {
+                const isActive = t.Actif === true || t.Actif === 1 || t.Actif === '1' || (typeof t.Actif === 'boolean' && t.Actif);
+                return isActive;
+              });
+              const activeCount = activeTypes.length;
+              const inactiveCount = typesData.length - activeCount;
+              const userRoleDisplay = user?.role || user?.codeRole || user?.Role || user?.CodeRole || 'non défini';
+              console.warn('Aucun type de demande disponible pour cet utilisateur après filtrage');
+              console.warn(`- Types actifs: ${activeCount}, Types inactifs: ${inactiveCount}`);
+              console.warn(`- Rôle utilisateur: ${userRoleDisplay}`);
+              
+              // Ne PAS activer le mode fallback automatiquement
+              // Si aucun type n'est disponible, afficher un message clair
+              setError(`Aucun type de demande disponible pour votre rôle (${userRoleDisplay}). ${activeCount > 0 ? `${activeCount} type(s) actif(s) trouvé(s) mais non autorisé(s) pour votre rôle. Veuillez contacter l'administrateur ou le chef de centre pour configurer les permissions.` : 'Veuillez contacter l\'administrateur ou le chef de centre pour créer des types de travaux.'}`);
+              setTypes([]); // Ne pas afficher de types si aucun n'est autorisé
+            }
+          } else {
+            setError(''); // Effacer l'erreur si des types sont disponibles
+          }
+        } else {
+          console.error('Erreur lors du chargement des types de demande:', typesRes.reason);
+          const errorMsg = typesRes.reason?.response?.data?.error || typesRes.reason?.message || 'Erreur lors du chargement des types de travaux';
+          setError(errorMsg);
+          setTypes([]); // S'assurer que la liste est vide en cas d'erreur
+        }
+
+        // Traiter les autres référentiels
+        if (clientsRes.status === 'fulfilled') {
+          setClients(clientsRes.value || []);
+        } else {
+          console.error('Erreur lors du chargement des clients:', clientsRes.reason);
+        }
+        
+        if (agencesRes.status === 'fulfilled') {
+          setAgences(agencesRes.value || []);
+        } else {
+          console.error('Erreur lors du chargement des agences:', agencesRes.reason);
+        }
+        
+        if (clientTypesRes.status === 'fulfilled') {
+          setClientTypes(clientTypesRes.value || []);
+        } else {
+          console.error('Erreur lors du chargement des types de clients:', clientTypesRes.reason);
+        }
 
         // Pré-remplir automatiquement l'agence de l'utilisateur connecté
         if (user?.idAgence) {
@@ -138,6 +184,7 @@ const DemandeForm = ({ user, onCreated }) => {
         setError(errorMsg);
         console.error('Erreur lors du chargement:', e);
         console.error('Détails de l\'erreur:', e.response);
+        setTypes([]); // S'assurer que la liste est vide en cas d'erreur
       } finally {
         setLoading(false);
       }
@@ -337,7 +384,7 @@ const DemandeForm = ({ user, onCreated }) => {
               </select>
               {types.length === 0 && (
                 <p className="mt-2 text-sm text-yellow-400">
-                  ⚠️ Aucun type de demande disponible. Veuillez contacter l'administrateur pour créer des types de travaux.
+                  ⚠️ Aucun type de demande disponible. Veuillez contacter l'administrateur ou le chef de centre pour créer des types de travaux.
                 </p>
               )}
             </div>

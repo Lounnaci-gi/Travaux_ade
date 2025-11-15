@@ -14,8 +14,9 @@ export const isAdmin = (user) => {
 
 // Fonction utilitaire pour vérifier si l'utilisateur est chef de centre
 export const isChefCentre = (user) => {
-  if (!user || !user.codeRole) return false;
-  const codeRole = user.codeRole.toString().toLowerCase();
+  if (!user) return false;
+  // Vérifier codeRole (avec minuscule) ou CodeRole (avec majuscule) ou role
+  const codeRole = (user.codeRole || user.CodeRole || user.role || '').toString().toLowerCase();
   return codeRole.includes('chef') && codeRole.includes('centre');
 };
 

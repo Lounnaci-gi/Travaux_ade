@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { alertSuccess, alertError, confirmDialog } from '../ui/alerts';
 import { getClientTypes, createClientType } from '../services/api';
+import { isAdmin } from '../utils/auth';
 
-const ClientTypeForm = () => {
+const ClientTypeForm = ({ user }) => {
   const [types, setTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -70,6 +71,18 @@ const ClientTypeForm = () => {
       setSubmitting(false);
     }
   };
+
+  // Si l'utilisateur n'est pas admin, ne rien afficher
+  if (!isAdmin(user)) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4 dark:text-white text-gray-900">Accès refusé</h2>
+          <p className="dark:text-gray-400 text-gray-600">Seuls les administrateurs peuvent créer des types de clients.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-6">
