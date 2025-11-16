@@ -1389,8 +1389,12 @@ app.get('/api/agences', async (req, res) => {
         a.IdAgence,
         a.IdCentre,
         a.CodeAgence,
-        a.NomAgence
+        a.NomAgence,
+        c.IdUnite,
+        u.NomUnite
       FROM AgenceCommerciale a
+      LEFT JOIN Centre c ON a.IdCentre = c.IdCentre
+      LEFT JOIN Unite u ON c.IdUnite = u.IdUnite
       WHERE a.Actif = 1
       ORDER BY a.NomAgence
     `);
@@ -3077,7 +3081,8 @@ app.get('/api/demandes', verifyToken, async (req, res) => {
     const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin');
     const isChefCentreRole = actorRoleLower.includes('chef') && actorRoleLower.includes('centre');
     const isChefServiceJuridiqueRole = actorRoleLower.includes('chef') && (actorRoleLower.includes('juridique') || actorRoleLower.includes('jurid'));
-    const isChefWithCenterAccess = isChefCentreRole || isChefServiceJuridiqueRole;
+    const isChefServiceTechnicoCommercialRole = actorRoleLower.includes('chef') && actorRoleLower.includes('technico') && actorRoleLower.includes('commercial');
+    const isChefWithCenterAccess = isChefCentreRole || isChefServiceJuridiqueRole || isChefServiceTechnicoCommercialRole;
 
     // Construire la clause WHERE selon le rôle
     let whereClause = 'WHERE d.Actif = 1';

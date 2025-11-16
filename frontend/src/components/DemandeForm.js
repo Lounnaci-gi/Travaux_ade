@@ -4,6 +4,54 @@ import { getClients, getClientById, getClientTypes, getAgences, getDemandeTypes,
 import { isAdmin } from '../utils/auth';
 import { canUserCreateDemandeType, normalizeRole } from '../utils/roleUtils';
 
+// Add print styles
+const printStyles = `
+  @media print {
+    body {
+      background: white !important;
+      color: black !important;
+    }
+    
+    .glass-card {
+      background: white !important;
+      border: 1px solid #ddd !important;
+      box-shadow: none !important;
+    }
+    
+    button, .no-print {
+      display: none !important;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+      color: black !important;
+    }
+    
+    input, select, textarea {
+      background: white !important;
+      border: 1px solid #000 !important;
+      color: black !important;
+    }
+    
+    label {
+      color: black !important;
+    }
+    
+    /* Ensure all content is visible */
+    .max-w-5xl {
+      max-width: none !important;
+    }
+    
+    .min-h-screen {
+      min-height: auto !important;
+    }
+    
+    /* Add page breaks for better printing */
+    .space-y-6 > div {
+      page-break-inside: avoid;
+    }
+  }
+`;
+
 const DemandeForm = ({ user, onCreated }) => {
   const [clients, setClients] = useState([]);
   const [agences, setAgences] = useState([]);
@@ -14,6 +62,192 @@ const DemandeForm = ({ user, onCreated }) => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [selectedClient, setSelectedClient] = useState(null);
+
+  // Inject print styles when component mounts
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.innerHTML = printStyles;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
+  // Get selected agency and unit information for print header
+  const getPrintHeaderInfo = () => {
+    if (!form.idAgence) return { agencyName: '', unitName: '' };
+    
+    const selectedAgency = agences.find(agency => agency.IdAgence === Number(form.idAgence));
+    return {
+      agencyName: selectedAgency ? selectedAgency.NomAgence : '',
+      unitName: selectedAgency && selectedAgency.NomUnite ? selectedAgency.NomUnite : ''
+    };
+  };
+  
+  // Get selected client name for print footer
+  const getPrintClientName = () => {
+    if (!form.idClient) return '';
+    
+    const selectedClient = clients.find(client => client.IdClient === Number(form.idClient));
+    if (selectedClient) {
+      return `${selectedClient.Nom || ''} ${selectedClient.Prenom || ''}`.trim();
+    }
+    return '';
+  };
+  
+  // Get selected client first name for print footer
+  const getPrintClientFirstName = () => {
+    if (!form.idClient) return '';
+    
+    const selectedClient = clients.find(client => client.IdClient === Number(form.idClient));
+    if (selectedClient) {
+      return selectedClient.Prenom || '';
+    }
+    return '';
+  };
+  
+  // Get selected client address for print footer
+  const getPrintClientAddress = () => {
+    if (!form.idClient) return '';
+    
+    const selectedClient = clients.find(client => client.IdClient === Number(form.idClient));
+    if (selectedClient) {
+      return selectedClient.adresseBranchement || '';
+    }
+    return '';
+  };
+
+  // Handle print with custom header only
+  const handlePrint = () => {
+    const { agencyName, unitName } = getPrintHeaderInfo();
+    const clientName = getPrintClientName();
+    const clientFirstName = getPrintClientFirstName();
+    const clientAddress = getPrintClientAddress();
+    
+    // Create a new window for printing only the header
+    const printWindow = window.open('', '_blank');
+    
+    // Write the header content to the new window
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Impression Demande</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: black;
+          }
+          .print-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #000;
+          }
+          .print-header-left {
+            text-align: left;
+          }
+          .print-header-center {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+          }
+          .print-title {
+            font-size: 18px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-top: 10px;
+            text-align: center;
+          }
+          .print-footer {
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-top: 10px;
+            text-align: center;
+            background-color: black;
+            color: white;
+            padding: 5px;
+            width: 100%;
+          }
+          .print-footer-full {
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-top: 10px;
+            text-align: center;
+            background-color: black;
+            color: white;
+            padding: 5px;
+            width: 100%;
+          }
+          .signature-text {
+            font-size: 12px;
+            text-align: left;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            padding-left: 20px;
+          }
+          .print-header-right {
+            text-align: right;
+          }
+          .print-header h2 {
+            font-size: 10px;
+            font-weight: bold;
+            margin: 0;
+          }
+          .print-header p {
+            font-size: 8px;
+            margin: 1px 0;
+          }
+          .logo {
+            max-height: 75px;
+            margin: 10px 0;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="print-header">
+          <div class="print-header-left">
+            <h2>ALGERIENNE DES EAUX</h2>
+            <p>Zone d'Alger</p>
+            <p>Unité de : ${unitName || 'Non spécifiée'}</p>
+          </div>
+          <div class="print-header-center">
+            <img src="/ade.png" alt="Logo ADE" class="logo" />
+            <div class="print-title">Demande de Branchement d'Eau Potable</div>
+          </div>
+          <div class="print-header-right">
+            <h2>${agencyName || 'Non spécifiée'}</h2>
+          </div>
+        </div>
+        <div class="print-footer-full">document a retourner au service des eaux dument rempli et signe</div>
+        <div class="signature-text">Je soussigné (e) Madame, Mademoiselle, Monsieur (rayer les mentions inutiles)</div>
+        <div class="signature-text">Nom (ou Raison sociale) _______________________${clientName || 'içi le nom de client'}___________________________________________________________________________________________</div>
+        <div class="signature-text">Prénom _______________________${clientFirstName || 'içi le prénom de client'}_____________________________________________________________________________________________________</div>
+        <div class="signature-text" style="text-decoration: underline; margin-bottom: 20px;">Adresse de correspondance :</div>
+        <div class="signature-text">Rue _______________________${clientAddress || 'Adresse  correspandant du client'}____________________________________________________________________________________</div>
+      </body>
+      </html>
+    `);
+    
+    printWindow.document.close();
+    
+    // Print and close the window
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 500);
+  };
 
   const [form, setForm] = useState({
     idClient: '',
@@ -346,10 +580,24 @@ const DemandeForm = ({ user, onCreated }) => {
     <div className="min-h-screen p-6">
       <div className="max-w-5xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-            Nouvelle Demande
-          </h1>
-          <p className="dark:text-gray-400 text-gray-600">Enregistrer une nouvelle demande dans le système</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                Nouvelle Demande
+              </h1>
+              <p className="dark:text-gray-400 text-gray-600">Enregistrer une nouvelle demande dans le système</p>
+            </div>
+            <button 
+              type="button"
+              onClick={handlePrint}
+              className="p-3 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 transition-all"
+              title="Imprimer la demande"
+            >
+              <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="glass-card p-6 space-y-6">
