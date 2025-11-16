@@ -87,9 +87,6 @@ const DemandeForm = ({ user, onCreated }) => {
   
   // Get selected client name for print footer
   const getPrintClientName = () => {
-    if (!form.idClient) return '';
-    
-    const selectedClient = clients.find(client => client.IdClient === Number(form.idClient));
     if (selectedClient) {
       return `${selectedClient.Nom || ''} ${selectedClient.Prenom || ''}`.trim();
     }
@@ -98,22 +95,48 @@ const DemandeForm = ({ user, onCreated }) => {
   
   // Get selected client first name for print footer
   const getPrintClientFirstName = () => {
-    if (!form.idClient) return '';
-    
-    const selectedClient = clients.find(client => client.IdClient === Number(form.idClient));
-    if (selectedClient) {
-      return selectedClient.Prenom || '';
+    if (selectedClient && selectedClient.Prenom) {
+      return selectedClient.Prenom;
     }
     return '';
   };
   
   // Get selected client address for print footer
   const getPrintClientAddress = () => {
-    if (!form.idClient) return '';
-    
-    const selectedClient = clients.find(client => client.IdClient === Number(form.idClient));
+    if (selectedClient && selectedClient.AdresseResidence) {
+      return selectedClient.AdresseResidence;
+    }
+    return '';
+  };
+  
+  // Get selected client commune for print footer
+  const getPrintClientCommune = () => {
+    if (selectedClient && selectedClient.CommuneResidence) {
+      return selectedClient.CommuneResidence;
+    }
+    return '';
+  };
+  
+  // Get selected client telephone numbers for print footer
+  const getPrintClientTelephones = () => {
     if (selectedClient) {
-      return selectedClient.adresseBranchement || '';
+      const primary = selectedClient.TelephonePrincipal || '';
+      const secondary = selectedClient.TelephoneSecondaire || '';
+      if (primary && secondary) {
+        return `${primary} / ${secondary}`;
+      } else if (primary) {
+        return primary;
+      } else if (secondary) {
+        return secondary;
+      }
+    }
+    return '';
+  };
+  
+  // Get selected client status for print footer
+  const getPrintClientStatus = () => {
+    if (selectedClient && selectedClient.StatutOccupation) {
+      return selectedClient.StatutOccupation;
     }
     return '';
   };
@@ -124,6 +147,9 @@ const DemandeForm = ({ user, onCreated }) => {
     const clientName = getPrintClientName();
     const clientFirstName = getPrintClientFirstName();
     const clientAddress = getPrintClientAddress();
+    const clientCommune = getPrintClientCommune();
+    const clientTelephones = getPrintClientTelephones();
+    const clientStatus = getPrintClientStatus();
     
     // Create a new window for printing only the header
     const printWindow = window.open('', '_blank');
@@ -235,6 +261,14 @@ const DemandeForm = ({ user, onCreated }) => {
         <div class="signature-text">Prénom _______________________${clientFirstName || 'içi le prénom de client'}_____________________________________________________________________________________________________</div>
         <div class="signature-text" style="text-decoration: underline; margin-bottom: 20px;">Adresse de correspondance :</div>
         <div class="signature-text">Rue _______________________${clientAddress || 'Adresse  correspandant du client'}____________________________________________________________________________________</div>
+        <div class="signature-text">Commune _______________________${clientCommune || 'CommuneResidence'}_____________________________________________________________________</div>
+        <div class="signature-text">Tél _______________________${clientTelephones || 'TelephonePrincipal /  TelephoneSecondaire'}_____________________________________________________________________</div>
+        <div class="signature-text">Et agissant en qualité de : 
+          <span style="text-decoration: ${clientStatus === 'PROPRIETAIRE' ? 'none' : 'line-through'};">Propriétaire</span>, 
+          <span style="text-decoration: ${clientStatus === 'LOCATAIRE' ? 'none' : 'line-through'};">Locataire</span>, 
+          <span style="text-decoration: ${clientStatus === 'MANDATAIRE' ? 'none' : 'line-through'};">Mandataire</span> 
+          (rayer les mentions inutiles)
+        </div>
       </body>
       </html>
     `);
@@ -820,6 +854,14 @@ const DemandeForm = ({ user, onCreated }) => {
                       <div className="md:col-span-3">
                         <p className="dark:text-gray-400 text-gray-600">Adresse de résidence</p>
                         <p className="dark:text-white text-gray-900 font-medium">{selectedClient.AdresseResidence}</p>
+                      </div>
+                      <div>
+                        <p className="dark:text-gray-400 text-gray-600">Commune de résidence</p>
+                        <p className="dark:text-white text-gray-900 font-medium">{selectedClient.CommuneResidence || '—'}</p>
+                      </div>
+                      <div>
+                        <p className="dark:text-gray-400 text-gray-600">Code postal de résidence</p>
+                        <p className="dark:text-white text-gray-900 font-medium">{selectedClient.CodePostalResidence || '—'}</p>
                       </div>
                       <div>
                         <p className="dark:text-gray-400 text-gray-600">Statut d'occupation</p>
