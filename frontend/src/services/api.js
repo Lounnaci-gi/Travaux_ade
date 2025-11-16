@@ -192,6 +192,11 @@ export const getDemandes = async () => {
   return response.data;
 };
 
+export const getPendingDemandesCount = async () => {
+  const response = await api.get('/demandes/pending-count');
+  return response.data;
+};
+
 export const validateDemande = async (demandeId, typeValidation) => {
   const response = await api.post(`/demandes/${demandeId}/validate`, { typeValidation });
   return response.data;

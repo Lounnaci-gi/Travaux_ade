@@ -630,34 +630,36 @@ const DemandeForm = ({ user, onCreated }) => {
                 </p>
               )}
             </div>
-            <div>
-              <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">
-                Agence *
+            {form.idDemandeType && (
+              <div>
+                <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">
+                  Agence *
+                  {user?.idAgence && !isAdmin(user) && (
+                    <span className="ml-2 text-xs text-gray-400">(définie automatiquement)</span>
+                  )}
+                </label>
+                <select
+                  name="idAgence"
+                  value={form.idAgence}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                  disabled={user?.idAgence && !isAdmin(user)}
+                >
+                  <option value="">Sélectionner une agence</option>
+                  {agences.map((a) => (
+                    <option key={a.IdAgence} value={a.IdAgence} className="text-black">
+                      {a.CodeAgence} - {a.NomAgence}
+                    </option>
+                  ))}
+                </select>
                 {user?.idAgence && !isAdmin(user) && (
-                  <span className="ml-2 text-xs text-gray-400">(définie automatiquement)</span>
+                  <p className="mt-1 text-xs text-gray-400">
+                    L'agence est automatiquement définie selon votre affectation
+                  </p>
                 )}
-              </label>
-              <select
-                name="idAgence"
-                value={form.idAgence}
-                onChange={handleChange}
-                className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-                disabled={user?.idAgence && !isAdmin(user)}
-              >
-                <option value="">Sélectionner une agence</option>
-                {agences.map((a) => (
-                  <option key={a.IdAgence} value={a.IdAgence} className="text-black">
-                    {a.CodeAgence} - {a.NomAgence}
-                  </option>
-                ))}
-              </select>
-              {user?.idAgence && !isAdmin(user) && (
-                <p className="mt-1 text-xs text-gray-400">
-                  L'agence est automatiquement définie selon votre affectation
-                </p>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {form.idDemandeType && (

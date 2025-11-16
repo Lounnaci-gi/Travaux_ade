@@ -3159,6 +3159,103 @@ app.get('/api/demandes', verifyToken, async (req, res) => {
   }
 });
 
+// Nombre de demandes non validées pour l'utilisateur connecté
+app.get('/api/demandes/pending-count', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Utilisateur non identifié' });
+    }
+
+    // Récupérer les informations de l'utilisateur
+    const userInfo = await pool.request()
+      .input('id', sql.Int, userId)
+      .query(`
+        SELECT u.IdAgence, u.IdCentre, u.Role
+        FROM Utilisateur u
+        WHERE u.IdUtilisateur = @id
+      `);
+
+    if (userInfo.recordset.length === 0) {
+      return res.status(404).json({ error: 'Utilisateur introuvable' });
+    }
+
+    const userData = userInfo.recordset[0];
+    const actorRoleLower = (userData.Role || '').toLowerCase();
+    const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin');
+    const isChefAgenceRole = actorRoleLower.includes('chef') && actorRoleLower.includes('agence') && !actorRoleLower.includes('centre');
+    const isChefSectionRCRole = actorRoleLower.includes('chef') && actorRoleLower.includes('section') && (actorRoleLower.includes('relation') || actorRoleLower.includes('relat')) && actorRoleLower.includes('client');
+    const isChefServiceJuridiqueRole = actorRoleLower.includes('chef') && (actorRoleLower.includes('juridique') || actorRoleLower.includes('jurid'));
+    const isChefCentreRole = actorRoleLower.includes('chef') && actorRoleLower.includes('centre') && !actorRoleLower.includes('agence');
+
+    let whereClause = 'WHERE d.Actif = 1';
+    let request = pool.request();
+
+    // Construire la condition selon le rôle
+    if (isChefAgenceRole) {
+      // Chef d'agence : demandes nécessitant validation chef agence, non validées, de son agence
+      whereClause += ' AND dt.ValidationChefAgenceRequise = 1';
+      whereClause += ' AND d.DateValidationChefAgence IS NULL';
+      if (userData.IdAgence) {
+        whereClause += ' AND d.IdAgence = @agenceId';
+        request.input('agenceId', sql.Int, userData.IdAgence);
+      } else {
+        return res.json({ count: 0 });
+      }
+    } else if (isChefSectionRCRole) {
+      // Chef section relation clientele : demandes nécessitant validation RC, non validées, de son agence
+      whereClause += ' AND dt.ValidationChefSectionRelationClienteleRequise = 1';
+      whereClause += ' AND d.DateValidationChefSectionRelationClientele IS NULL';
+      if (userData.IdAgence) {
+        whereClause += ' AND d.IdAgence = @agenceId';
+        request.input('agenceId', sql.Int, userData.IdAgence);
+      } else {
+        return res.json({ count: 0 });
+      }
+    } else if (isChefServiceJuridiqueRole) {
+      // Chef service juridique : demandes nécessitant validation juridique, non validées (toutes agences)
+      whereClause += ' AND dt.ValidationJuridiqueRequise = 1';
+      whereClause += ' AND d.DateValidationJuridique IS NULL';
+      // Pas de filtre agence/centre pour le service juridique
+    } else if (isChefCentreRole) {
+      // Chef de centre : demandes nécessitant validation chef centre, non validées, de son centre
+      whereClause += ' AND dt.ValidationChefCentreRequise = 1';
+      whereClause += ' AND d.DateValidationChefCentre IS NULL';
+      if (userData.IdCentre) {
+        whereClause += ' AND a.IdCentre = @centreId';
+        request.input('centreId', sql.Int, userData.IdCentre);
+      } else {
+        return res.json({ count: 0 });
+      }
+    } else if (isAdminRole) {
+      // Admin : toutes les demandes non validées (au moins une validation requise et non faite)
+      whereClause += ` AND (
+        (dt.ValidationChefAgenceRequise = 1 AND d.DateValidationChefAgence IS NULL) OR
+        (dt.ValidationChefSectionRelationClienteleRequise = 1 AND d.DateValidationChefSectionRelationClientele IS NULL) OR
+        (dt.ValidationJuridiqueRequise = 1 AND d.DateValidationJuridique IS NULL) OR
+        (dt.ValidationChefCentreRequise = 1 AND d.DateValidationChefCentre IS NULL)
+      )`;
+    } else {
+      // Autres utilisateurs : pas de notifications
+      return res.json({ count: 0 });
+    }
+
+    const result = await request.query(`
+      SELECT COUNT(*) as count
+      FROM DemandeTravaux d
+      INNER JOIN DemandeType dt ON d.IdDemandeType = dt.IdDemandeType
+      INNER JOIN AgenceCommerciale a ON d.IdAgence = a.IdAgence
+      ${whereClause}
+    `);
+
+    const count = result.recordset[0]?.count || 0;
+    res.json({ count: parseInt(count) });
+  } catch (error) {
+    console.error('Erreur lors de la récupération du nombre de demandes non validées:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
 // Validation d'une demande
 app.post('/api/demandes/:id/validate', verifyToken, async (req, res) => {
   try {
