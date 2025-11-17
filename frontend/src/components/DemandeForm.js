@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { alertSuccess, alertError, confirmDialog } from '../ui/alerts';
 import { getClients, getClientById, getClientTypes, getAgences, getDemandeTypes, createClient, createDemande } from '../services/api';
 import { isAdmin } from '../utils/auth';
@@ -426,6 +426,43 @@ const DemandeForm = ({ user, onCreated }) => {
     statutOccupation: '',
     diametreBranchement: '',
   });
+  const [diametreSearch, setDiametreSearch] = useState('');
+  const [showDiametreDropdown, setShowDiametreDropdown] = useState(false);
+
+  const diametreOptions = useMemo(
+    () => [
+      '25 mm',
+      '32 mm',
+      '40 mm',
+      '50 mm',
+      '63 mm',
+      '75 mm',
+      '90 mm',
+      '110 mm',
+      '125 mm',
+      '140 mm',
+      '160 mm',
+      '180 mm',
+      '200 mm',
+      '225 mm',
+      '250 mm',
+      '280 mm',
+      '315 mm',
+    ],
+    []
+  );
+
+  const filteredDiametreOptions = useMemo(() => {
+    const search = (diametreSearch || '').trim().toLowerCase();
+    if (!search) return diametreOptions;
+    return diametreOptions.filter((value) => value.toLowerCase().includes(search));
+  }, [diametreOptions, diametreSearch]);
+
+  const handleDiametreSelect = (value) => {
+    setClientForm((prev) => ({ ...prev, diametreBranchement: value }));
+    setDiametreSearch('');
+    setShowDiametreDropdown(false);
+  };
 
   // Fonction pour parser la Description et extraire les rôles autorisés
   const parseDescription = (desc) => {
@@ -736,16 +773,6 @@ const DemandeForm = ({ user, onCreated }) => {
               </h1>
               <p className="dark:text-gray-400 text-gray-600">Enregistrer une nouvelle demande dans le système</p>
             </div>
-            <button 
-              type="button"
-              onClick={handlePrint}
-              className="p-3 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 transition-all"
-              title="Imprimer la demande"
-            >
-              <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-              </svg>
-            </button>
           </div>
         </div>
 
@@ -831,13 +858,20 @@ const DemandeForm = ({ user, onCreated }) => {
                           </option>
                         ))}
                       </select>
-                      <button
-                        type="button"
-                        className="mt-2 text-sm dark:text-blue-400 text-blue-600 dark:hover:text-blue-300 hover:text-blue-700"
-                        onClick={() => { setNewClientMode(true); setForm((p)=>({...p, idClient:''})); setSelectedClient(null);} }
-                      >
-                        + Créer un nouveau client
-                      </button>
+                      <div className="mt-3">
+                        <button
+                          type="button"
+                          className="inline-flex items-center justify-center p-2 rounded-full bg-blue-500/20 border border-blue-400/40 text-blue-200 hover:bg-blue-500/30 hover:text-white transition-colors"
+                          title="Créer un nouveau client"
+                          aria-label="Créer un nouveau client"
+                          onClick={() => { setNewClientMode(true); setForm((p)=>({...p, idClient:''})); setSelectedClient(null);} }
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                          </svg>
+                          <span className="sr-only">Créer un nouveau client</span>
+                        </button>
+                      </div>
                     </>
                   ) : (
                     <>
@@ -935,12 +969,76 @@ const DemandeForm = ({ user, onCreated }) => {
                         {isBranchementType() && (
                           <div>
                             <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Diamètre branchement</label>
-                            <input className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" value={clientForm.diametreBranchement} onChange={(e)=>setClientForm((p)=>({...p, diametreBranchement:e.target.value}))} />
+                            <div className="relative">
+                              <input
+                                type="text"
+                                value={
+                                  showDiametreDropdown
+                                    ? diametreSearch
+                                    : (clientForm.diametreBranchement || '')
+                                }
+                                onFocus={() => {
+                                  setShowDiametreDropdown(true);
+                                  setDiametreSearch(clientForm.diametreBranchement || '');
+                                }}
+                                onChange={(e) => {
+                                  setDiametreSearch(e.target.value);
+                                  setShowDiametreDropdown(true);
+                                }}
+                                onBlur={() => {
+                                  setTimeout(() => setShowDiametreDropdown(false), 150);
+                                }}
+                                placeholder="Sélectionner un diamètre..."
+                                className="w-full px-3 py-2 pr-8 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                              />
+                              <svg
+                                className="absolute right-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                              </svg>
+                              {showDiametreDropdown && (
+                                <>
+                                  {filteredDiametreOptions.length > 0 ? (
+                                    <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border dark:border-white/20 border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                      {filteredDiametreOptions.map((diametre) => (
+                                        <button
+                                          key={diametre}
+                                          type="button"
+                                          onMouseDown={(e) => e.preventDefault()}
+                                          onClick={() => handleDiametreSelect(diametre)}
+                                          className="w-full text-left px-3 py-2 text-sm hover:bg-blue-500/20 dark:hover:bg-blue-500/20 dark:text-white text-gray-900 transition-colors first:rounded-t-lg last:rounded-b-lg"
+                                        >
+                                          {diametre}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border dark:border-white/20 border-gray-300 rounded-lg shadow-lg p-3">
+                                      <p className="text-xs text-gray-500 dark:text-gray-400">Aucun diamètre trouvé</p>
+                                    </div>
+                                  )}
+                                </>
+                              )}
+                            </div>
                           </div>
                         )}
                       </div>
                       <div className="mt-2 flex items-center gap-3">
-                        <button type="button" className="text-sm dark:text-gray-300 text-gray-700 dark:hover:text-white hover:text-gray-900" onClick={()=>setNewClientMode(false)}>Annuler</button>
+                        <button
+                          type="button"
+                          className="inline-flex items-center justify-center p-2 rounded-full bg-red-500/20 border border-red-400/40 text-red-200 hover:bg-red-500/30 hover:text-white transition-colors"
+                          title="Annuler la création du client"
+                          aria-label="Annuler la création du client"
+                          onClick={()=>setNewClientMode(false)}
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                          <span className="sr-only">Annuler la création du client</span>
+                        </button>
                       </div>
                     </>
                   )}
@@ -1002,13 +1100,30 @@ const DemandeForm = ({ user, onCreated }) => {
                   />
                 </div>
 
-                <div className="flex justify-end">
+                <div className="flex justify-end gap-3 items-center">
+                  <button
+                    type="button"
+                    onClick={handlePrint}
+                    className="p-3 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 transition-all text-gray-200"
+                    title="Imprimer la demande"
+                    aria-label="Imprimer la demande"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    <span className="sr-only">Imprimer la demande</span>
+                  </button>
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="px-6 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold shadow-lg shadow-blue-500/50 hover:shadow-xl hover:shadow-blue-500/60 transition-all disabled:opacity-50"
+                    className="p-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/50 hover:shadow-xl hover:shadow-blue-500/60 transition-all disabled:opacity-50"
+                    title={submitting ? 'Enregistrement en cours' : 'Enregistrer la demande'}
+                    aria-label={submitting ? 'Enregistrement en cours' : 'Enregistrer la demande'}
                   >
-                    {submitting ? 'Enregistrement...' : 'Enregistrer la Demande'}
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="sr-only">{submitting ? 'Enregistrement en cours' : 'Enregistrer la demande'}</span>
                   </button>
                 </div>
               </div>
