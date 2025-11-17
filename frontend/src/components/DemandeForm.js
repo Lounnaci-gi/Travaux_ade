@@ -157,117 +157,231 @@ const DemandeForm = ({ user, onCreated }) => {
     // Write the header content to the new window
     printWindow.document.write(`
       <!DOCTYPE html>
-      <html>
+      <html lang="fr">
       <head>
-        <title>Impression Demande</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Demande de Branchement d'Eau Potable</title>
         <style>
           body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            color: black;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
           }
-          .print-header {
+          .container {
+            background-color: white;
+            padding: 30px;
+            border: none;
+          }
+          .header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 20px;
-            padding: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #000;
-          }
-          .print-header-left {
-            text-align: left;
-          }
-          .print-header-center {
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
             align-items: center;
+            margin-bottom: 20px;
           }
-          .print-title {
-            font-size: 18px;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-top: 10px;
-            text-align: center;
-          }
-          .print-footer {
-            font-size: 10px;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-top: 10px;
-            text-align: center;
-            background-color: black;
-            color: white;
-            padding: 5px;
-            width: 100%;
-          }
-          .print-footer-full {
-            font-size: 10px;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-top: 10px;
-            text-align: center;
-            background-color: black;
-            color: white;
-            padding: 5px;
-            width: 100%;
-          }
-          .signature-text {
-            font-size: 12px;
+          .header-left {
             text-align: left;
-            margin-top: 20px;
-            margin-bottom: 10px;
-            padding-left: 20px;
           }
-          .print-header-right {
+          .header-right {
             text-align: right;
           }
-          .print-header h2 {
-            font-size: 10px;
-            font-weight: bold;
-            margin: 0;
-          }
-          .print-header p {
-            font-size: 8px;
-            margin: 1px 0;
-          }
           .logo {
-            max-height: 75px;
+            width: 60px;
+            height: 60px;
+            background-color: #666;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin: 0 auto 10px;
+          }
+          h1 {
+            text-align: center;
+            font-size: 20px;
+            margin: 20px 0 5px 0;
+            text-transform: uppercase;
+          }
+          .subtitle {
+            text-align: center;
+            background-color: #000;
+            color: white;
+            padding: 5px;
+            font-size: 11px;
+            margin-bottom: 20px;
+          }
+          .form-section {
+            margin-bottom: 20px;
+          }
+          .form-field {
+            margin-bottom: 10px;
+          }
+          label {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 3px;
+          }
+          input[type="text"], input[type="tel"] {
+            width: 100%;
+            border: none;
+            border-bottom: 1px solid #333;
+            background-color: transparent;
+            padding: 5px 0;
+            font-size: 13px;
+          }
+          .checkbox-group {
             margin: 10px 0;
+          }
+          .checkbox-item {
+            margin: 5px 0;
+            font-size: 12px;
+          }
+          input[type="checkbox"] {
+            margin-right: 8px;
+          }
+          .info-box {
+            background-color: #fff;
+            padding: 15px;
+            margin: 20px 0;
+            border: 1px solid #999;
+            font-size: 11px;
+          }
+          .signature-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+          }
+          .signature-box {
+            text-align: center;
+          }
+          .footer {
+            margin-top: 40px;
+            font-size: 10px;
+            border-top: 1px solid #333;
+            padding-top: 10px;
+          }
+          .italic {
+            font-style: italic;
+            font-size: 11px;
           }
         </style>
       </head>
       <body>
-        <div class="print-header">
-          <div class="print-header-left">
-            <h2>ALGERIENNE DES EAUX</h2>
-            <p>Zone d'Alger</p>
-            <p>Unité de : ${unitName || 'Non spécifiée'}</p>
+        <div class="container">
+          <div class="header">
+            <div class="header-left">
+              <strong>ALGÉRIENNE DES EAUX</strong><br>
+              Zone d'Alger<br>
+              Unité de : ${unitName || 'Nom unité'}
+            </div>
+            <div class="logo">ADE</div>
+            <div class="header-right">
+              <em>Agence de</em> <strong>${agencyName || 'Nom agence'}</strong>
+            </div>
           </div>
-          <div class="print-header-center">
-            <img src="/ade.png" alt="Logo ADE" class="logo" />
-            <div class="print-title">Demande de Branchement d'Eau Potable</div>
+
+          <h1>Demande de Branchement d'Eau Potable</h1>
+          <div class="subtitle">DOCUMENT À RETOURNER AU SERVICE DES EAUX DÛMENT REMPLI ET SIGNÉ</div>
+
+          <div class="form-section">
+            <p><strong>Je soussigné (e)</strong> Madame, Mademoiselle, Monsieur <span class="italic">(rayer les mentions inutiles)</span></p>
+            
+            <div class="form-field">
+              <label>Nom (ou Raison sociale) _______________________________________________</label>
+            </div>
+            
+            <div class="form-field">
+              <label>Prénom _______________________________________________</label>
+            </div>
+            
+            <div class="form-field">
+              <label>Adresse de correspondance:</label>
+            </div>
+            
+            <div class="form-field">
+              <label>Rue _______________________________________________</label>
+            </div>
+            
+            <div class="form-field">
+              <label>Commune_______________________________________________</label>
+            </div>
+            
+            <div class="form-field">
+              <label>Tél _______________________________________________</label>
+            </div>
           </div>
-          <div class="print-header-right">
-            <h2>${agencyName || 'Non spécifiée'}</h2>
+
+          <div class="form-section">
+            <p><strong>Et agissant en qualité de</strong> : Propriétaire, Locataire, Mandataire <span class="italic">(rayer les mentions inutiles)</span></p>
           </div>
-        </div>
-        <div class="print-footer-full">document a retourner au service des eaux dument rempli et signe</div>
-        <div class="signature-text">Je soussigné (e) Madame, Mademoiselle, Monsieur (rayer les mentions inutiles)</div>
-        <div class="signature-text">Nom (ou Raison sociale) _______________________${clientName || 'içi le nom de client'}___________________________________________________________________________________________</div>
-        <div class="signature-text">Prénom _______________________${clientFirstName || 'içi le prénom de client'}_____________________________________________________________________________________________________</div>
-        <div class="signature-text" style="text-decoration: underline; margin-bottom: 20px;">Adresse de correspondance :</div>
-        <div class="signature-text">Rue _______________________${clientAddress || 'Adresse  correspandant du client'}____________________________________________________________________________________</div>
-        <div class="signature-text">Commune _______________________${clientCommune || 'CommuneResidence'}_____________________________________________________________________</div>
-        <div class="signature-text">Tél _______________________${clientTelephones || 'TelephonePrincipal /  TelephoneSecondaire'}_____________________________________________________________________</div>
-        <div class="signature-text">Et agissant en qualité de : 
-          <span style="text-decoration: ${clientStatus === 'PROPRIETAIRE' ? 'none' : 'line-through'};">Propriétaire</span>, 
-          <span style="text-decoration: ${clientStatus === 'LOCATAIRE' ? 'none' : 'line-through'};">Locataire</span>, 
-          <span style="text-decoration: ${clientStatus === 'MANDATAIRE' ? 'none' : 'line-through'};">Mandataire</span> 
-          (rayer les mentions inutiles)
+
+          <div class="form-section">
+            <p><strong>Et après avoir pris connaissance du règlement général du service public d'alimentation en eau potable en vigueur, demande à l'Algérienne des Eaux qu'il me soit consenti, un raccordement au réseau d'alimentation en eau potable de type</strong> : Ordinaire, Temporaire, Spécial <span class="italic">(rayer les mentions inutiles)</span></p>
+          </div>
+
+          <div class="form-section">
+            <p><strong>Pour des besoins</strong> : <span class="italic">(cocher la case correspondante)</span></p>
+            <div class="checkbox-group">
+              <div class="checkbox-item">
+                <input type="checkbox" id="domestique">
+                <label for="domestique">Domestiques: Maison individuelle _______________________________________________</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="collectif">
+                <label for="collectif">Lettre à usage collectif nombre de logements / locaux commerciaux : _______________________________________________</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="activite">
+                <label for="activite">L'exercice d'une activité (à préciser) _______________________________________________</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="tourisme">
+                <label for="tourisme">Industrie ou tourisme</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="chantier">
+                <label for="chantier">Les besoins de chantier</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="incendie">
+                <label for="incendie">Borne d'incendie</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="autres">
+                <label for="autres">Autres (à préciser) : _______________________________________________</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label><strong>Adresse de branchement</strong> : _______________________________________________</label>
+          </div>
+
+          <div class="info-box">
+            <p><strong>Dans le cadre d'un branchement lié à un besoin pour la construction d'un immeuble, à des besoins industriels ou de chantier, veuillez préciser les informations suivantes :</strong></p>
+            <p>Diamètre de branchement _____________ mm</p>
+            <p>Débit moyen horaire _____________ m³/h</p>
+          </div>
+
+          <p class="italic" style="font-size: 11px;">Je m'engage à me conformer aux prescriptions du Règlement Général du Service des Eaux dont un exemplaire m'a été remis sur demande ou consulté au niveau du service « accueil clientèle » de l'Algérienne des Eaux.</p>
+
+          <div class="signature-section">
+            <div class="signature-box">
+              Fait à <strong>${agencyName || 'Nom agence'}</strong> , le ______________
+            </div>
+            <div class="signature-box">
+              <strong>Signature</strong><br>
+              Lu et Approuvé
+            </div>
+          </div>
+
+          <div class="footer">
+            <p><em>Partie réservée à l'Algérienne des Eaux – A.D.E</em></p>
+            <p><em>Date de réception</em> : _______________________________________________</p>
+          </div>
         </div>
       </body>
       </html>
