@@ -8,6 +8,7 @@ import DemandeList from './components/DemandeList';
 import DemandeForm from './components/DemandeForm';
 import DemandeTypeForm from './components/DemandeTypeForm';
 import ClientTypeForm from './components/ClientTypeForm';
+import ClientsList from './components/ClientsList';
 import CentreForm from './components/CentreForm';
 import AgenceForm from './components/AgenceForm';
 import UniteForm from './components/UniteForm';
@@ -28,118 +29,65 @@ function App() {
   const IDLE_TIMEOUT = 10 * 60 * 1000; // 10 minutes in milliseconds
   const WARNING_TIME = 60 * 1000; // 1 minute warning before logout
 
-  // Function to reset the idle timer
+  // Reset idle timers on user activity
   const resetIdleTimer = () => {
-    // Clear existing timers
     if (idleTimer.current) clearTimeout(idleTimer.current);
     if (idleWarningTimer.current) clearTimeout(idleWarningTimer.current);
     
-    // Hide warning if it was shown
-    setShowIdleWarning(false);
-    
-    // Set new timer for logout
     idleTimer.current = setTimeout(() => {
-      // Show warning 1 minute before actual logout
-      setShowIdleWarning(true);
-      
-      // Set timer for actual logout
       idleWarningTimer.current = setTimeout(() => {
         handleLogout();
+        setShowIdleWarning(false);
       }, WARNING_TIME);
-    }, IDLE_TIMEOUT - WARNING_TIME);
+      setShowIdleWarning(true);
+    }, IDLE_TIMEOUT);
   };
 
-  // Function to handle user activity
-  const handleUserActivity = () => {
-    if (isAuthenticated) {
-      resetIdleTimer();
-    }
-  };
-
+  // Set up event listeners for user activity
   useEffect(() => {
-    // Add event listeners for user activity
-    if (isAuthenticated) {
-      window.addEventListener('mousemove', handleUserActivity);
-      window.addEventListener('keypress', handleUserActivity);
-      window.addEventListener('click', handleUserActivity);
-      window.addEventListener('scroll', handleUserActivity);
-      
-      // Start the idle timer
-      resetIdleTimer();
-    }
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+    events.forEach(event => {
+      window.addEventListener(event, resetIdleTimer);
+    });
 
-    // Cleanup function
     return () => {
+      events.forEach(event => {
+        window.removeEventListener(event, resetIdleTimer);
+      });
       if (idleTimer.current) clearTimeout(idleTimer.current);
       if (idleWarningTimer.current) clearTimeout(idleWarningTimer.current);
-      window.removeEventListener('mousemove', handleUserActivity);
-      window.removeEventListener('keypress', handleUserActivity);
-      window.removeEventListener('click', handleUserActivity);
-      window.removeEventListener('scroll', handleUserActivity);
     };
-  }, [isAuthenticated]);
+  }, []);
 
+  // Check for existing authentication on app load
   useEffect(() => {
-    // Vérifier si l'utilisateur est déjà connecté et valider le token
-    const checkAuth = async () => {
-      const token = localStorage.getItem('token');
-      const storedUser = localStorage.getItem('user');
-
-      if (!token || !storedUser) {
-        // Pas de token ou utilisateur, nettoyer et afficher le login
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        setLoading(false);
-        return;
-      }
-
+    const token = localStorage.getItem('token');
+    const userData = localStorage.getItem('user');
+    
+    if (token && userData) {
       try {
-        // Vérifier la validité du token avec le serveur
-        const response = await fetch(
-          `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/verify`,
-          {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-          }
-        );
-
-        if (response.ok) {
-          // Token valide, restaurer l'utilisateur
-          const userData = JSON.parse(storedUser);
-          setUser(userData);
-          setIsAuthenticated(true);
-        } else {
-          // Token invalide ou expiré, nettoyer et forcer le login
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          setIsAuthenticated(false);
-          setUser(null);
-        }
-      } catch (error) {
-        console.error('Erreur lors de la vérification du token:', error);
-        // En cas d'erreur, nettoyer et forcer le login
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+        setIsAuthenticated(true);
+      } catch (e) {
+        console.error('Error parsing user data:', e);
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        setIsAuthenticated(false);
-        setUser(null);
-      } finally {
-        setLoading(false);
       }
-    };
-
-    checkAuth();
+    }
+    
+    // Always set loading to false after checking
+    setLoading(false);
   }, []);
 
   const handleLogin = (userData) => {
     setUser(userData);
     setIsAuthenticated(true);
+    setShowIdleWarning(false);
+    resetIdleTimer();
   };
 
   const handleLogout = () => {
-    // Clear timers
     if (idleTimer.current) clearTimeout(idleTimer.current);
     if (idleWarningTimer.current) clearTimeout(idleWarningTimer.current);
     
@@ -179,6 +127,8 @@ function App() {
         return <DemandeTypeForm user={user} onUnauthorized={() => setCurrentView('dashboard')} />;
       case 'demandes-create':
         return <DemandeForm user={user} onCreated={() => setCurrentView('demandes-list')} />;
+      case 'clients-list':
+        return <ClientsList />;
       case 'clients-types':
         return <ClientTypeForm user={user} />;
       case 'unites-create':
@@ -197,13 +147,9 @@ function App() {
         // Placeholder pour les autres vues
         return (
           <div className="min-h-screen p-6 flex items-center justify-center">
-            <div className="glass-card p-8 text-center max-w-md">
-              <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                {currentView.charAt(0).toUpperCase() + currentView.slice(1)}
-              </h2>
-              <p className="text-gray-400">
-                Cette fonctionnalité sera disponible prochainement.
-              </p>
+            <div className="text-center">
+              <h2 className="text-2xl font-bold mb-4 dark:text-white text-gray-900">Page non trouvée</h2>
+              <p className="dark:text-gray-400 text-gray-600">Cette page n'est pas encore disponible.</p>
             </div>
           </div>
         );
@@ -212,35 +158,23 @@ function App() {
 
   return (
     <ThemeProvider>
-      <div className="min-h-screen">
-        {/* Idle warning modal */}
+      <div className={`min-h-screen transition-colors duration-300 ${showIdleWarning ? 'bg-red-900/20' : ''}`}>
+        <Navbar 
+          currentView={currentView} 
+          setCurrentView={setCurrentView} 
+          onLogout={handleLogout} 
+          user={user} 
+        />
+        
         {showIdleWarning && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="glass-card p-6 max-w-md mx-4">
-              <h3 className="text-xl font-bold mb-2 text-yellow-400">Inactivité détectée</h3>
-              <p className="mb-4 dark:text-gray-300 text-gray-700">
-                Vous allez être déconnecté automatiquement dans 1 minute pour des raisons de sécurité.
-                Bougez votre souris ou appuyez sur une touche pour annuler.
-              </p>
-              <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-                <div className="bg-yellow-500 h-2.5 rounded-full animate-pulse" style={{width: '100%'}}></div>
-              </div>
-            </div>
+          <div className="fixed top-0 left-0 right-0 z-50 bg-red-500/90 backdrop-blur-sm p-4 text-center text-white font-semibold">
+            <p>Votre session va expirer dans 1 minute pour des raisons de sécurité. Bougez votre souris ou appuyez sur une touche pour continuer.</p>
           </div>
         )}
         
-        {/* Navigation */}
-        <Navbar currentView={currentView} setCurrentView={setCurrentView} onLogout={handleLogout} user={user} />
-
-        {/* Main Content */}
-        <main>
+        <main className="pt-16">
           {renderView()}
         </main>
-
-        {/* Footer */}
-        <footer className="mt-auto py-6 text-center dark:text-gray-400 text-gray-600 text-sm">
-          <p>© 2025 AquaConnect - Système de Gestion des Branchements</p>
-        </footer>
       </div>
     </ThemeProvider>
   );

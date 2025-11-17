@@ -607,17 +607,44 @@ app.get('/.well-known/appspecific/com.chrome.devtools.json', (req, res) => {
 // Liste des clients (actifs)
 app.get('/api/clients', async (req, res) => {
   try {
-    const result = await pool.request().query(`
+    const { search } = req.query;
+    
+    let query = `
       SELECT TOP 200
         c.IdClient,
         c.Nom,
         c.Prenom,
         c.Email,
-        c.TelephonePrincipal
+        c.TelephonePrincipal,
+        c.AdresseResidence,
+        c.CommuneResidence,
+        c.DateCreation
       FROM Client c
       WHERE c.Actif = 1
-      ORDER BY c.DateCreation DESC
-    `);
+    `;
+    
+    const params = [];
+    
+    if (search) {
+      query += ` AND (
+        c.Nom LIKE @search OR
+        c.Prenom LIKE @search OR
+        c.Email LIKE @search OR
+        c.TelephonePrincipal LIKE @search OR
+        c.AdresseResidence LIKE @search OR
+        c.CommuneResidence LIKE @search
+      )`;
+      params.push({ name: 'search', type: sql.NVarChar, value: `%${search}%` });
+    }
+    
+    query += ' ORDER BY c.DateCreation DESC';
+    
+    const request = pool.request();
+    params.forEach(param => {
+      request.input(param.name, param.type, param.value);
+    });
+    
+    const result = await request.query(query);
     res.json(result.recordset);
   } catch (error) {
     console.error('Erreur lors de la récupération des clients:', error);
@@ -815,6 +842,50 @@ app.post('/api/clients/types', verifyToken, async (req, res) => {
     return res.status(201).json(insert.recordset[0]);
   } catch (error) {
     console.error('Erreur lors de la création du type client:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Modification d'un type de client
+app.put('/api/clients/types/:id', verifyToken, async (req, res) => {
+  try {
+    // Vérifier que seul l'admin peut modifier des types de clients
+    const actorRoleLower = (req.user?.role || '').toLowerCase();
+    const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin');
+    if (!isAdminRole) {
+      return res.status(403).json({ error: 'Seuls les administrateurs peuvent modifier des types de clients.' });
+    }
+
+    const id = parseInt(req.params.id);
+    if (!id) return res.status(400).json({ error: 'Id invalide' });
+
+    const { LibelleType, Description, Actif } = req.body;
+    if (!LibelleType) {
+      return res.status(400).json({ error: 'LibelleType est requis' });
+    }
+
+    const update = await pool.request()
+      .input('id', sql.Int, id)
+      .input('LibelleType', sql.NVarChar(100), LibelleType)
+      .input('Description', sql.NVarChar(255), Description || null)
+      .input('Actif', sql.Bit, Actif === false ? 0 : 1)
+      .query(`
+        UPDATE ClientType SET
+          LibelleType = @LibelleType,
+          Description = @Description,
+          Actif = @Actif,
+          DateModification = GETDATE()
+        OUTPUT INSERTED.*
+        WHERE IdClientType = @id
+      `);
+
+    if (update.recordset.length === 0) {
+      return res.status(404).json({ error: 'Type de client introuvable' });
+    }
+
+    res.json(update.recordset[0]);
+  } catch (error) {
+    console.error('Erreur lors de la modification du type client:', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });

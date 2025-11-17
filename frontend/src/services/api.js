@@ -30,8 +30,10 @@ export const getStats = async () => {
 };
 
 // Referentiels pour formulaire Demande
-export const getClients = async () => {
-  const response = await api.get('/clients');
+export const getClients = async (search = '') => {
+  const response = await api.get('/clients', {
+    params: { search }
+  });
   return response.data;
 };
 
@@ -47,6 +49,11 @@ export const getClientTypes = async () => {
 
 export const createClientType = async (payload) => {
   const response = await api.post('/clients/types', payload);
+  return response.data;
+};
+
+export const updateClientType = async (id, payload) => {
+  const response = await api.put(`/clients/types/${id}`, payload);
   return response.data;
 };
 
@@ -287,4 +294,3 @@ export const createArticleFamille = async (payload) => {
 };
 
 export default api;
-
