@@ -286,32 +286,37 @@ const DemandeForm = ({ user, onCreated }) => {
             <p><strong>Je soussigné (e)</strong> Madame, Mademoiselle, Monsieur <span class="italic">(rayer les mentions inutiles)</span></p>
             
             <div class="form-field">
-              <label>Nom (ou Raison sociale) _______________________________________________</label>
+              <label>Nom (ou Raison sociale) _____________________${selectedClient?.Nom || 'Nom'}__________________________</label>
             </div>
             
             <div class="form-field">
-              <label>Prénom _______________________________________________</label>
+              <label>Prénom ______________${selectedClient?.Prenom || 'prénom client'}_________________________________</label>
             </div>
             
             <div class="form-field">
-              <label>Adresse de correspondance:</label>
+              <label style="text-decoration: underline;">Adresse de correspondance:</label>
             </div>
             
             <div class="form-field">
-              <label>Rue _______________________________________________</label>
+              <label>Rue _____________________${selectedClient?.AdresseResidence || 'AdresseResidence'}_________________________</label>
             </div>
             
             <div class="form-field">
-              <label>Commune_______________________________________________</label>
+              <label>Commune_____________${selectedClient?.CommuneResidence || 'CommuneResidence'}________________________</label>
             </div>
             
             <div class="form-field">
-              <label>Tél _______________________________________________</label>
+              <label>Tél ___________________${selectedClient?.TelephonePrincipal || ''} ${selectedClient?.TelephoneSecondaire ? '/ ' + selectedClient.TelephoneSecondaire : ''}____________________________</label>
             </div>
           </div>
 
           <div class="form-section">
-            <p><strong>Et agissant en qualité de</strong> : Propriétaire, Locataire, Mandataire <span class="italic">(rayer les mentions inutiles)</span></p>
+            <p><strong>Et agissant en qualité de</strong> : 
+              <span style="text-decoration: ${selectedClient?.StatutOccupation === 'PROPRIETAIRE' ? 'none' : 'line-through'};">Propriétaire</span>, 
+              <span style="text-decoration: ${selectedClient?.StatutOccupation === 'LOCATAIRE' ? 'none' : 'line-through'};">Locataire</span>, 
+              <span style="text-decoration: ${selectedClient?.StatutOccupation === 'MANDATAIRE' ? 'none' : 'line-through'};">Mandataire</span> 
+              <span class="italic">(rayer les mentions inutiles)</span>
+            </p>
           </div>
 
           <div class="form-section">
