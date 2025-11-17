@@ -190,13 +190,9 @@ const DemandeForm = ({ user, onCreated }) => {
           .logo {
             width: 60px;
             height: 60px;
-            background-color: #666;
-            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-weight: bold;
             margin: 0 auto 10px;
           }
           h1 {
@@ -277,7 +273,7 @@ const DemandeForm = ({ user, onCreated }) => {
               Zone d'Alger<br>
               Unité de : ${unitName || 'Nom unité'}
             </div>
-            <div class="logo">ADE</div>
+            <div class="logo"><img src="/ade.png" alt="Logo ADE" style="max-width: 100%; max-height: 100%;"></div>
             <div class="header-right">
               <em>Agence de</em> <strong>${agencyName || 'Nom agence'}</strong>
             </div>
