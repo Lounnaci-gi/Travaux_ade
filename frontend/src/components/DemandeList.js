@@ -20,9 +20,7 @@ const DemandeList = ({ user }) => {
   const loadDemandes = async () => {
     try {
       setLoading(true);
-      console.log('Chargement des demandes...');
       const data = await getDemandes();
-      console.log('Demandes récupérées:', data);
       setDemandes(data);
     } catch (error) {
       console.error('Erreur lors du chargement des demandes:', error);

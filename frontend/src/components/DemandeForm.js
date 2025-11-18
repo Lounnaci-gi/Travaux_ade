@@ -490,10 +490,7 @@ const DemandeForm = ({ user, onCreated }) => {
       const parsed = parseDescription(type.Description);
       const rolesAutorises = parsed.roles || [];
       
-      console.log('canUserCreateType: ❌ Accès REFUSÉ pour', type.LibelleType);
-      console.log('  - Rôle utilisateur:', normalizeRole(userRoleRaw));
-      console.log('  - Rôles autorisés:', rolesAutorises);
-      console.log('  - Description:', type.Description);
+      // Debug logging for access denied - can be removed in production
     }
     
     return canCreate;
@@ -504,7 +501,7 @@ const DemandeForm = ({ user, onCreated }) => {
       try {
         setLoading(true);
         setError('');
-        console.log('Chargement des types de demande...');
+        // Loading demand types...
         
         // Charger tous les référentiels en parallèle sans bloquer le formulaire en cas d'erreur
         const [typesRes, clientsRes, agencesRes, clientTypesRes] = await Promise.allSettled([
@@ -517,29 +514,26 @@ const DemandeForm = ({ user, onCreated }) => {
         // Traiter les types de demande
         if (typesRes.status === 'fulfilled') {
           const typesData = typesRes.value || [];
-          console.log('Types de demande récupérés:', typesData);
-          console.log('Nombre total de types récupérés:', typesData.length);
-          console.log('Utilisateur actuel:', user);
+          // Process retrieved demand types
           
           // Filtrer les types selon le rôle de l'utilisateur
           const filteredTypes = typesData.filter(type => {
             // Filtrer par Actif (gérer les valeurs BIT de SQL Server: 0/1 ou true/false)
             const isActive = type.Actif === true || type.Actif === 1 || type.Actif === '1' || (typeof type.Actif === 'boolean' && type.Actif);
             if (!isActive) {
-              console.log('Type filtré (inactif):', type.LibelleType, '- Actif:', type.Actif, '- Type:', typeof type.Actif);
+              // Filter out inactive types
               return false;
             }
             
             // Vérifier les permissions
             const canCreate = canUserCreateType(type);
             if (!canCreate) {
-              console.log('Type filtré (permissions):', type.LibelleType);
+              // Filter out types based on permissions
             }
             return canCreate;
           });
           
-          console.log('Types filtrés pour l\'utilisateur:', filteredTypes);
-          console.log('Nombre de types après filtrage:', filteredTypes.length);
+          // Set filtered types for user
           setTypes(filteredTypes);
           
           if (filteredTypes.length === 0) {

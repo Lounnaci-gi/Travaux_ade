@@ -15,6 +15,9 @@ import UniteForm from './components/UniteForm';
 import UtilisateurForm from './components/UtilisateurForm';
 import RoleForm from './components/RoleForm';
 import ArticlesList from './components/ArticlesList';
+import DevisForm from './components/DevisForm';
+import DevisList from './components/DevisList';
+import DevisTypeForm from './components/DevisTypeForm';
 
 function App() {
   const [currentView, setCurrentView] = useState('dashboard');
@@ -143,6 +146,12 @@ function App() {
         return <RoleForm user={user} onUnauthorized={() => setCurrentView('dashboard')} />;
       case 'articles-list':
         return <ArticlesList user={user} onUnauthorized={() => setCurrentView('dashboard')} />;
+      case 'devis-list':
+        return <DevisList user={user} />;
+      case 'devis-types':
+        return <DevisTypeForm user={user} onUnauthorized={() => setCurrentView('dashboard')} />;
+      case 'devis-create':
+        return <DevisForm user={user} onUnauthorized={() => setCurrentView('dashboard')} />;
       default:
         // Placeholder pour les autres vues
         return (

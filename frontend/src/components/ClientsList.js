@@ -10,9 +10,7 @@ const ClientsList = () => {
   const loadClients = async (search = '') => {
     try {
       setLoading(true);
-      console.log('Loading clients with search term:', search);
       const data = await getClients(search);
-      console.log('Clients loaded:', data);
       setClients(data);
     } catch (err) {
       console.error('Erreur lors du chargement des clients:', err);
@@ -39,12 +37,10 @@ const ClientsList = () => {
 
   const handlePrint = (client) => {
     // Print functionality will be implemented here
-    console.log('Print client:', client);
   };
 
   const handleEdit = (client) => {
     // Edit functionality will be implemented here
-    console.log('Edit client:', client);
   };
 
   return (

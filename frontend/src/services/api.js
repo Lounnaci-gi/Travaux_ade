@@ -255,12 +255,76 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Ne jamais rediriger vers le login en cas d'erreur
-    // Les erreurs doivent être gérées par les composants qui les appellent
-    // L'utilisateur reste sur la page actuelle
+    // Si l'erreur est une erreur 401 avec le message "Session expirée", 
+    // déconnecter l'utilisateur et le rediriger vers la page de login
+    if (error.response && error.response.status === 401) {
+      const message = error.response.data?.error || '';
+      if (message.includes('Session expirée')) {
+        // Supprimer les données de session
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        
+        // Rediriger vers la page de login
+        if (typeof window !== 'undefined') {
+          window.location.href = '/'; // Redirige vers la racine qui affichera le login
+        }
+      }
+    }
+    
     return Promise.reject(error);
   }
 );
+
+// Devis
+export const getDevis = async (id) => {
+  const response = await api.get(`/devis/${id}`);
+  return response.data;
+};
+
+export const getDevisList = async () => {
+  const response = await api.get('/devis');
+  return response.data;
+};
+
+export const createDevis = async (payload) => {
+  const response = await api.post('/devis', payload);
+  return response.data;
+};
+
+export const updateDevis = async (id, payload) => {
+  const response = await api.put(`/devis/${id}`, payload);
+  return response.data;
+};
+
+export const deleteDevis = async (id) => {
+  const response = await api.delete(`/devis/${id}`);
+  return response.data;
+};
+
+export const getDevisTypes = async () => {
+  const response = await api.get('/devis/types');
+  return response.data;
+};
+
+export const createDevisType = async (payload) => {
+  const response = await api.post('/devis/types', payload);
+  return response.data;
+};
+
+export const updateDevisType = async (id, payload) => {
+  const response = await api.put(`/devis/types/${id}`, payload);
+  return response.data;
+};
+
+export const deleteDevisType = async (id) => {
+  const response = await api.delete(`/devis/types/${id}`);
+  return response.data;
+};
+
+export const validateDevis = async (devisId, typeValidation) => {
+  const response = await api.post(`/devis/${devisId}/validate`, { typeValidation });
+  return response.data;
+};
 
 // Articles
 export const getArticles = async () => {

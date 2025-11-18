@@ -303,10 +303,7 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
   };
 
   const handleEdit = (type) => {
-    console.log('handleEdit - Type sélectionné:', type);
-    
     const parsed = parseDescription(type.Description);
-    console.log('handleEdit - Description parsée:', parsed);
     
     // Extraire les rôles autorisés et s'assurer qu'ils sont des strings
     let rolesAutorises = parsed.roles || [];
@@ -319,7 +316,6 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
       }
       return String(role); // S'assurer que c'est une string
     });
-    console.log('handleEdit - Rôles autorisés (normalisés):', rolesAutorises);
     
     const validationsDemandeExtra = parsed.validationsDemande || {};
     const validationsOEExtra = parsed.validationsOE || {};
@@ -351,19 +347,6 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
                              validationOE_ChefCentre ||
                              Object.keys(validationsOEExtra).length > 0;
     
-    console.log('handleEdit - Validations chargées:', {
-      validationChefSectionRC,
-      validationJuridique,
-      validationChefAgence,
-      validationChefCentre,
-      validationOE_ChefSectionRC,
-      validationOE_ChefAgence,
-      validationOE_ChefCentre,
-      isActive,
-      validationsDemandeExtra,
-      validationsOEExtra
-    });
-    
     setForm({
       LibelleType: type.LibelleType || '',
       Description: parsed.description || '',
@@ -394,8 +377,6 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
     setEditingId(type.IdDemandeType);
     setError('');
     setSuccess('');
-    
-    console.log('handleEdit - Formulaire chargé avec succès');
     
     // Scroll vers le formulaire
     window.scrollTo({ top: 0, behavior: 'smooth' });
