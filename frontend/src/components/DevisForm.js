@@ -474,213 +474,207 @@ const DevisForm = ({ user }) => {
               />
             </div>
           </div>
-        </div>
-
-        {/* Articles Section */}
-        <div className="glass-card p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Articles</h2>
-            <button
-              type="button"
-              onClick={addArticle}
-              className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              Ajouter un article
-            </button>
-          </div>
-
-          {formData.articles.length === 0 ? (
-            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-              </svg>
-              <h3 className="mt-2 text-sm font-medium">Aucun article</h3>
-              <p className="mt-1 text-sm">
-                Cliquez sur "Ajouter un article" pour commencer.
-              </p>
+          
+          {/* Articles Section */}
+          <div className="mt-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-md font-semibold text-gray-900 dark:text-white">Articles</h3>
+              <button
+                type="button"
+                onClick={addArticle}
+                className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Ajouter un article
+              </button>
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>
-                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Article
-                    </th>
-                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Quantité
-                    </th>
-                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Prix Unitaire HT
-                    </th>
-                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      TVA (%)
-                    </th>
-                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Montant HT
-                    </th>
-                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Montant TVA
-                    </th>
-                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Montant TTC
-                    </th>
-                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                  {formData.articles.map((article, index) => {
-                    const articleTotals = calculateArticleTotals(article);
-                    return (
-                      <tr key={index}>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="relative" ref={el => articleDropdownRefs.current[index] = el}>
-                            {/* Searchable input for articles */}
-                            <input
-                              type="text"
-                              value={article.designation || (article.idArticle ? availableArticles.find(a => a.IdArticle === article.idArticle)?.Designation || '' : '')}
-                              onChange={(e) => {
-                                handleArticleChange(index, 'designation', e.target.value);
-                                setShowArticleDropdown(prev => ({ ...prev, [index]: true }));
-                              }}
-                              onFocus={() => setShowArticleDropdown(prev => ({ ...prev, [index]: true }))}
-                              placeholder="Rechercher un article..."
-                              className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                            />
-                            
-                            {showArticleDropdown[index] && (
-                              <div className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 shadow-lg rounded-md overflow-hidden border border-gray-200 dark:border-gray-700" style={{ zIndex: 9999 }}>
-                                <ul className="max-h-60 overflow-y-auto">
-                                  {availableArticles
-                                    .filter(art => 
-                                      !article.designation || 
-                                      art.Designation.toLowerCase().includes(article.designation.toLowerCase()) ||
-                                      art.CodeArticle.toLowerCase().includes(article.designation.toLowerCase())
-                                    )
-                                    .map((art) => (
-                                      <li
-                                        key={art.IdArticle}
-                                        className="px-4 py-2 hover:bg-blue-100 dark:hover:bg-blue-900 cursor-pointer text-gray-900 dark:text-white"
-                                        onClick={() => {
-                                          handleArticleSelect(index, art.IdArticle);
-                                          setShowArticleDropdown(prev => ({ ...prev, [index]: false }));
-                                        }}
-                                      >
-                                        <div className="font-medium">{art.Designation}</div>
-                                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                                          {art.CodeArticle} - {art.Unite}
-                                        </div>
-                                      </li>
-                                    ))
-                                  }
-                                  {availableArticles
-                                    .filter(art => 
-                                      !article.designation || 
-                                      art.Designation.toLowerCase().includes(article.designation.toLowerCase()) ||
-                                      art.CodeArticle.toLowerCase().includes(article.designation.toLowerCase())
-                                    )
-                                    .length === 0 && (
-                                      <li className="px-4 py-2 text-gray-500 dark:text-gray-400">
-                                        Aucun article trouvé
-                                      </li>
-                                    )
-                                  }
-                                </ul>
-                              </div>
-                            )}
-                            
-                            {/* Hidden input to store the selected article ID */}
-                            <input
-                              type="hidden"
-                              value={article.idArticle || ''}
-                            />
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="flex items-center space-x-2">
+
+            {formData.articles.length === 0 ? (
+              <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                <p>Aucun article ajouté. Cliquez sur "Ajouter un article" pour commencer.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                      <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        Article
+                      </th>
+                      <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        Quantité
+                      </th>
+                      <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        Prix Unitaire HT
+                      </th>
+                      <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        TVA (%)
+                      </th>
+                      <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        Montant HT
+                      </th>
+                      <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        Montant TVA
+                      </th>
+                      <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        Montant TTC
+                      </th>
+                      <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    {formData.articles.map((article, index) => {
+                      const articleTotals = calculateArticleTotals(article);
+                      return (
+                        <tr key={index}>
+                          <td className="px-4 py-2 whitespace-nowrap">
+                            <div className="relative" ref={el => articleDropdownRefs.current[index] = el}>
+                              {/* Searchable input for articles */}
+                              <input
+                                type="text"
+                                value={article.designation || (article.idArticle ? availableArticles.find(a => a.IdArticle === article.idArticle)?.Designation || '' : '')}
+                                onChange={(e) => {
+                                  handleArticleChange(index, 'designation', e.target.value);
+                                  setShowArticleDropdown(prev => ({ ...prev, [index]: true }));
+                                }}
+                                onFocus={() => setShowArticleDropdown(prev => ({ ...prev, [index]: true }))}
+                                placeholder="Rechercher un article..."
+                                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                              />
+                              
+                              {showArticleDropdown[index] && (
+                                <div className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 shadow-lg rounded-md overflow-hidden border border-gray-200 dark:border-gray-700" style={{ zIndex: 9999 }}>
+                                  <ul className="max-h-60 overflow-y-auto">
+                                    {availableArticles
+                                      .filter(art => 
+                                        !article.designation || 
+                                        art.Designation.toLowerCase().includes(article.designation.toLowerCase()) ||
+                                        art.CodeArticle.toLowerCase().includes(article.designation.toLowerCase())
+                                      )
+                                      .map((art) => (
+                                        <li
+                                          key={art.IdArticle}
+                                          className="px-4 py-2 hover:bg-blue-100 dark:hover:bg-blue-900 cursor-pointer text-gray-900 dark:text-white"
+                                          onClick={() => {
+                                            handleArticleSelect(index, art.IdArticle);
+                                            setShowArticleDropdown(prev => ({ ...prev, [index]: false }));
+                                          }}
+                                        >
+                                          <div className="font-medium">{art.Designation}</div>
+                                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                                            {art.CodeArticle} - {art.Unite}
+                                          </div>
+                                        </li>
+                                      ))
+                                    }
+                                    {availableArticles
+                                      .filter(art => 
+                                        !article.designation || 
+                                        art.Designation.toLowerCase().includes(article.designation.toLowerCase()) ||
+                                        art.CodeArticle.toLowerCase().includes(article.designation.toLowerCase())
+                                      )
+                                      .length === 0 && (
+                                        <li className="px-4 py-2 text-gray-500 dark:text-gray-400">
+                                          Aucun article trouvé
+                                        </li>
+                                      )
+                                    }
+                                  </ul>
+                                </div>
+                              )}
+                              
+                              {/* Hidden input to store the selected article ID */}
+                              <input
+                                type="hidden"
+                                value={article.idArticle || ''}
+                              />
+                            </div>
+                          </td>
+                          <td className="px-4 py-2 whitespace-nowrap">
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="number"
+                                step="0.001"
+                                min="0"
+                                value={article.quantite}
+                                onChange={(e) => handleArticleChange(index, 'quantite', e.target.value)}
+                                className="w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                              />
+                              <span className="text-sm text-gray-500 dark:text-gray-400">
+                                {article.unite}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-2 whitespace-nowrap">
                             <input
                               type="number"
-                              step="0.001"
+                              step="0.01"
                               min="0"
-                              value={article.quantite}
-                              onChange={(e) => handleArticleChange(index, 'quantite', e.target.value)}
+                              value={article.prixUnitaireHT}
+                              onChange={(e) => handleArticleChange(index, 'prixUnitaireHT', e.target.value)}
                               className="w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                             />
-                            <span className="text-sm text-gray-500 dark:text-gray-400">
-                              {article.unite}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            value={article.prixUnitaireHT}
-                            onChange={(e) => handleArticleChange(index, 'prixUnitaireHT', e.target.value)}
-                            className="w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                          />
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            max="100"
-                            value={article.tauxTVAApplique}
-                            onChange={(e) => handleArticleChange(index, 'tauxTVAApplique', e.target.value)}
-                            className="w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                          />
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                          {articleTotals.montantHT}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                          {articleTotals.montantTVA}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                          {articleTotals.montantTTC}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm">
-                          <button
-                            type="button"
-                            onClick={() => removeArticle(index)}
-                            className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                          >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-                <tfoot className="bg-gray-50 dark:bg-gray-700">
-                  <tr>
-                    <td colSpan="4" className="px-4 py-3 text-sm font-medium text-right text-gray-900 dark:text-white">
-                      Total
-                    </td>
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
-                      {totals.totalHT}
-                    </td>
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
-                      {totals.totalTVA}
-                    </td>
-                    <td className="px-4 py-3 text-sm font-bold text-gray-900 dark:text-white">
-                      {totals.totalTTC}
-                    </td>
-                    <td></td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          )}
+                          </td>
+                          <td className="px-4 py-2 whitespace-nowrap">
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              max="100"
+                              value={article.tauxTVAApplique}
+                              onChange={(e) => handleArticleChange(index, 'tauxTVAApplique', e.target.value)}
+                              className="w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                            />
+                          </td>
+                          <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                            {articleTotals.montantHT}
+                          </td>
+                          <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                            {articleTotals.montantTVA}
+                          </td>
+                          <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                            {articleTotals.montantTTC}
+                          </td>
+                          <td className="px-4 py-2 whitespace-nowrap text-sm">
+                            <button
+                              type="button"
+                              onClick={() => removeArticle(index)}
+                              className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                  <tfoot className="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                      <td colSpan="4" className="px-4 py-2 text-sm font-medium text-right text-gray-900 dark:text-white">
+                        Total
+                      </td>
+                      <td className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white">
+                        {totals.totalHT}
+                      </td>
+                      <td className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white">
+                        {totals.totalTVA}
+                      </td>
+                      <td className="px-4 py-2 text-sm font-bold text-gray-900 dark:text-white">
+                        {totals.totalTTC}
+                      </td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Form Actions */}
