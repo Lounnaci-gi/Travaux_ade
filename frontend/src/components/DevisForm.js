@@ -547,7 +547,7 @@ const DevisForm = ({ user }) => {
                               />
                               
                               {showArticleDropdown[index] && (
-                                <div className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 shadow-lg rounded-md overflow-hidden border border-gray-200 dark:border-gray-700" style={{ zIndex: 9999 }}>
+                                <div className="fixed mt-1 w-80 bg-white dark:bg-gray-800 shadow-lg rounded-md overflow-hidden border border-gray-200 dark:border-gray-700" style={{ zIndex: 9999, position: 'fixed' }}>
                                   <ul className="max-h-60 overflow-y-auto">
                                     {availableArticles
                                       .filter(art => 
