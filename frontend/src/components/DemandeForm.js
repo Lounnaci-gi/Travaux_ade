@@ -151,6 +151,14 @@ const DemandeForm = ({ user, onCreated }) => {
     const clientTelephones = getPrintClientTelephones();
     const clientStatus = getPrintClientStatus();
     
+    // Get current date for "Fait à" section
+    const currentDate = new Date();
+    const formattedDate = currentDate.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+    
     // Create a new window for printing only the header
     const printWindow = window.open('', '_blank');
     
@@ -166,20 +174,20 @@ const DemandeForm = ({ user, onCreated }) => {
           body {
             font-family: Arial, sans-serif;
             max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
+            margin: 10px auto;
+            padding: 15px;
             background-color: white;
           }
           .container {
             background-color: white;
-            padding: 30px;
+            padding: 20px;
             border: none;
           }
           .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
           }
           .header-left {
             text-align: left;
@@ -197,74 +205,74 @@ const DemandeForm = ({ user, onCreated }) => {
           }
           h1 {
             text-align: center;
-            font-size: 20px;
-            margin: 20px 0 2px 0;
+            font-size: 18px;
+            margin: 10px 0 2px 0;
             text-transform: uppercase;
           }
           .subtitle {
             text-align: center;
             background-color: #000;
             color: white;
-            padding: 5px;
-            font-size: 11px;
-            margin-bottom: 20px;
+            padding: 4px;
+            font-size: 10px;
+            margin-bottom: 10px;
             margin-top: 2px;
           }
           .form-section {
-            margin-bottom: 15px;
+            margin-bottom: 8px;
           }
           .form-field {
-            margin-bottom: 10px;
+            margin-bottom: 6px;
           }
           label {
             display: block;
-            font-size: 13px;
-            margin-bottom: 3px;
+            font-size: 11px;
+            margin-bottom: 2px;
           }
           input[type="text"], input[type="tel"] {
             width: 100%;
             border: none;
             border-bottom: 1px solid #333;
             background-color: transparent;
-            padding: 5px 0;
-            font-size: 13px;
+            padding: 3px 0;
+            font-size: 11px;
           }
           .checkbox-group {
-            margin: 10px 0;
+            margin: 6px 0;
           }
           .checkbox-item {
             display: flex;
             align-items: center;
-            margin: 5px 0;
-            font-size: 12px;
+            margin: 3px 0;
+            font-size: 11px;
           }
           input[type="checkbox"] {
             margin-right: 8px;
           }
           .info-box {
             background-color: #fff;
-            padding: 15px;
-            margin: 20px 0;
+            padding: 10px;
+            margin: 10px 0;
             border: 1px solid #999;
-            font-size: 11px;
+            font-size: 10px;
           }
           .signature-section {
             display: flex;
             justify-content: space-between;
-            margin-top: 30px;
+            margin-top: 15px;
           }
           .signature-box {
             text-align: center;
           }
           .footer {
-            margin-top: 40px;
-            font-size: 10px;
+            margin-top: 20px;
+            font-size: 9px;
             border-top: 1px solid #333;
-            padding-top: 10px;
+            padding-top: 8px;
           }
           .italic {
             font-style: italic;
-            font-size: 11px;
+            font-size: 10px;
           }
         </style>
       </head>
@@ -374,7 +382,7 @@ const DemandeForm = ({ user, onCreated }) => {
 
           <div class="signature-section">
             <div class="signature-box">
-              Fait à <strong>${agencyName || 'Nom agence'}</strong> , le ______________
+              Fait à <strong>${agencyName || 'Nom agence'}</strong> , le <strong>${formattedDate}</strong>
             </div>
             <div class="signature-box">
               <strong>Signature</strong><br>

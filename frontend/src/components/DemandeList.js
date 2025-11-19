@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getDemandes, validateDemande } from '../services/api';
+import { getDemandes, validateDemande, getDemande, getClientById, getAgences } from '../services/api';
 import { alertError, alertSuccess, confirmDialog } from '../ui/alerts';
 import { isChefServiceJuridique, isChefAgence, isChefSectionRelationClientele } from '../utils/auth';
 
@@ -141,6 +141,263 @@ const DemandeList = ({ user }) => {
       return { status: 'validated', label: 'Validée', class: 'bg-green-500/20 text-green-400', date };
     }
     return { status: 'pending', label: 'En attente', class: 'bg-yellow-500/20 text-yellow-400' };
+  };
+
+  // Fonction pour imprimer une demande
+  const handlePrintDemande = async (demandeId) => {
+    try {
+      // Récupérer les données complètes de la demande
+      const demandeData = await getDemande(demandeId);
+      const clientData = await getClientById(demandeData.IdClient);
+      const agencesData = await getAgences();
+      const agence = agencesData.find(a => a.IdAgence === demandeData.IdAgence);
+      
+      // Formater la date de création
+      const dateCreation = new Date(demandeData.DateCreation);
+      const formattedDate = dateCreation.toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+      
+      const agencyName = agence?.NomAgence || 'Nom agence';
+      const unitName = agence?.NomUnite || 'Nom unité';
+      
+      // Créer la fenêtre d'impression
+      const printWindow = window.open('', '_blank');
+      
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html lang="fr">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Demande de Branchement d'Eau Potable</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              max-width: 800px;
+              margin: 10px auto;
+              padding: 15px;
+              background-color: white;
+            }
+            .container {
+              background-color: white;
+              padding: 20px;
+              border: none;
+            }
+            .header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 10px;
+            }
+            .header-left { text-align: left; }
+            .header-right { text-align: right; }
+            .logo {
+              width: 60px;
+              height: 60px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              margin: 0 auto 10px;
+            }
+            h1 {
+              text-align: center;
+              font-size: 18px;
+              margin: 10px 0 2px 0;
+              text-transform: uppercase;
+            }
+            .subtitle {
+              text-align: center;
+              background-color: #000;
+              color: white;
+              padding: 4px;
+              font-size: 10px;
+              margin-bottom: 10px;
+              margin-top: 2px;
+            }
+            .form-section { margin-bottom: 8px; }
+            .form-field { margin-bottom: 6px; }
+            label {
+              display: block;
+              font-size: 11px;
+              margin-bottom: 2px;
+            }
+            input[type="text"], input[type="tel"] {
+              width: 100%;
+              border: none;
+              border-bottom: 1px solid #333;
+              background-color: transparent;
+              padding: 3px 0;
+              font-size: 11px;
+            }
+            .checkbox-group { margin: 6px 0; }
+            .checkbox-item {
+              display: flex;
+              align-items: center;
+              margin: 3px 0;
+              font-size: 11px;
+            }
+            input[type="checkbox"] { margin-right: 8px; }
+            .info-box {
+              background-color: #fff;
+              padding: 10px;
+              margin: 10px 0;
+              border: 1px solid #999;
+              font-size: 10px;
+            }
+            .signature-section {
+              display: flex;
+              justify-content: space-between;
+              margin-top: 15px;
+            }
+            .signature-box { text-align: center; }
+            .footer {
+              margin-top: 20px;
+              font-size: 9px;
+              border-top: 1px solid #333;
+              padding-top: 8px;
+            }
+            .italic {
+              font-style: italic;
+              font-size: 10px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <div class="header-left">
+                <strong>ALGÉRIENNE DES EAUX</strong><br>
+                Zone d'Alger<br>
+                Unité de : ${unitName}
+              </div>
+              <div class="logo"><img src="/ade.png" alt="Logo ADE" style="max-width: 100%; max-height: 100%;"></div>
+              <div class="header-right">
+                <em>Agence de</em> <strong>${agencyName}</strong>
+              </div>
+            </div>
+
+            <h1>Demande de Branchement d'Eau Potable</h1>
+            <div class="subtitle">DOCUMENT À RETOURNER AU SERVICE DES EAUX DÛMENT REMPLI ET SIGNÉ</div>
+
+            <div class="form-section">
+              <p><strong>Je soussigné (e)</strong> Madame, Mademoiselle, Monsieur <span class="italic">(rayer les mentions inutiles)</span></p>
+              
+              <div class="form-field">
+                <label>Nom (ou Raison sociale) _____________________${clientData?.Nom || 'Nom'}__________________________</label>
+              </div>
+              
+              <div class="form-field">
+                <label>Prénom ______________${clientData?.Prenom || 'prénom client'}_________________________________</label>
+              </div>
+              
+              <div class="form-field">
+                <label style="text-decoration: underline;">Adresse de correspondance:</label>
+              </div>
+              
+              <div class="form-field">
+                <label>Rue _____________________${clientData?.AdresseResidence || 'AdresseResidence'}_________________________</label>
+              </div>
+              
+              <div class="form-field">
+                <label>Commune_____________${clientData?.CommuneResidence || 'CommuneResidence'}________________________</label>
+              </div>
+              
+              <div class="form-field">
+                <label>Tél ___________________${clientData?.TelephonePrincipal || ''} ${clientData?.TelephoneSecondaire ? '/ ' + clientData.TelephoneSecondaire : ''}____________________________</label>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <p><strong>Et agissant en qualité de</strong> : 
+                <span style="text-decoration: ${clientData?.StatutOccupation === 'PROPRIETAIRE' ? 'none' : 'line-through'};">Propriétaire</span>, 
+                <span style="text-decoration: ${clientData?.StatutOccupation === 'LOCATAIRE' ? 'none' : 'line-through'};">Locataire</span>, 
+                <span style="text-decoration: ${clientData?.StatutOccupation === 'MANDATAIRE' ? 'none' : 'line-through'};">Mandataire</span> 
+                <span class="italic">(rayer les mentions inutiles)</span>
+              </p>
+            </div>
+
+            <div class="form-section">
+              <p><strong>Et après avoir pris connaissance du règlement général du service public d'alimentation en eau potable en vigueur, demande à l'Algérienne des Eaux qu'il me soit consenti, un raccordement au réseau d'alimentation en eau potable de type</strong> : Ordinaire, Temporaire, Spécial <span class="italic">(rayer les mentions inutiles)</span></p>
+            </div>
+
+            <div class="form-section">
+              <p><strong>Pour des besoins</strong> : <span class="italic">(cocher la case correspondante)</span></p>
+              <div class="checkbox-group">
+                <div class="checkbox-item">
+                  <input type="checkbox" id="domestique">
+                  <label for="domestique" style="display: inline;">Domestiques: Maison individuelle _______________________________________________</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="collectif">
+                  <label for="collectif">Lettre à usage collectif nombre de logements / locaux commerciaux : _______</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="activite">
+                  <label for="activite">L'exercice d'une activité (à préciser) _______________________________________________</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="tourisme">
+                  <label for="tourisme">Industrie ou tourisme</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="chantier">
+                  <label for="chantier">Les besoins de chantier</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="incendie">
+                  <label for="incendie">Borne d'incendie</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="autres">
+                  <label for="autres">Autres (à préciser) : _______________________________________________</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label><strong>Adresse de branchement</strong> : _________${clientData?.AdresseBranchement || ''} ${clientData?.CommuneBranchement ? ', ' + clientData.CommuneBranchement : ''}_________</label>
+            </div>
+
+            <div class="info-box">
+              <p><strong>Dans le cadre d'un branchement lié à un besoin pour la construction d'un immeuble, à des besoins industriels ou de chantier, veuillez préciser les informations suivantes :</strong></p>
+              <p>Diamètre de branchement _____________ mm</p>
+              <p>Débit moyen horaire _____________ m³/h</p>
+            </div>
+
+            <p class="italic" style="font-size: 11px;">Je m'engage à me conformer aux prescriptions du Règlement Général du Service des Eaux dont un exemplaire m'a été remis sur demande ou consulté au niveau du service « accueil clientèle » de l'Algérienne des Eaux.</p>
+
+            <div class="signature-section">
+              <div class="signature-box">
+                Fait à <strong>${agencyName}</strong> , le <strong>${formattedDate}</strong>
+              </div>
+              <div class="signature-box">
+                <strong>Signature</strong><br>
+                Lu et Approuvé
+              </div>
+            </div>
+
+            <div class="footer">
+              <p><em>Partie réservée à l'Algérienne des Eaux – A.D.E</em></p>
+              <p><em>Date de réception</em> : _______________________________________________</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `);
+      
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 500);
+    } catch (error) {
+      console.error('Erreur lors de l\'impression de la demande:', error);
+      alertError('Erreur', 'Impossible d\'imprimer la demande');
+    }
   };
 
   if (loading) {
@@ -377,6 +634,13 @@ const DemandeList = ({ user }) => {
                         </td>
                         <td className="py-2 px-3">
                           <div className="flex gap-1 items-center">
+                            <button
+                              onClick={() => handlePrintDemande(demande.IdDemande)}
+                              className="px-1.5 py-0.5 rounded bg-green-500/20 hover:bg-green-500/30 text-green-400 text-[10px] font-semibold transition-colors"
+                              title="Imprimer la demande"
+                            >
+                              🖨️
+                            </button>
                             {canValidateChefSection && (
                               <button
                                 onClick={() => handleValidate(demande, 'chefSectionRC')}
