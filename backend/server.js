@@ -3745,9 +3745,20 @@ app.get('/api/articles', async (req, res) => {
         a.Epaisseur,
         a.Couleur,
         a.Caracteristiques,
-        f.LibelleFamille
+        f.LibelleFamille,
+        ph.PrixHT,
+        ph.TauxTVA
       FROM Article a
       LEFT JOIN ArticleFamille f ON a.IdFamille = f.IdFamille
+      OUTER APPLY (
+        SELECT TOP 1 PrixHT, TauxTVA
+        FROM ArticlePrixHistorique
+        WHERE IdArticle = a.IdArticle
+          AND EstActif = 1
+          AND DateDebutApplication <= GETDATE()
+          AND (DateFinApplication IS NULL OR DateFinApplication >= GETDATE())
+        ORDER BY DateDebutApplication DESC
+      ) ph
       ORDER BY a.Designation
     `);
     res.json(result.recordset);
@@ -4259,8 +4270,12 @@ app.post('/api/articles/:id/prix-historique', verifyToken, async (req, res) => {
       DateFinApplication
     } = req.body;
 
-    if (!PrixHT || !TauxTVA || !DateDebutApplication) {
-      return res.status(400).json({ error: 'PrixHT, TauxTVA et DateDebutApplication sont requis' });
+    if (PrixHT === undefined || PrixHT === null) {
+      return res.status(400).json({ error: 'PrixHT est requis' });
+    }
+
+    if (!DateDebutApplication) {
+      return res.status(400).json({ error: 'DateDebutApplication est requise' });
     }
 
     // Vérifier que l'article existe
@@ -4278,7 +4293,9 @@ app.post('/api/articles/:id/prix-historique', verifyToken, async (req, res) => {
 
     // Validation des valeurs
     const prixHTValue = parseFloat(PrixHT);
-    const tauxTVAValue = parseFloat(TauxTVA);
+    const tauxTVAValue = TauxTVA !== undefined && TauxTVA !== null && TauxTVA !== '' 
+      ? parseFloat(TauxTVA) 
+      : 0;
     
     if (isNaN(prixHTValue) || prixHTValue < 0) {
       return res.status(400).json({ error: 'PrixHT doit être un nombre positif' });

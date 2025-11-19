@@ -929,6 +929,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Désignation</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Famille</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Unité</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Prix HT</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Description</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Actions</th>
                   </tr>
@@ -936,7 +937,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                 <tbody>
                   {articles.length === 0 ? (
                     <tr>
-                      <td colSpan="6" className="py-8 text-center text-gray-400">
+                      <td colSpan="7" className="py-8 text-center text-gray-400">
                         Aucun article trouvé
                       </td>
                     </tr>
@@ -1022,6 +1023,9 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                         </td>
                         <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">
                           {article.Unite}
+                        </td>
+                        <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700 font-semibold">
+                          {article.PrixHT != null ? `${parseFloat(article.PrixHT).toFixed(2)} DH` : '—'}
                         </td>
                         <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">
                           {article.Description || '—'}
