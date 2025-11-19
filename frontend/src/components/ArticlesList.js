@@ -34,7 +34,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
     // Article Prix Historique fields
     PrixHT: '',
     TauxTVA: '',
-    DateDebutApplication: '',
+    DateDebutApplication: new Date().toISOString().split('T')[0],
     DateFinApplication: '',
   });
   const [matiereSearch, setMatiereSearch] = useState('');
@@ -224,7 +224,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
       // Article Prix Historique fields
       PrixHT: '',
       TauxTVA: '',
-      DateDebutApplication: '',
+      DateDebutApplication: new Date().toISOString().split('T')[0],
       DateFinApplication: '',
     });
     setEditingId(null);
@@ -387,7 +387,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
       }
 
       // Handle Article Prix Historique if values are provided
-      if (!editingId && (form.PrixHT || form.TauxTVA)) {
+      if (form.PrixHT || form.TauxTVA) {
         try {
           const prixPayload = {
             PrixHT: parseDecimal(form.PrixHT),
@@ -399,7 +399,8 @@ const ArticlesList = ({ user, onUnauthorized }) => {
 
           // Only create price history if PrixHT is provided
           if (prixPayload.PrixHT !== null) {
-            await createArticlePrixHistorique(articleResult.IdArticle, prixPayload);
+            const articleId = editingId || articleResult.IdArticle;
+            await createArticlePrixHistorique(articleId, prixPayload);
           }
         } catch (priceError) {
           console.error('Erreur lors de la création de l\'historique des prix:', priceError);
@@ -435,9 +436,6 @@ const ArticlesList = ({ user, onUnauthorized }) => {
               </svg>
               {editingId ? 'Modifier un Article' : 'Créer un Nouvel Article'}
             </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Le code article sera généré automatiquement au format <strong className="text-blue-400">ART-XXXXXXX</strong> (7 chiffres).
-            </p>
           </div>
 
           {error && (
@@ -734,14 +732,13 @@ const ArticlesList = ({ user, onUnauthorized }) => {
               </div>
             </div>
 
-            {/* Section: Prix (pour les nouveaux articles) */}
-            {!editingId && (
-              <div className="border-t dark:border-white/10 border-gray-200/50 pt-4">
-                <h3 className="text-base font-medium mb-3 dark:text-gray-300 text-gray-700">
-                  Historique des Prix <span className="text-xs font-normal text-gray-400">(optionnel)</span>
-                </h3>
+            {/* Section: Prix */}
+            <div className="border-t dark:border-white/10 border-gray-200/50 pt-4">
+              <h3 className="text-base font-medium mb-3 dark:text-gray-300 text-gray-700">
+                Historique des Prix <span className="text-xs font-normal text-gray-400">(optionnel)</span>
+              </h3>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   <div>
                     <label className="block text-xs font-medium dark:text-gray-400 text-gray-600 mb-1">
                       Prix HT
@@ -784,25 +781,13 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                       className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
                     />
                   </div>
-                  
-                  <div>
-                    <label className="block text-xs font-medium dark:text-gray-400 text-gray-600 mb-1">
-                      Date Fin Application
-                    </label>
-                    <input
-                      type="date"
-                      name="DateFinApplication"
-                      value={form.DateFinApplication}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
-                    />
-                  </div>
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                  Ces informations seront enregistrées comme l'historique des prix de l'article.
-                </p>
-              </div>
-            )}
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                {editingId 
+                  ? "Modifier ces informations créera un nouvel historique des prix pour l'article." 
+                  : "Ces informations seront enregistrées comme l'historique des prix de l'article."}
+              </p>
+            </div>
 
             <div className="flex justify-end gap-3 pt-4 border-t dark:border-white/10 border-gray-200/50">
               {editingId && (
