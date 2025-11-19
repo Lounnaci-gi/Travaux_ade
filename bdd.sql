@@ -1,7 +1,9 @@
 -- ====================================================================
--- AquaConnect_DB - Script complet réécrit (Version 4.0)
+-- AquaConnect_DB - Script complet avec modifications (Version 5.0)
 -- - Table Role supprimée et fusionnée dans Utilisateur
--- - Création ordonnée des tables, contraintes et indexes
+-- - Ajout TypePrix (FOURNITURE/POSE) dans ArticlePrixHistorique
+-- - Ajout Table ConfigurationGlobale pour gérer le Taux TVA
+-- - DateFinApplication non utilisée (toujours NULL)
 -- ====================================================================
 
 /* 1) Créer la base si nécessaire */
@@ -51,6 +53,7 @@ IF OBJECT_ID('dbo.DemandeTravaux', 'U') IS NOT NULL DROP TABLE dbo.DemandeTravau
 IF OBJECT_ID('dbo.DemandeStatut', 'U') IS NOT NULL DROP TABLE dbo.DemandeStatut;
 IF OBJECT_ID('dbo.DemandeType', 'U') IS NOT NULL DROP TABLE dbo.DemandeType;
 
+IF OBJECT_ID('dbo.ConfigurationGlobale', 'U') IS NOT NULL DROP TABLE dbo.ConfigurationGlobale;
 IF OBJECT_ID('dbo.Utilisateur', 'U') IS NOT NULL DROP TABLE dbo.Utilisateur;
 
 IF OBJECT_ID('dbo.Client', 'U') IS NOT NULL DROP TABLE dbo.Client;
@@ -207,7 +210,20 @@ CREATE TABLE Utilisateur (
 );
 GO
 
--- 4.7 DemandeType
+-- 4.7 ConfigurationGlobale (NOUVELLE TABLE)
+CREATE TABLE ConfigurationGlobale (
+    IdConfig INT IDENTITY(1,1) PRIMARY KEY,
+    Cle NVARCHAR(100) NOT NULL UNIQUE,
+    Valeur NVARCHAR(500) NOT NULL,
+    Description NVARCHAR(500),
+    TypeDonnee NVARCHAR(20) NOT NULL CHECK (TypeDonnee IN ('STRING', 'INT', 'DECIMAL', 'DATE', 'BOOLEAN')),
+    DateModification DATETIME NOT NULL DEFAULT GETDATE(),
+    IdUtilisateurModification INT,
+    CONSTRAINT FK_ConfigurationGlobale_Utilisateur FOREIGN KEY (IdUtilisateurModification) REFERENCES Utilisateur(IdUtilisateur)
+);
+GO
+
+-- 4.8 DemandeType
 CREATE TABLE DemandeType (
     IdDemandeType INT IDENTITY(1,1) PRIMARY KEY,
     CodeType NVARCHAR(50) NOT NULL UNIQUE,
@@ -225,7 +241,7 @@ CREATE TABLE DemandeType (
 );
 GO
 
--- 4.8 DemandeStatut
+-- 4.9 DemandeStatut
 CREATE TABLE DemandeStatut (
     IdStatut INT IDENTITY(1,1) PRIMARY KEY,
     CodeStatut NVARCHAR(50) NOT NULL UNIQUE,
@@ -236,7 +252,7 @@ CREATE TABLE DemandeStatut (
 );
 GO
 
--- 4.9 DemandeTravaux
+-- 4.10 DemandeTravaux
 CREATE TABLE DemandeTravaux (
     IdDemande INT IDENTITY(1,1) PRIMARY KEY,
     NumeroDemande NVARCHAR(50) NOT NULL UNIQUE,
@@ -271,7 +287,7 @@ CREATE TABLE DemandeTravaux (
 );
 GO
 
--- 4.10 DemandeWorkflowHistorique
+-- 4.11 DemandeWorkflowHistorique
 CREATE TABLE DemandeWorkflowHistorique (
     IdHistorique INT IDENTITY(1,1) PRIMARY KEY,
     IdDemande INT NOT NULL,
@@ -288,7 +304,7 @@ CREATE TABLE DemandeWorkflowHistorique (
 );
 GO
 
--- 4.11 ArticleFamille
+-- 4.12 ArticleFamille
 CREATE TABLE ArticleFamille (
     IdFamille INT IDENTITY(1,1) PRIMARY KEY,
     CodeFamille NVARCHAR(20) NOT NULL UNIQUE,
@@ -299,7 +315,7 @@ CREATE TABLE ArticleFamille (
 );
 GO
 
--- 4.12 Article
+-- 4.13 Article
 CREATE TABLE Article (
     IdArticle INT IDENTITY(1,1) PRIMARY KEY,
     IdFamille INT NOT NULL,
@@ -323,24 +339,24 @@ CREATE TABLE Article (
 );
 GO
 
--- 4.13 ArticlePrixHistorique
+-- 4.14 ArticlePrixHistorique (MODIFIÉE - Ajout TypePrix)
 CREATE TABLE ArticlePrixHistorique (
     IdPrixHistorique INT IDENTITY(1,1) PRIMARY KEY,
     IdArticle INT NOT NULL,
+    TypePrix NVARCHAR(20) NOT NULL CHECK (TypePrix IN ('FOURNITURE', 'POSE')),
     PrixHT DECIMAL(18, 2) NOT NULL CHECK (PrixHT >= 0),
     TauxTVA DECIMAL(5, 2) NOT NULL CHECK (TauxTVA >= 0 AND TauxTVA <= 100),
     DateDebutApplication DATE NOT NULL,
-    DateFinApplication DATE NULL,
+    DateFinApplication DATE NULL, -- Non utilisé, toujours NULL
     EstActif BIT NOT NULL DEFAULT 1,
     DateCreation DATETIME NOT NULL DEFAULT GETDATE(),
     IdUtilisateurCreation INT NOT NULL,
     CONSTRAINT FK_ArticlePrixHistorique_Article FOREIGN KEY (IdArticle) REFERENCES Article(IdArticle),
-    CONSTRAINT FK_ArticlePrixHistorique_Utilisateur FOREIGN KEY (IdUtilisateurCreation) REFERENCES Utilisateur(IdUtilisateur),
-    CONSTRAINT CK_ArticlePrixHistorique_Dates CHECK (DateFinApplication IS NULL OR DateFinApplication >= DateDebutApplication)
+    CONSTRAINT FK_ArticlePrixHistorique_Utilisateur FOREIGN KEY (IdUtilisateurCreation) REFERENCES Utilisateur(IdUtilisateur)
 );
 GO
 
--- 4.14 TypeDevis
+-- 4.15 TypeDevis
 CREATE TABLE TypeDevis (
     IdTypeDevis INT IDENTITY(1,1) PRIMARY KEY,
     CodeTypeDevis NVARCHAR(20) NOT NULL UNIQUE,
@@ -353,7 +369,7 @@ CREATE TABLE TypeDevis (
 );
 GO
 
--- 4.15 Devis
+-- 4.16 Devis
 CREATE TABLE Devis (
     IdDevis INT IDENTITY(1,1) PRIMARY KEY,
     NumeroDevis NVARCHAR(50) NOT NULL UNIQUE,
@@ -385,7 +401,7 @@ CREATE TABLE Devis (
 );
 GO
 
--- 4.16 DevisArticle
+-- 4.17 DevisArticle
 CREATE TABLE DevisArticle (
     IdDevisArticle INT IDENTITY(1,1) PRIMARY KEY,
     IdDevis INT NOT NULL,
@@ -405,7 +421,7 @@ CREATE TABLE DevisArticle (
 );
 GO
 
--- 4.17 ModePaiement
+-- 4.18 ModePaiement
 CREATE TABLE ModePaiement (
     IdModePaiement INT IDENTITY(1,1) PRIMARY KEY,
     CodeMode NVARCHAR(20) NOT NULL UNIQUE,
@@ -414,7 +430,7 @@ CREATE TABLE ModePaiement (
 );
 GO
 
--- 4.18 PaiementDevis
+-- 4.19 PaiementDevis
 CREATE TABLE PaiementDevis (
     IdPaiement INT IDENTITY(1,1) PRIMARY KEY,
     IdDevis INT NOT NULL,
@@ -433,7 +449,7 @@ CREATE TABLE PaiementDevis (
 );
 GO
 
--- 4.19 OrdreExecutionStatut
+-- 4.20 OrdreExecutionStatut
 CREATE TABLE OrdreExecutionStatut (
     IdOrdreStatut INT IDENTITY(1,1) PRIMARY KEY,
     CodeStatut NVARCHAR(50) NOT NULL UNIQUE,
@@ -442,7 +458,7 @@ CREATE TABLE OrdreExecutionStatut (
 );
 GO
 
--- 4.20 OrdreExecution
+-- 4.21 OrdreExecution
 CREATE TABLE OrdreExecution (
     IdOrdre INT IDENTITY(1,1) PRIMARY KEY,
     NumeroOrdre NVARCHAR(50) NOT NULL UNIQUE,
@@ -473,7 +489,7 @@ CREATE TABLE OrdreExecution (
 );
 GO
 
--- 4.21 OrdreExecutionHistorique
+-- 4.22 OrdreExecutionHistorique
 CREATE TABLE OrdreExecutionHistorique (
     IdHistorique INT IDENTITY(1,1) PRIMARY KEY,
     IdOrdre INT NOT NULL,
@@ -528,6 +544,10 @@ CREATE INDEX IX_Utilisateur_Email ON Utilisateur(Email);
 CREATE INDEX IX_Utilisateur_Matricule ON Utilisateur(Matricule);
 CREATE INDEX IX_Utilisateur_Actif ON Utilisateur(Actif);
 
+-- Index ConfigurationGlobale
+CREATE INDEX IX_ConfigurationGlobale_Cle ON ConfigurationGlobale(Cle);
+CREATE INDEX IX_ConfigurationGlobale_TypeDonnee ON ConfigurationGlobale(TypeDonnee);
+
 -- Index DemandeType
 CREATE INDEX IX_DemandeType_CodeType ON DemandeType(CodeType);
 CREATE INDEX IX_DemandeType_Actif ON DemandeType(Actif);
@@ -566,10 +586,11 @@ CREATE INDEX IX_Article_Actif ON Article(Actif);
 CREATE INDEX IX_Article_Unite ON Article(Unite);
 CREATE INDEX IX_Article_Designation ON Article(Designation);
 
--- Index ArticlePrixHistorique
+-- Index ArticlePrixHistorique (MODIFIÉ - Ajout TypePrix)
 CREATE INDEX IX_ArticlePrixHistorique_Article ON ArticlePrixHistorique(IdArticle);
-CREATE INDEX IX_ArticlePrixHistorique_Article_Actif ON ArticlePrixHistorique(IdArticle, EstActif, DateDebutApplication DESC);
-CREATE INDEX IX_ArticlePrixHistorique_Dates ON ArticlePrixHistorique(DateDebutApplication, DateFinApplication);
+CREATE INDEX IX_ArticlePrixHistorique_Article_TypePrix_Actif ON ArticlePrixHistorique(IdArticle, TypePrix, EstActif, DateDebutApplication DESC);
+CREATE INDEX IX_ArticlePrixHistorique_TypePrix ON ArticlePrixHistorique(TypePrix);
+CREATE INDEX IX_ArticlePrixHistorique_Dates ON ArticlePrixHistorique(DateDebutApplication);
 CREATE INDEX IX_ArticlePrixHistorique_EstActif ON ArticlePrixHistorique(EstActif);
 CREATE INDEX IX_ArticlePrixHistorique_Utilisateur ON ArticlePrixHistorique(IdUtilisateurCreation);
 
@@ -626,11 +647,183 @@ CREATE INDEX IX_OrdreExecutionHistorique_DateAction ON OrdreExecutionHistorique(
 CREATE INDEX IX_OrdreExecutionHistorique_TypeAction ON OrdreExecutionHistorique(TypeAction);
 GO
 
+/**************************************************************
+  6) Données initiales
+**************************************************************/
+
+-- Insérer le taux TVA par défaut dans ConfigurationGlobale
+INSERT INTO ConfigurationGlobale (Cle, Valeur, Description, TypeDonnee)
+VALUES ('TAUX_TVA_DEFAUT', '19.00', 'Taux de TVA appliqué sur tous les articles', 'DECIMAL');
+GO
+
+/**************************************************************
+  7) Vues utiles
+**************************************************************/
+
+-- Vue pour voir les articles avec leurs 2 prix (FOURNITURE + POSE)
+CREATE OR ALTER VIEW dbo.vw_ArticlesAvecPrix
+AS
+SELECT 
+    a.IdArticle,
+    a.IdFamille,
+    af.CodeFamille,
+    af.LibelleFamille,
+    a.CodeArticle,
+    a.Designation,
+    a.Description,
+    a.Unite,
+    a.Diametre,
+    a.Matiere,
+    a.Classe,
+    a.Pression,
+    -- Prix Fourniture
+    pf.PrixHT AS PrixFournitureHT,
+    pf.TauxTVA AS TauxTVAFourniture,
+    ROUND(pf.PrixHT * (1 + pf.TauxTVA/100.0), 2) AS PrixFournitureTTC,
+    pf.DateDebutApplication AS DateDebutPrixFourniture,
+    -- Prix Pose
+    pp.PrixHT AS PrixPoseHT,
+    pp.TauxTVA AS TauxTVAPose,
+    ROUND(pp.PrixHT * (1 + pp.TauxTVA/100.0), 2) AS PrixPoseTTC,
+    pp.DateDebutApplication AS DateDebutPrixPose,
+    -- Infos article
+    a.Actif,
+    a.DateCreation,
+    a.DateModification
+FROM Article a
+INNER JOIN ArticleFamille af ON a.IdFamille = af.IdFamille
+LEFT JOIN ArticlePrixHistorique pf ON a.IdArticle = pf.IdArticle 
+    AND pf.TypePrix = 'FOURNITURE' 
+    AND pf.EstActif = 1
+LEFT JOIN ArticlePrixHistorique pp ON a.IdArticle = pp.IdArticle 
+    AND pp.TypePrix = 'POSE' 
+    AND pp.EstActif = 1
+WHERE a.Actif = 1;
+GO
+
+-- Vue pour voir l'historique complet des prix
+CREATE OR ALTER VIEW dbo.vw_HistoriquePrixArticles
+AS
+SELECT 
+    a.IdArticle,
+    a.CodeArticle,
+    a.Designation,
+    aph.IdPrixHistorique,
+    aph.TypePrix,
+    aph.PrixHT,
+    aph.TauxTVA,
+    ROUND(aph.PrixHT * (1 + aph.TauxTVA/100.0), 2) AS PrixTTC,
+    aph.DateDebutApplication,
+    aph.EstActif,
+    aph.DateCreation,
+    u.Nom + ' ' + u.Prenom AS ModifiePar,
+    CASE 
+        WHEN aph.EstActif = 1 AND aph.DateDebutApplication <= CAST(GETDATE() AS DATE) THEN 'ACTIF'
+        WHEN aph.EstActif = 1 AND aph.DateDebutApplication > CAST(GETDATE() AS DATE) THEN 'FUTUR'
+        ELSE 'HISTORIQUE'
+    END AS StatutPrix
+FROM Article a
+INNER JOIN ArticlePrixHistorique aph ON a.IdArticle = aph.IdArticle
+INNER JOIN Utilisateur u ON aph.IdUtilisateurCreation = u.IdUtilisateur;
+GO
+
+-- Vue pour le tableau de bord des demandes
+CREATE OR ALTER VIEW dbo.vw_TableauBordDemandes
+AS
+SELECT 
+    dt.IdDemande,
+    dt.NumeroDemande,
+    dt.DateDemande,
+    ag.NomAgence,
+    c.CodeCentre,
+    c.NomCentre,
+    cl.Nom + ' ' + ISNULL(cl.Prenom, '') AS NomClient,
+    cl.TelephonePrincipal AS TelephoneClient,
+    dty.LibelleType AS TypeDemande,
+    ds.LibelleStatut AS StatutActuel,
+    ds.OrdreStatut,
+    u.Nom + ' ' + u.Prenom AS CreeParUtilisateur,
+    dt.DateCreation,
+    dt.DateModification,
+    dt.Actif
+FROM DemandeTravaux dt
+INNER JOIN AgenceCommerciale ag ON dt.IdAgence = ag.IdAgence
+INNER JOIN Centre c ON ag.IdCentre = c.IdCentre
+INNER JOIN Client cl ON dt.IdClient = cl.IdClient
+INNER JOIN DemandeType dty ON dt.IdDemandeType = dty.IdDemandeType
+INNER JOIN DemandeStatut ds ON dt.IdStatut = ds.IdStatut
+INNER JOIN Utilisateur u ON dt.IdUtilisateurCreation = u.IdUtilisateur;
+GO
+
+/**************************************************************
+  8) Fonctions utiles
+**************************************************************/
+
+-- Fonction pour récupérer le Taux TVA global
+CREATE OR ALTER FUNCTION dbo.fn_GetTauxTVADefaut()
+RETURNS DECIMAL(5, 2)
+AS
+BEGIN
+    DECLARE @TauxTVA DECIMAL(5, 2);
+    
+    SELECT @TauxTVA = CAST(Valeur AS DECIMAL(5, 2))
+    FROM ConfigurationGlobale
+    WHERE Cle = 'TAUX_TVA_DEFAUT';
+    
+    IF @TauxTVA IS NULL
+        SET @TauxTVA = 19.00;
+    
+    RETURN @TauxTVA;
+END;
+GO
+
+-- Fonction pour récupérer les prix actifs d'un article (FOURNITURE + POSE)
+CREATE OR ALTER FUNCTION dbo.fn_GetPrixArticleActifs
+(
+    @IdArticle INT,
+    @DateReference DATE = NULL
+)
+RETURNS TABLE
+AS
+RETURN
+(
+    SELECT 
+        IdArticle,
+        TypePrix,
+        PrixHT,
+        TauxTVA,
+        DateDebutApplication,
+        IdPrixHistorique
+    FROM ArticlePrixHistorique
+    WHERE IdArticle = @IdArticle
+      AND EstActif = 1
+      AND DateDebutApplication <= ISNULL(@DateReference, CAST(GETDATE() AS DATE))
+      AND TypePrix IN ('FOURNITURE', 'POSE')
+);
+GO
+
 PRINT '========================================';
-PRINT 'AquaConnect_DB v4.0 - Création terminée';
+PRINT 'AquaConnect_DB v5.0 - Création terminée';
 PRINT '========================================';
-PRINT 'Tables créées : 21';
-PRINT 'Table Role supprimée et fusionnée dans Utilisateur';
+PRINT 'Tables créées : 22 (dont ConfigurationGlobale)';
+PRINT '';
+PRINT 'MODIFICATIONS APPORTÉES :';
+PRINT '- Table ConfigurationGlobale ajoutée';
+PRINT '- ArticlePrixHistorique : Ajout champ TypePrix (FOURNITURE/POSE)';
+PRINT '- DateFinApplication non utilisée (toujours NULL)';
+PRINT '- Gestion centralisée du Taux TVA';
+PRINT '- Index optimisés pour TypePrix';
+PRINT '';
+PRINT 'VUES CRÉÉES :';
+PRINT '- vw_ArticlesAvecPrix';
+PRINT '- vw_HistoriquePrixArticles';
+PRINT '- vw_TableauBordDemandes';
+PRINT '';
+PRINT 'FONCTIONS CRÉÉES :';
+PRINT '- fn_GetTauxTVADefaut()';
+PRINT '- fn_GetPrixArticleActifs(@IdArticle, @DateReference)';
+PRINT '';
 PRINT 'Contraintes FK : Toutes créées';
-PRINT 'Index : Tous créés';
+PRINT 'Index : Tous créés et optimisés';
 PRINT '========================================'
+GO
