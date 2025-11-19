@@ -547,8 +547,8 @@ const DevisForm = ({ user }) => {
                               />
                               
                               {showArticleDropdown[index] && (
-                                <div className="fixed mt-1 w-80 bg-white dark:bg-gray-800 shadow-lg rounded-md overflow-hidden border border-gray-200 dark:border-gray-700" style={{ zIndex: 9999, position: 'fixed' }}>
-                                  <ul className="max-h-60 overflow-y-auto">
+                                <div className="fixed mt-1 w-[500px] bg-white dark:bg-gray-800 shadow-lg rounded-md overflow-hidden border border-gray-200 dark:border-gray-700" style={{ zIndex: 9999, position: 'fixed' }}>
+                                  <ul className="max-h-96 overflow-y-auto">
                                     {availableArticles
                                       .filter(art => 
                                         !article.designation || 
@@ -558,15 +558,88 @@ const DevisForm = ({ user }) => {
                                       .map((art) => (
                                         <li
                                           key={art.IdArticle}
-                                          className="px-4 py-2 hover:bg-blue-100 dark:hover:bg-blue-900 cursor-pointer text-gray-900 dark:text-white"
+                                          className="px-4 py-3 hover:bg-blue-100 dark:hover:bg-blue-900 cursor-pointer text-gray-900 dark:text-white"
                                           onClick={() => {
                                             handleArticleSelect(index, art.IdArticle);
                                             setShowArticleDropdown(prev => ({ ...prev, [index]: false }));
                                           }}
                                         >
-                                          <div className="font-medium">{art.Designation}</div>
-                                          <div className="text-sm text-gray-500 dark:text-gray-400">
-                                            {art.CodeArticle} - {art.Unite}
+                                          <div className="font-medium text-base">{art.Designation}</div>
+                                          <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
+                                            <div className="flex justify-between">
+                                              <span className="text-gray-500 dark:text-gray-400">Code:</span>
+                                              <span className="font-medium">{art.CodeArticle}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                              <span className="text-gray-500 dark:text-gray-400">Unité:</span>
+                                              <span className="font-medium">{art.Unite}</span>
+                                            </div>
+                                            {art.Diametre && (
+                                              <div className="flex justify-between">
+                                                <span className="text-gray-500 dark:text-gray-400">Diamètre:</span>
+                                                <span className="font-medium">{art.Diametre}</span>
+                                              </div>
+                                            )}
+                                            {art.Pression && (
+                                              <div className="flex justify-between">
+                                                <span className="text-gray-500 dark:text-gray-400">Pression:</span>
+                                                <span className="font-medium">{art.Pression}</span>
+                                              </div>
+                                            )}
+                                            {art.Couleur && (
+                                              <div className="flex justify-between">
+                                                <span className="text-gray-500 dark:text-gray-400">Couleur:</span>
+                                                <span className="font-medium">{art.Couleur}</span>
+                                              </div>
+                                            )}
+                                            {art.Matiere && (
+                                              <div className="flex justify-between">
+                                                <span className="text-gray-500 dark:text-gray-400">Matière:</span>
+                                                <span className="font-medium">{art.Matiere}</span>
+                                              </div>
+                                            )}
+                                            {art.Classe && (
+                                              <div className="flex justify-between">
+                                                <span className="text-gray-500 dark:text-gray-400">Classe:</span>
+                                                <span className="font-medium">{art.Classe}</span>
+                                              </div>
+                                            )}
+                                            {art.Longueur && (
+                                              <div className="flex justify-between">
+                                                <span className="text-gray-500 dark:text-gray-400">Longueur:</span>
+                                                <span className="font-medium">{art.Longueur}</span>
+                                              </div>
+                                            )}
+                                            {art.Largeur && (
+                                              <div className="flex justify-between">
+                                                <span className="text-gray-500 dark:text-gray-400">Largeur:</span>
+                                                <span className="font-medium">{art.Largeur}</span>
+                                              </div>
+                                            )}
+                                            {art.Epaisseur && (
+                                              <div className="flex justify-between">
+                                                <span className="text-gray-500 dark:text-gray-400">Épaisseur:</span>
+                                                <span className="font-medium">{art.Epaisseur}</span>
+                                              </div>
+                                            )}
+                                            {art.Caracteristiques && (
+                                              <div className="col-span-2 flex justify-between">
+                                                <span className="text-gray-500 dark:text-gray-400">Caractéristiques:</span>
+                                                <span className="font-medium">{art.Caracteristiques}</span>
+                                              </div>
+                                            )}
+                                            {art.PrixUnitaireHT !== undefined && (
+                                              <div className="flex justify-between">
+                                                <span className="text-gray-500 dark:text-gray-400">Prix HT:</span>
+                                                <span className="font-medium">{art.PrixUnitaireHT?.toFixed(2)} DA</span>
+                                              </div>
+                                            )}
+                                            {art.TauxTVA !== undefined && (
+                                              <div className="flex justify-between">
+                                                <span className="text-gray-500 dark:text-gray-400">TVA:</span>
+                                                <span className="font-medium">{art.TauxTVA?.toFixed(2)}%</span>
+                                              </div>
+                                            )}
                                           </div>
                                         </li>
                                       ))
@@ -578,7 +651,7 @@ const DevisForm = ({ user }) => {
                                         art.CodeArticle.toLowerCase().includes(article.designation.toLowerCase())
                                       )
                                       .length === 0 && (
-                                        <li className="px-4 py-2 text-gray-500 dark:text-gray-400">
+                                        <li className="px-4 py-3 text-gray-500 dark:text-gray-400">
                                           Aucun article trouvé
                                         </li>
                                       )

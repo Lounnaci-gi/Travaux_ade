@@ -3736,6 +3736,15 @@ app.get('/api/articles', async (req, res) => {
         a.Unite,
         a.Actif,
         a.DateCreation,
+        a.Diametre,
+        a.Matiere,
+        a.Classe,
+        a.Pression,
+        a.Longueur,
+        a.Largeur,
+        a.Epaisseur,
+        a.Couleur,
+        a.Caracteristiques,
         f.LibelleFamille
       FROM Article a
       LEFT JOIN ArticleFamille f ON a.IdFamille = f.IdFamille
