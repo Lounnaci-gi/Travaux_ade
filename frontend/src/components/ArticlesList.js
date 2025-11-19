@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { alertSuccess, alertError, confirmDialog } from '../ui/alerts';
-import { getArticles, getArticleById, createArticle, updateArticle, getArticleFamilles, createArticleFamille } from '../services/api';
+import { getArticles, getArticleById, createArticle, updateArticle, getArticleFamilles, createArticleFamille, createArticlePrixHistorique } from '../services/api';
 import { isAdmin } from '../utils/auth';
 
 const ArticlesList = ({ user, onUnauthorized }) => {
@@ -31,6 +31,11 @@ const ArticlesList = ({ user, onUnauthorized }) => {
     Epaisseur: '',
     Couleur: '',
     Caracteristiques: '',
+    // Article Prix Historique fields
+    PrixHT: '',
+    TauxTVA: '',
+    DateDebutApplication: '',
+    DateFinApplication: '',
   });
   const [matiereSearch, setMatiereSearch] = useState('');
   const [showMatiereDropdown, setShowMatiereDropdown] = useState(false);
@@ -216,6 +221,11 @@ const ArticlesList = ({ user, onUnauthorized }) => {
       Epaisseur: '',
       Couleur: '',
       Caracteristiques: '',
+      // Article Prix Historique fields
+      PrixHT: '',
+      TauxTVA: '',
+      DateDebutApplication: '',
+      DateFinApplication: '',
     });
     setEditingId(null);
     setError('');
@@ -243,6 +253,11 @@ const ArticlesList = ({ user, onUnauthorized }) => {
         Epaisseur: article.Epaisseur != null ? String(article.Epaisseur) : '',
         Couleur: article.Couleur || '',
         Caracteristiques: article.Caracteristiques || '',
+        // Article Prix Historique fields (empty for edit mode)
+        PrixHT: '',
+        TauxTVA: '',
+        DateDebutApplication: '',
+        DateFinApplication: '',
       });
       setMatiereSearch(matiere);
       setShowMatiereDropdown(false);
@@ -362,12 +377,34 @@ const ArticlesList = ({ user, onUnauthorized }) => {
         Caracteristiques: trimValue(form.Caracteristiques),
       };
 
+      let articleResult;
       if (editingId) {
-        await updateArticle(editingId, payload);
+        articleResult = await updateArticle(editingId, payload);
         alertSuccess('Succès', 'Article modifié avec succès.');
       } else {
-        await createArticle(payload);
+        articleResult = await createArticle(payload);
         alertSuccess('Succès', 'Article créé avec succès.');
+      }
+
+      // Handle Article Prix Historique if values are provided
+      if (!editingId && (form.PrixHT || form.TauxTVA)) {
+        try {
+          const prixPayload = {
+            PrixHT: parseDecimal(form.PrixHT),
+            TauxTVA: parseDecimal(form.TauxTVA) || 0,
+            DateDebutApplication: form.DateDebutApplication || new Date().toISOString().split('T')[0],
+            DateFinApplication: form.DateFinApplication || null,
+            EstActif: true,
+          };
+
+          // Only create price history if PrixHT is provided
+          if (prixPayload.PrixHT !== null) {
+            await createArticlePrixHistorique(articleResult.IdArticle, prixPayload);
+          }
+        } catch (priceError) {
+          console.error('Erreur lors de la création de l\'historique des prix:', priceError);
+          // We don't stop the main operation if price history fails
+        }
       }
 
       resetForm();
@@ -696,6 +733,76 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                 </div>
               </div>
             </div>
+
+            {/* Section: Prix (pour les nouveaux articles) */}
+            {!editingId && (
+              <div className="border-t dark:border-white/10 border-gray-200/50 pt-4">
+                <h3 className="text-base font-medium mb-3 dark:text-gray-300 text-gray-700">
+                  Historique des Prix <span className="text-xs font-normal text-gray-400">(optionnel)</span>
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium dark:text-gray-400 text-gray-600 mb-1">
+                      Prix HT
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      name="PrixHT"
+                      value={form.PrixHT}
+                      onChange={handleChange}
+                      placeholder="0.00"
+                      className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium dark:text-gray-400 text-gray-600 mb-1">
+                      Taux TVA (%)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      name="TauxTVA"
+                      value={form.TauxTVA}
+                      onChange={handleChange}
+                      placeholder="20.00"
+                      className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium dark:text-gray-400 text-gray-600 mb-1">
+                      Date Début Application
+                    </label>
+                    <input
+                      type="date"
+                      name="DateDebutApplication"
+                      value={form.DateDebutApplication}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium dark:text-gray-400 text-gray-600 mb-1">
+                      Date Fin Application
+                    </label>
+                    <input
+                      type="date"
+                      name="DateFinApplication"
+                      value={form.DateFinApplication}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  Ces informations seront enregistrées comme l'historique des prix de l'article.
+                </p>
+              </div>
+            )}
 
             <div className="flex justify-end gap-3 pt-4 border-t dark:border-white/10 border-gray-200/50">
               {editingId && (

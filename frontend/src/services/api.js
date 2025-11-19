@@ -357,4 +357,25 @@ export const createArticleFamille = async (payload) => {
   return response.data;
 };
 
+// Article Prix Historique
+export const getArticlePrixHistorique = async (id) => {
+  const response = await api.get(`/articles/${id}/prix-historique`);
+  return response.data;
+};
+
+export const createArticlePrixHistorique = async (id, payload) => {
+  const response = await api.post(`/articles/${id}/prix-historique`, payload);
+  return response.data;
+};
+
+export const updateArticlePrixHistorique = async (id, payload) => {
+  const response = await api.put(`/articles/prix-historique/${id}`, payload);
+  return response.data;
+};
+
+export const deleteArticlePrixHistorique = async (id) => {
+  const response = await api.delete(`/articles/prix-historique/${id}`);
+  return response.data;
+};
+
 export default api;

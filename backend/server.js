@@ -4204,3 +4204,306 @@ app.delete('/api/devis/types/:id', verifyToken, async (req, res) => {
   }
 });
 
+// ============================================================================
+// ARTICLE PRIX HISTORIQUE
+// ============================================================================
+
+// Récupérer l'historique des prix pour un article
+app.get('/api/articles/:id/prix-historique', verifyToken, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (!id) return res.status(400).json({ error: 'Id invalide' });
+
+    const result = await pool.request()
+      .input('id', sql.Int, id)
+      .query(`
+        SELECT 
+          IdPrixHistorique,
+          IdArticle,
+          PrixHT,
+          TauxTVA,
+          DateDebutApplication,
+          DateFinApplication,
+          EstActif,
+          DateCreation,
+          IdUtilisateurCreation
+        FROM ArticlePrixHistorique
+        WHERE IdArticle = @id
+        ORDER BY DateDebutApplication DESC
+      `);
+    
+    res.json(result.recordset);
+  } catch (error) {
+    console.error('Erreur lors de la récupération de l\'historique des prix:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Créer un nouvel historique de prix pour un article
+app.post('/api/articles/:id/prix-historique', verifyToken, async (req, res) => {
+  try {
+    // Vérifier que l'utilisateur est admin
+    const actorRoleLower = (req.user?.role || '').toLowerCase();
+    const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin');
+    if (!isAdminRole) {
+      return res.status(403).json({ error: 'Seuls les administrateurs peuvent gérer les prix des articles.' });
+    }
+
+    const id = parseInt(req.params.id);
+    if (!id) return res.status(400).json({ error: 'Id invalide' });
+
+    const {
+      PrixHT,
+      TauxTVA,
+      DateDebutApplication,
+      DateFinApplication
+    } = req.body;
+
+    if (!PrixHT || !TauxTVA || !DateDebutApplication) {
+      return res.status(400).json({ error: 'PrixHT, TauxTVA et DateDebutApplication sont requis' });
+    }
+
+    // Vérifier que l'article existe
+    const articleResult = await pool.request()
+      .input('id', sql.Int, id)
+      .query(`
+        SELECT IdArticle
+        FROM Article
+        WHERE IdArticle = @id
+      `);
+
+    if (articleResult.recordset.length === 0) {
+      return res.status(404).json({ error: 'Article introuvable' });
+    }
+
+    // Validation des valeurs
+    const prixHTValue = parseFloat(PrixHT);
+    const tauxTVAValue = parseFloat(TauxTVA);
+    
+    if (isNaN(prixHTValue) || prixHTValue < 0) {
+      return res.status(400).json({ error: 'PrixHT doit être un nombre positif' });
+    }
+    
+    if (isNaN(tauxTVAValue) || tauxTVAValue < 0 || tauxTVAValue > 100) {
+      return res.status(400).json({ error: 'TauxTVA doit être un nombre entre 0 et 100' });
+    }
+
+    // Vérifier les dates
+    const dateDebut = new Date(DateDebutApplication);
+    const dateFin = DateFinApplication ? new Date(DateFinApplication) : null;
+    
+    if (isNaN(dateDebut.getTime())) {
+      return res.status(400).json({ error: 'DateDebutApplication invalide' });
+    }
+    
+    if (dateFin && isNaN(dateFin.getTime())) {
+      return res.status(400).json({ error: 'DateFinApplication invalide' });
+    }
+    
+    if (dateFin && dateFin <= dateDebut) {
+      return res.status(400).json({ error: 'DateFinApplication doit être postérieure à DateDebutApplication' });
+    }
+
+    const insert = await pool.request()
+      .input('IdArticle', sql.Int, id)
+      .input('PrixHT', sql.Decimal(18, 2), prixHTValue)
+      .input('TauxTVA', sql.Decimal(5, 2), tauxTVAValue)
+      .input('DateDebutApplication', sql.Date, dateDebut)
+      .input('DateFinApplication', sql.Date, dateFin)
+      .input('IdUtilisateurCreation', sql.Int, req.user?.id)
+      .query(`
+        INSERT INTO ArticlePrixHistorique (
+          IdArticle, PrixHT, TauxTVA, DateDebutApplication, DateFinApplication,
+          EstActif, DateCreation, IdUtilisateurCreation
+        )
+        OUTPUT INSERTED.*
+        VALUES (
+          @IdArticle, @PrixHT, @TauxTVA, @DateDebutApplication, @DateFinApplication,
+          1, GETDATE(), @IdUtilisateurCreation
+        )
+      `);
+
+    res.status(201).json(insert.recordset[0]);
+  } catch (error) {
+    console.error('Erreur lors de la création de l\'historique de prix:', error);
+    res.status(500).json({ error: error.message || 'Erreur serveur' });
+  }
+});
+
+// Mettre à jour un historique de prix
+app.put('/api/articles/prix-historique/:id', verifyToken, async (req, res) => {
+  try {
+    // Vérifier que l'utilisateur est admin
+    const actorRoleLower = (req.user?.role || '').toLowerCase();
+    const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin');
+    if (!isAdminRole) {
+      return res.status(403).json({ error: 'Seuls les administrateurs peuvent gérer les prix des articles.' });
+    }
+
+    const id = parseInt(req.params.id);
+    if (!id) return res.status(400).json({ error: 'Id invalide' });
+
+    const {
+      PrixHT,
+      TauxTVA,
+      DateDebutApplication,
+      DateFinApplication,
+      EstActif
+    } = req.body;
+
+    // Validation des valeurs si fournies
+    if (PrixHT !== undefined) {
+      const prixHTValue = parseFloat(PrixHT);
+      if (isNaN(prixHTValue) || prixHTValue < 0) {
+        return res.status(400).json({ error: 'PrixHT doit être un nombre positif' });
+      }
+    }
+    
+    if (TauxTVA !== undefined) {
+      const tauxTVAValue = parseFloat(TauxTVA);
+      if (isNaN(tauxTVAValue) || tauxTVAValue < 0 || tauxTVAValue > 100) {
+        return res.status(400).json({ error: 'TauxTVA doit être un nombre entre 0 et 100' });
+      }
+    }
+
+    // Vérifier les dates si fournies
+    if (DateDebutApplication !== undefined) {
+      const dateDebut = new Date(DateDebutApplication);
+      if (isNaN(dateDebut.getTime())) {
+        return res.status(400).json({ error: 'DateDebutApplication invalide' });
+      }
+    }
+    
+    if (DateFinApplication !== undefined) {
+      const dateFin = new Date(DateFinApplication);
+      if (isNaN(dateFin.getTime())) {
+        return res.status(400).json({ error: 'DateFinApplication invalide' });
+      }
+      
+      // Vérifier que dateFin > dateDebut si les deux sont fournies
+      if (DateDebutApplication !== undefined) {
+        const dateDebut = new Date(DateDebutApplication);
+        if (dateFin <= dateDebut) {
+          return res.status(400).json({ error: 'DateFinApplication doit être postérieure à DateDebutApplication' });
+        }
+      }
+    }
+
+    // Construire la requête de mise à jour dynamiquement
+    let updateFields = [];
+    let request = pool.request().input('id', sql.Int, id);
+
+    if (PrixHT !== undefined) {
+      updateFields.push('PrixHT = @PrixHT');
+      request.input('PrixHT', sql.Decimal(18, 2), parseFloat(PrixHT));
+    }
+    
+    if (TauxTVA !== undefined) {
+      updateFields.push('TauxTVA = @TauxTVA');
+      request.input('TauxTVA', sql.Decimal(5, 2), parseFloat(TauxTVA));
+    }
+    
+    if (DateDebutApplication !== undefined) {
+      updateFields.push('DateDebutApplication = @DateDebutApplication');
+      request.input('DateDebutApplication', sql.Date, new Date(DateDebutApplication));
+    }
+    
+    if (DateFinApplication !== undefined) {
+      updateFields.push('DateFinApplication = @DateFinApplication');
+      request.input('DateFinApplication', sql.Date, new Date(DateFinApplication));
+    }
+    
+    if (EstActif !== undefined) {
+      updateFields.push('EstActif = @EstActif');
+      request.input('EstActif', sql.Bit, EstActif ? 1 : 0);
+    }
+
+    if (updateFields.length === 0) {
+      return res.status(400).json({ error: 'Aucun champ à mettre à jour' });
+    }
+
+    updateFields.push('DateModification = GETDATE()');
+    
+    const updateQuery = `
+      UPDATE ArticlePrixHistorique 
+      SET ${updateFields.join(', ')}
+      OUTPUT INSERTED.*
+      WHERE IdPrixHistorique = @id
+    `;
+
+    const update = await request.query(updateQuery);
+
+    if (update.recordset.length === 0) {
+      return res.status(404).json({ error: 'Historique de prix introuvable' });
+    }
+
+    res.json(update.recordset[0]);
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour de l\'historique de prix:', error);
+    res.status(500).json({ error: error.message || 'Erreur serveur' });
+  }
+});
+
+// Supprimer un historique de prix
+app.delete('/api/articles/prix-historique/:id', verifyToken, async (req, res) => {
+  try {
+    // Vérifier que l'utilisateur est admin
+    const actorRoleLower = (req.user?.role || '').toLowerCase();
+    const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin');
+    if (!isAdminRole) {
+      return res.status(403).json({ error: 'Seuls les administrateurs peuvent gérer les prix des articles.' });
+    }
+
+    const id = parseInt(req.params.id);
+    if (!id) return res.status(400).json({ error: 'Id invalide' });
+
+    // Vérifier s'il s'agit du dernier prix actif (ne peut pas être supprimé)
+    const activePriceResult = await pool.request()
+      .input('id', sql.Int, id)
+      .query(`
+        SELECT IdPrixHistorique, EstActif
+        FROM ArticlePrixHistorique
+        WHERE IdPrixHistorique = @id AND EstActif = 1
+      `);
+
+    if (activePriceResult.recordset.length > 0) {
+      // Vérifier s'il y a d'autres prix pour cet article
+      const articleIdResult = await pool.request()
+        .input('id', sql.Int, id)
+        .query(`
+          SELECT IdArticle
+          FROM ArticlePrixHistorique
+          WHERE IdPrixHistorique = @id
+        `);
+      
+      if (articleIdResult.recordset.length > 0) {
+        const articleId = articleIdResult.recordset[0].IdArticle;
+        
+        const otherPricesResult = await pool.request()
+          .input('articleId', sql.Int, articleId)
+          .input('currentId', sql.Int, id)
+          .query(`
+            SELECT COUNT(*) as Count
+            FROM ArticlePrixHistorique
+            WHERE IdArticle = @articleId AND IdPrixHistorique != @currentId
+          `);
+        
+        if (otherPricesResult.recordset[0].Count === 0) {
+          return res.status(400).json({ error: 'Impossible de supprimer le dernier prix d\'un article. Désactivez-le plutôt.' });
+        }
+      }
+    }
+
+    await pool.request()
+      .input('id', sql.Int, id)
+      .query(`
+        DELETE FROM ArticlePrixHistorique
+        WHERE IdPrixHistorique = @id
+      `);
+
+    res.json({ message: 'Historique de prix supprimé avec succès' });
+  } catch (error) {
+    console.error('Erreur lors de la suppression de l\'historique de prix:', error);
+    res.status(500).json({ error: error.message || 'Erreur serveur' });
+  }
+});
