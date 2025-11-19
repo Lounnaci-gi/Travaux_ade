@@ -198,7 +198,7 @@ const DemandeForm = ({ user, onCreated }) => {
           h1 {
             text-align: center;
             font-size: 20px;
-            margin: 20px 0 5px 0;
+            margin: 20px 0 2px 0;
             text-transform: uppercase;
           }
           .subtitle {
@@ -208,9 +208,10 @@ const DemandeForm = ({ user, onCreated }) => {
             padding: 5px;
             font-size: 11px;
             margin-bottom: 20px;
+            margin-top: 2px;
           }
           .form-section {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
           }
           .form-field {
             margin-bottom: 10px;
@@ -232,6 +233,8 @@ const DemandeForm = ({ user, onCreated }) => {
             margin: 10px 0;
           }
           .checkbox-item {
+            display: flex;
+            align-items: center;
             margin: 5px 0;
             font-size: 12px;
           }
@@ -328,11 +331,11 @@ const DemandeForm = ({ user, onCreated }) => {
             <div class="checkbox-group">
               <div class="checkbox-item">
                 <input type="checkbox" id="domestique">
-                <label for="domestique">Domestiques: Maison individuelle _______________________________________________</label>
+                <label for="domestique" style="display: inline;">Domestiques: Maison individuelle _______________________________________________</label>
               </div>
               <div class="checkbox-item">
                 <input type="checkbox" id="collectif">
-                <label for="collectif">Lettre à usage collectif nombre de logements / locaux commerciaux : _______________________________________________</label>
+                <label for="collectif">Lettre à usage collectif nombre de logements / locaux commerciaux : _______</label>
               </div>
               <div class="checkbox-item">
                 <input type="checkbox" id="activite">
