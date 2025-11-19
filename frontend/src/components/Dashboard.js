@@ -82,7 +82,7 @@ const Dashboard = () => {
   return (
     <div className="p-6">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-8">
+        <h1 className="text-3xl font-bold mb-8 text-gradient">
           Tableau de Bord
         </h1>
         
@@ -107,7 +107,7 @@ const Dashboard = () => {
                           {card.icon}
                         </div>
                         <div className="text-right">
-                          <p className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                          <p className="text-3xl font-bold text-gradient">
                             {card.value}
                           </p>
                           <p className="dark:text-gray-300 text-gray-700 text-sm mt-1">{card.title}</p>
@@ -129,7 +129,7 @@ const Dashboard = () => {
                               <span className="text-xs dark:text-gray-300 text-gray-700 truncate flex-1 mr-2">
                                 {item.TypeDemande || 'Non spécifié'}
                               </span>
-                              <span className="text-sm font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent whitespace-nowrap">
+                              <span className="text-sm font-bold text-gradient-reverse whitespace-nowrap">
                                 {String(item.Nombre || 0).padStart(2, '0')}
                               </span>
                             </div>
@@ -155,4 +155,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-

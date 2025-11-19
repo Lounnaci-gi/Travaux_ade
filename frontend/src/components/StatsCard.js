@@ -11,7 +11,7 @@ const StatsCard = ({ title, value, icon, color, delay = 0 }) => {
           {icon}
         </div>
         <div className="text-right">
-          <p className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+          <p className="text-3xl font-bold text-gradient">
             {value}
           </p>
           <p className="dark:text-gray-300 text-gray-700 text-sm mt-1">{title}</p>
@@ -28,4 +28,3 @@ const StatsCard = ({ title, value, icon, color, delay = 0 }) => {
 };
 
 export default StatsCard;
-

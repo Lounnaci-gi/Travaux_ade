@@ -3,9 +3,65 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Light theme colors */
+    --color-primary-50: #f0f9ff;
+    --color-primary-100: #e0f2fe;
+    --color-primary-200: #bae6fd;
+    --color-primary-300: #7dd3fc;
+    --color-primary-400: #38bdf8;
+    --color-primary-500: #0ea5e9;
+    --color-primary-600: #0284c7;
+    --color-primary-700: #0369a1;
+    --color-primary-800: #075985;
+    --color-primary-900: #0c4a6e;
+    
+    --color-accent-50: #fdf4ff;
+    --color-accent-100: #fae8ff;
+    --color-accent-200: #f5d0fe;
+    --color-accent-300: #f0abfc;
+    --color-accent-400: #e879f9;
+    --color-accent-500: #d946ef;
+    --color-accent-600: #c026d3;
+    --color-accent-700: #a21caf;
+    --color-accent-800: #86198f;
+    --color-accent-900: #701a75;
+    
+    --color-success: #10b981;
+    --color-warning: #f59e0b;
+    --color-error: #ef4444;
+    --color-info: #3b82f6;
+  }
+  
+  .dark {
+    /* Dark theme colors */
+    --color-primary-50: #0c4a6e;
+    --color-primary-100: #075985;
+    --color-primary-200: #0369a1;
+    --color-primary-300: #0284c7;
+    --color-primary-400: #0ea5e9;
+    --color-primary-500: #38bdf8;
+    --color-primary-600: #7dd3fc;
+    --color-primary-700: #bae6fd;
+    --color-primary-800: #e0f2fe;
+    --color-primary-900: #f0f9ff;
+    
+    --color-accent-50: #701a75;
+    --color-accent-100: #86198f;
+    --color-accent-200: #a21caf;
+    --color-accent-300: #c026d3;
+    --color-accent-400: #d946ef;
+    --color-accent-500: #e879f9;
+    --color-accent-600: #f0abfc;
+    --color-accent-700: #f5d0fe;
+    --color-accent-800: #fae8ff;
+    --color-accent-900: #fdf4ff;
+  }
+  
   body {
     @apply bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white;
     font-family: 'Poppins', sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
   
   /* Light mode styles */
@@ -20,8 +76,10 @@
 }
 
 @layer utilities {
+  /* Glass effect variations */
   .glass-effect {
     @apply bg-white/10 backdrop-blur-md border border-white/20;
+    transition: all 0.3s ease;
   }
   
   .dark .glass-effect {
@@ -44,6 +102,75 @@
   .dark .glass-card {
     @apply shadow-2xl;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* Button variations */
+  .btn-primary {
+    @apply bg-gradient-to-r from-primary-500 to-accent-500 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .btn-secondary {
+    @apply bg-gradient-to-r from-gray-500 to-gray-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .btn-success {
+    @apply bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .btn-warning {
+    @apply bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .btn-error {
+    @apply bg-gradient-to-r from-red-500 to-rose-500 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  /* Input variations */
+  .input-field {
+    @apply w-full rounded-lg border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all;
+  }
+  
+  :root:not(.dark) .input-field {
+    @apply bg-white/80 border-gray-300;
+  }
+  
+  .dark .input-field {
+    @apply bg-slate-700/40 border-white/20;
+  }
+  
+  /* Card variations */
+  .card-primary {
+    @apply glass-card p-6;
+  }
+  
+  .card-secondary {
+    @apply glass-card p-4;
+  }
+  
+  /* Text variations */
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent;
+  }
+  
+  .text-gradient-reverse {
+    @apply bg-gradient-to-r from-accent-400 to-primary-400 bg-clip-text text-transparent;
+  }
+  
+  /* Animation utilities */
+  .animate-fadeIn {
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  .animate-blob {
+    animation: blob 7s infinite;
+  }
+  
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+  
+  .animation-delay-4000 {
+    animation-delay: 4s;
   }
 }
 
@@ -71,20 +198,4 @@
   100% {
     transform: translate(0px, 0px) scale(1);
   }
-}
-
-.animate-fadeIn {
-  animation: fadeIn 0.3s ease-out;
-}
-
-.animate-blob {
-  animation: blob 7s infinite;
-}
-
-.animation-delay-2000 {
-  animation-delay: 2s;
-}
-
-.animation-delay-4000 {
-  animation-delay: 4s;
 }

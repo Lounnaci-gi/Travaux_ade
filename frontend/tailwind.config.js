@@ -31,6 +31,10 @@ module.exports = {
           800: '#86198f',
           900: '#701a75',
         },
+        success: '#10b981',
+        warning: '#f59e0b',
+        error: '#ef4444',
+        info: '#3b82f6',
       },
       animation: {
         'gradient': 'gradient 15s ease infinite',
@@ -61,4 +65,3 @@ module.exports = {
   },
   plugins: [],
 }
-

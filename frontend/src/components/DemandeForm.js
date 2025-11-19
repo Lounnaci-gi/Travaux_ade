@@ -63,6 +63,35 @@ const DemandeForm = ({ user, onCreated }) => {
   const [success, setSuccess] = useState('');
   const [selectedClient, setSelectedClient] = useState(null);
 
+  // Add state for client search functionality
+  const [clientSearch, setClientSearch] = useState('');
+  const [showClientDropdown, setShowClientDropdown] = useState(false);
+
+  // Handle client selection
+  const handleClientSelect = (clientId) => {
+    setForm(prev => ({ ...prev, idClient: clientId }));
+    setClientSearch('');
+    setShowClientDropdown(false);
+    setSelectedClient(null);
+    
+    // Load client details
+    if (clientId) {
+      getClientById(clientId)
+        .then((data) => setSelectedClient(data))
+        .catch(() => setSelectedClient(null));
+    }
+  };
+
+  // Filter clients based on search term
+  const filteredClients = useMemo(() => {
+    if (!clientSearch) return clients;
+    const searchLower = clientSearch.toLowerCase();
+    return clients.filter(client => 
+      `${client.Nom} ${client.Prenom || ''}`.toLowerCase().includes(searchLower) ||
+      client.IdClient.toString().includes(searchLower)
+    );
+  }, [clients, clientSearch]);
+
   // Inject print styles when component mounts
   useEffect(() => {
     const style = document.createElement('style');
@@ -762,40 +791,40 @@ const DemandeForm = ({ user, onCreated }) => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen p-6">
-      <div className="max-w-5xl mx-auto">
-        <div className="mb-8">
+    <div className="min-h-screen p-2 pt-1">
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-3 mt-0">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              <h1 className="text-2xl font-bold mb-1 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                 Nouvelle Demande
               </h1>
-              <p className="dark:text-gray-400 text-gray-600">Enregistrer une nouvelle demande dans le système</p>
+              <p className="dark:text-gray-400 text-gray-600 text-sm">Enregistrer une nouvelle demande dans le système</p>
             </div>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="glass-card p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="glass-card p-4 space-y-4">
           {success && (
-            <div className="p-3 rounded-lg bg-green-500/20 border border-green-500/50 text-green-300 text-sm">
+            <div className="p-2 rounded-lg bg-green-500/20 border border-green-500/50 text-green-300 text-sm">
               {success}
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Type de demande *</label>
+              <label className="block text-xs dark:text-gray-300 text-gray-700 mb-1">Type de demande *</label>
               <select
                 name="idDemandeType"
                 value={form.idDemandeType}
                 onChange={handleChange}
-                className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                 required
               >
                 <option value="">Sélectionner un type</option>
@@ -806,24 +835,24 @@ const DemandeForm = ({ user, onCreated }) => {
                 ))}
               </select>
               {types.length === 0 && (
-                <p className="mt-2 text-sm text-yellow-400">
+                <p className="mt-1 text-xs text-yellow-400">
                   ⚠️ Aucun type de demande disponible. Veuillez contacter l'administrateur ou le chef de centre pour créer des types de travaux.
                 </p>
               )}
             </div>
             {form.idDemandeType && (
               <div>
-                <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">
+                <label className="block text-xs dark:text-gray-300 text-gray-700 mb-1">
                   Agence *
                   {user?.idAgence && !isAdmin(user) && (
-                    <span className="ml-2 text-xs text-gray-400">(définie automatiquement)</span>
+                    <span className="ml-1 text-xs text-gray-400">(définie automatiquement)</span>
                   )}
                 </label>
                 <select
                   name="idAgence"
                   value={form.idAgence}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   required
                   disabled={user?.idAgence && !isAdmin(user)}
                 >
@@ -845,33 +874,59 @@ const DemandeForm = ({ user, onCreated }) => {
 
           {form.idDemandeType && (
             <>
-              <div className="space-y-6 border-t border-white/10 dark:border-white/10 border-gray-200/50 pt-6">
+              <div className="space-y-4 border-t border-white/10 dark:border-white/10 border-gray-200/50 pt-4">
                 <div>
-                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Client</label>
+                  <label className="block text-xs dark:text-gray-300 text-gray-700 mb-1">Client</label>
                   {!newClientMode ? (
                     <>
-                      <select
-                        name="idClient"
-                        value={form.idClient}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="">Sélectionner un client</option>
-                        {clients.map((c) => (
-                          <option key={c.IdClient} value={c.IdClient} className="text-black">
-                            {c.Nom} {c.Prenom ? c.Prenom : ''}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="mt-3">
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={clientSearch || (form.idClient ? `${clients.find(c => c.IdClient === parseInt(form.idClient))?.Nom || ''} ${clients.find(c => c.IdClient === parseInt(form.idClient))?.Prenom || ''}` : '')}
+                          onChange={(e) => {
+                            setClientSearch(e.target.value);
+                            setShowClientDropdown(true);
+                          }}
+                          onFocus={() => setShowClientDropdown(true)}
+                          onBlur={() => {
+                            // Delay hiding dropdown to allow for clicks
+                            setTimeout(() => setShowClientDropdown(false), 150);
+                          }}
+                          placeholder="Rechercher un client (nom, prénom ou ID)"
+                          className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        />
+                        {showClientDropdown && (
+                          <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border dark:border-white/20 border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                            {filteredClients.length > 0 ? (
+                              filteredClients.map((client) => (
+                                <button
+                                  key={client.IdClient}
+                                  type="button"
+                                  onMouseDown={(e) => e.preventDefault()} // Prevent blur before click
+                                  onClick={() => handleClientSelect(client.IdClient.toString())}
+                                  className="w-full text-left px-3 py-2 text-sm hover:bg-blue-500/20 dark:hover:bg-blue-500/20 dark:text-white text-gray-900 transition-colors first:rounded-t-lg last:rounded-b-lg"
+                                >
+                                  <div className="font-medium">{client.Nom} {client.Prenom || ''}</div>
+                                  <div className="text-xs text-gray-500 dark:text-gray-400">ID: {client.IdClient}</div>
+                                </button>
+                              ))
+                            ) : (
+                              <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
+                                Aucun client trouvé
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <div className="mt-2">
                         <button
                           type="button"
-                          className="inline-flex items-center justify-center p-2 rounded-full bg-blue-500/20 border border-blue-400/40 text-blue-200 hover:bg-blue-500/30 hover:text-white transition-colors"
+                          className="inline-flex items-center justify-center p-1.5 rounded-full bg-blue-500/20 border border-blue-400/40 text-blue-200 hover:bg-blue-500/30 hover:text-white transition-colors"
                           title="Créer un nouveau client"
                           aria-label="Créer un nouveau client"
-                          onClick={() => { setNewClientMode(true); setForm((p)=>({...p, idClient:''})); setSelectedClient(null);} }
+                          onClick={() => { setNewClientMode(true); setForm((p)=>({...p, idClient:''})); setSelectedClient(null); setClientSearch(''); }}
                         >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                           </svg>
                           <span className="sr-only">Créer un nouveau client</span>
@@ -880,11 +935,11 @@ const DemandeForm = ({ user, onCreated }) => {
                     </>
                   ) : (
                     <>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
                           <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Type de client *</label>
                           <select
-                            className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                            className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs"
                             value={clientForm.idClientType}
                             onChange={(e)=>setClientForm((p)=>({...p, idClientType:e.target.value}))}
                           >
@@ -897,7 +952,7 @@ const DemandeForm = ({ user, onCreated }) => {
                         <div>
                           <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Statut d'occupation *</label>
                           <select
-                            className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                            className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs"
                             value={clientForm.statutOccupation}
                             onChange={(e)=>setClientForm((p)=>({...p, statutOccupation:e.target.value}))}
                           >
@@ -909,67 +964,67 @@ const DemandeForm = ({ user, onCreated }) => {
                         </div>
                         <div>
                           <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Nom *</label>
-                          <input className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" value={clientForm.nom} onChange={(e)=>setClientForm((p)=>({...p, nom:e.target.value}))} />
+                          <input className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.nom} onChange={(e)=>setClientForm((p)=>({...p, nom:e.target.value}))} />
                         </div>
                         <div>
                           <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Prénom</label>
-                          <input className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" value={clientForm.prenom} onChange={(e)=>setClientForm((p)=>({...p, prenom:e.target.value}))} />
+                          <input className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.prenom} onChange={(e)=>setClientForm((p)=>({...p, prenom:e.target.value}))} />
                         </div>
                         <div className="md:col-span-2">
                           <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Adresse de résidence *</label>
-                          <input className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" value={clientForm.adresseResidence} onChange={(e)=>setClientForm((p)=>({...p, adresseResidence:e.target.value}))} />
+                          <input className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.adresseResidence} onChange={(e)=>setClientForm((p)=>({...p, adresseResidence:e.target.value}))} />
                         </div>
                         <div>
                           <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Commune de résidence *</label>
-                          <input className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" value={clientForm.communeResidence} onChange={(e)=>setClientForm((p)=>({...p, communeResidence:e.target.value}))} />
+                          <input className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.communeResidence} onChange={(e)=>setClientForm((p)=>({...p, communeResidence:e.target.value}))} />
                         </div>
                         <div>
                           <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Code postal de résidence *</label>
-                          <input className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" value={clientForm.codePostalResidence} onChange={(e)=>setClientForm((p)=>({...p, codePostalResidence:e.target.value}))} maxLength={5} />
+                          <input className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.codePostalResidence} onChange={(e)=>setClientForm((p)=>({...p, codePostalResidence:e.target.value}))} maxLength={5} />
                         </div>
                         {isBranchementType() && (
                           <>
                             <div className="md:col-span-2">
                               <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Adresse de branchement *</label>
-                              <input className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" value={clientForm.adresseBranchement} onChange={(e)=>setClientForm((p)=>({...p, adresseBranchement:e.target.value}))} />
+                              <input className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.adresseBranchement} onChange={(e)=>setClientForm((p)=>({...p, adresseBranchement:e.target.value}))} />
                             </div>
                             <div>
                               <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Commune de branchement</label>
-                              <input className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" value={clientForm.communeBranchement} onChange={(e)=>setClientForm((p)=>({...p, communeBranchement:e.target.value}))} />
+                              <input className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.communeBranchement} onChange={(e)=>setClientForm((p)=>({...p, communeBranchement:e.target.value}))} />
                             </div>
                             <div>
                               <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Code postal de branchement</label>
-                              <input className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" value={clientForm.codePostalBranchement} onChange={(e)=>setClientForm((p)=>({...p, codePostalBranchement:e.target.value}))} maxLength={5} />
+                              <input className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.codePostalBranchement} onChange={(e)=>setClientForm((p)=>({...p, codePostalBranchement:e.target.value}))} maxLength={5} />
                             </div>
                           </>
                         )}
                         <div>
                           <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Téléphone principal</label>
-                          <input className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" value={clientForm.telephonePrincipal} onChange={(e)=>setClientForm((p)=>({...p, telephonePrincipal:e.target.value}))} maxLength={10} />
+                          <input className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.telephonePrincipal} onChange={(e)=>setClientForm((p)=>({...p, telephonePrincipal:e.target.value}))} maxLength={10} />
                         </div>
                         <div>
                           <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Téléphone secondaire</label>
-                          <input className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" value={clientForm.telephoneSecondaire} onChange={(e)=>setClientForm((p)=>({...p, telephoneSecondaire:e.target.value}))} maxLength={10} />
+                          <input className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.telephoneSecondaire} onChange={(e)=>setClientForm((p)=>({...p, telephoneSecondaire:e.target.value}))} maxLength={10} />
                         </div>
                         <div>
                           <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Fax</label>
-                          <input className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" value={clientForm.fax} onChange={(e)=>setClientForm((p)=>({...p, fax:e.target.value}))} maxLength={10} />
+                          <input className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.fax} onChange={(e)=>setClientForm((p)=>({...p, fax:e.target.value}))} maxLength={10} />
                         </div>
                         <div>
                           <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Email</label>
-                          <input type="email" className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" value={clientForm.email} onChange={(e)=>setClientForm((p)=>({...p, email:e.target.value}))} />
+                          <input type="email" className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.email} onChange={(e)=>setClientForm((p)=>({...p, email:e.target.value}))} />
                         </div>
                         <div>
                           <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">N° pièce d'identité</label>
-                          <input className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" value={clientForm.numeroPieceIdentite} onChange={(e)=>setClientForm((p)=>({...p, numeroPieceIdentite:e.target.value}))} />
+                          <input className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.numeroPieceIdentite} onChange={(e)=>setClientForm((p)=>({...p, numeroPieceIdentite:e.target.value}))} />
                         </div>
                         <div>
                           <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Délivrée par</label>
-                          <input className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" value={clientForm.pieceDelivrePar} onChange={(e)=>setClientForm((p)=>({...p, pieceDelivrePar:e.target.value}))} />
+                          <input className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.pieceDelivrePar} onChange={(e)=>setClientForm((p)=>({...p, pieceDelivrePar:e.target.value}))} />
                         </div>
                         <div>
                           <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Date de délivrance</label>
-                          <input type="date" className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" value={clientForm.dateDelivrancePiece} onChange={(e)=>setClientForm((p)=>({...p, dateDelivrancePiece:e.target.value}))} />
+                          <input type="date" className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.dateDelivrancePiece} onChange={(e)=>setClientForm((p)=>({...p, dateDelivrancePiece:e.target.value}))} />
                         </div>
                         {isBranchementType() && (
                           <div>
@@ -994,10 +1049,10 @@ const DemandeForm = ({ user, onCreated }) => {
                                   setTimeout(() => setShowDiametreDropdown(false), 150);
                                 }}
                                 placeholder="Sélectionner un diamètre..."
-                                className="w-full px-3 py-2 pr-8 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                                className="w-full px-2 py-1.5 pr-6 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all text-xs"
                               />
                               <svg
-                                className="absolute right-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+                                className="absolute right-1.5 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -1007,21 +1062,21 @@ const DemandeForm = ({ user, onCreated }) => {
                               {showDiametreDropdown && (
                                 <>
                                   {filteredDiametreOptions.length > 0 ? (
-                                    <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border dark:border-white/20 border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                    <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border dark:border-white/20 border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
                                       {filteredDiametreOptions.map((diametre) => (
                                         <button
                                           key={diametre}
                                           type="button"
                                           onMouseDown={(e) => e.preventDefault()}
                                           onClick={() => handleDiametreSelect(diametre)}
-                                          className="w-full text-left px-3 py-2 text-sm hover:bg-blue-500/20 dark:hover:bg-blue-500/20 dark:text-white text-gray-900 transition-colors first:rounded-t-lg last:rounded-b-lg"
+                                          className="w-full text-left px-2 py-1.5 text-xs hover:bg-blue-500/20 dark:hover:bg-blue-500/20 dark:text-white text-gray-900 transition-colors first:rounded-t-lg last:rounded-b-lg"
                                         >
                                           {diametre}
                                         </button>
                                       ))}
                                     </div>
                                   ) : (
-                                    <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border dark:border-white/20 border-gray-300 rounded-lg shadow-lg p-3">
+                                    <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border dark:border-white/20 border-gray-300 rounded-lg shadow-lg p-2">
                                       <p className="text-xs text-gray-500 dark:text-gray-400">Aucun diamètre trouvé</p>
                                     </div>
                                   )}
@@ -1031,15 +1086,15 @@ const DemandeForm = ({ user, onCreated }) => {
                           </div>
                         )}
                       </div>
-                      <div className="mt-2 flex items-center gap-3">
+                      <div className="mt-2 flex items-center gap-2">
                         <button
                           type="button"
-                          className="inline-flex items-center justify-center p-2 rounded-full bg-red-500/20 border border-red-400/40 text-red-200 hover:bg-red-500/30 hover:text-white transition-colors"
+                          className="inline-flex items-center justify-center p-1.5 rounded-full bg-red-500/20 border border-red-400/40 text-red-200 hover:bg-red-500/30 hover:text-white transition-colors"
                           title="Annuler la création du client"
                           aria-label="Annuler la création du client"
                           onClick={()=>setNewClientMode(false)}
                         >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                           </svg>
                           <span className="sr-only">Annuler la création du client</span>
@@ -1050,9 +1105,9 @@ const DemandeForm = ({ user, onCreated }) => {
                 </div>
 
                 {selectedClient && (
-                  <div className="glass-card p-4">
-                    <h3 className="text-lg font-semibold mb-3 dark:text-white text-gray-900">Informations client</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div className="glass-card p-3">
+                    <h3 className="text-base font-semibold mb-2 dark:text-white text-gray-900">Informations client</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
                       <div>
                         <p className="dark:text-gray-400 text-gray-600">Nom complet</p>
                         <p className="dark:text-white text-gray-900 font-medium">{selectedClient.Nom} {selectedClient.Prenom || ''}</p>
@@ -1094,26 +1149,26 @@ const DemandeForm = ({ user, onCreated }) => {
                 )}
 
                 <div>
-                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Commentaire</label>
+                  <label className="block text-xs dark:text-gray-300 text-gray-700 mb-1">Commentaire</label>
                   <textarea
                     name="commentaire"
                     value={form.commentaire}
                     onChange={handleChange}
-                    rows="4"
-                    className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 dark:placeholder-gray-400 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    rows="3"
+                    className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 dark:placeholder-gray-400 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                     placeholder="Ajouter des détails ou pièces justificatives (références)"
                   />
                 </div>
 
-                <div className="flex justify-end gap-3 items-center">
+                <div className="flex justify-end gap-2 items-center">
                   <button
                     type="button"
                     onClick={handlePrint}
-                    className="p-3 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 transition-all text-gray-200"
+                    className="p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 transition-all text-gray-200"
                     title="Imprimer la demande"
                     aria-label="Imprimer la demande"
                   >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                     </svg>
                     <span className="sr-only">Imprimer la demande</span>
@@ -1121,11 +1176,11 @@ const DemandeForm = ({ user, onCreated }) => {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="p-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/50 hover:shadow-xl hover:shadow-blue-500/60 transition-all disabled:opacity-50"
+                    className="p-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/50 hover:shadow-xl hover:shadow-blue-500/60 transition-all disabled:opacity-50"
                     title={submitting ? 'Enregistrement en cours' : 'Enregistrer la demande'}
                     aria-label={submitting ? 'Enregistrement en cours' : 'Enregistrer la demande'}
                   >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                     <span className="sr-only">{submitting ? 'Enregistrement en cours' : 'Enregistrer la demande'}</span>

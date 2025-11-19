@@ -101,7 +101,7 @@ const Login = ({ onLogin }) => {
     <div className="min-h-screen flex items-center justify-center p-4 relative">
       {lockTimer && lockTimer.remainingMs > 0 && (
         <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity">
-          <div className="glass-card max-w-md w-full mx-4 p-8 text-center space-y-4 animate-fadeIn shadow-2xl border border-white/10">
+          <div className="glass-card max-w-sm w-full mx-auto p-6 text-center space-y-4 animate-fadeIn shadow-2xl border border-white/10">
             <div className="flex justify-center">
               <div className="p-3 rounded-2xl bg-gradient-to-br from-red-500 via-purple-500 to-blue-500 shadow-lg shadow-red-500/30">
                 <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -150,7 +150,7 @@ const Login = ({ onLogin }) => {
 
       {/* Login Card */}
       <div className="relative w-full max-w-sm mx-auto">
-        <div className="glass-card p-4 space-y-3">
+        <div className="glass-card p-6 space-y-5">
           {/* Logo and Title */}
           <div className="text-center space-y-4">
             <div className="flex justify-center">
@@ -159,10 +159,10 @@ const Login = ({ onLogin }) => {
               </div>
             </div>
             <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              <h1 className="text-2xl font-bold text-gradient">
                 AquaConnect
               </h1>
-              <p className="dark:text-gray-400 text-gray-600 mt-1">Système de Gestion des Branchements</p>
+              <p className="dark:text-gray-400 text-gray-600 mt-1 text-sm">Système de Gestion des Branchements</p>
             </div>
           </div>
 
@@ -186,7 +186,7 @@ const Login = ({ onLogin }) => {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="w-full pl-10 pr-4 py-2 rounded-lg dark:bg-white/5 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-400 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="input-field pl-10 pr-4 py-2"
                   placeholder="Identifiant utilisateur"
                 />
               </div>
@@ -210,7 +210,7 @@ const Login = ({ onLogin }) => {
                   value={formData.password}
                   onChange={handleChange}
                   required
-                  className="w-full pl-10 pr-12 py-2 rounded-lg dark:bg-white/5 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-400 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="input-field pl-10 pr-12 py-2"
                   placeholder="••••••••"
                 />
                 <button
@@ -246,7 +246,7 @@ const Login = ({ onLogin }) => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2 px-4 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold shadow-lg shadow-blue-500/50 hover:shadow-xl hover:shadow-blue-500/60 transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+              className="btn-primary w-full py-2 px-4 flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
@@ -278,4 +278,3 @@ const Login = ({ onLogin }) => {
 };
 
 export default Login;
-

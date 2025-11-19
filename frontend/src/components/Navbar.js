@@ -203,7 +203,7 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
               <img src="/ade.png" alt="ADE Logo" className="w-8 h-8 object-contain" />
             </div>
             <div>
-              <h1 className="text-lg font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              <h1 className="text-lg font-bold text-gradient">
                 AquaConnect
               </h1>
               <p className="text-[10px] text-gray-400 dark:text-gray-400 text-gray-600">Gestion des Branchements</p>
@@ -231,7 +231,7 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
                     onClick={() => handleMenuClick(menuId)}
                     className={`px-3 py-1.5 rounded-lg transition-all duration-300 flex items-center gap-1.5 text-sm ${
                       isActive
-                        ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/50'
+                        ? 'btn-primary'
                         : 'glass-effect hover:bg-white/10 dark:hover:bg-white/10 dark:text-gray-300 dark:hover:text-white text-gray-700 hover:text-gray-900 hover:bg-gray-100'
                     }`}
                     title={item.label}
@@ -433,7 +433,7 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
                     onClick={() => handleMenuClick(menuId)}
                     className={`w-full text-left px-3 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 text-sm ${
                       isActive
-                        ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
+                        ? 'btn-primary'
                         : 'glass-effect hover:bg-white/10 dark:hover:bg-white/10 dark:text-gray-300 text-gray-700 hover:text-gray-900 hover:bg-gray-100'
                     }`}
                     title={item.label}
@@ -486,4 +486,3 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
 };
 
 export default Navbar;
-
