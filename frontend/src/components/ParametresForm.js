@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getConfigurations, updateConfiguration } from '../services/api';
+import Swal from 'sweetalert2';
 
 const ParametresForm = ({ user }) => {
   const [settings, setSettings] = useState({
@@ -95,22 +96,41 @@ const ParametresForm = ({ user }) => {
       }
       
       // Show success message
-      alert('Configurations enregistrées avec succès');
+      Swal.fire({
+        icon: 'success',
+        title: 'Succès',
+        text: 'Configurations enregistrées avec succès',
+        confirmButtonColor: '#3b82f6',
+        background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+        color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827',
+      });
     } catch (err) {
       console.error('Erreur détaillée:', err);
+      let errorMessage = 'Erreur lors de l\'enregistrement des configurations';
+      
       if (err.response) {
         if (err.response.status === 403) {
-          setError('Accès refusé: Vous n\'avez pas les permissions nécessaires pour modifier les configurations globales.');
+          errorMessage = 'Accès refusé: Vous n\'avez pas les permissions nécessaires pour modifier les configurations globales.';
         } else if (err.response.status === 401) {
-          setError('Session expirée: Veuillez vous reconnecter.');
+          errorMessage = 'Session expirée: Veuillez vous reconnecter.';
         } else {
-          setError(`Erreur ${err.response.status}: ${err.response.data?.error || 'Erreur lors de l\'enregistrement des configurations'}`);
+          errorMessage = `Erreur ${err.response.status}: ${err.response.data?.error || 'Erreur lors de l\'enregistrement des configurations'}`;
         }
       } else if (err.request) {
-        setError('Erreur réseau: Impossible de contacter le serveur. Vérifiez votre connexion.');
+        errorMessage = 'Erreur réseau: Impossible de contacter le serveur. Vérifiez votre connexion.';
       } else {
-        setError(`Erreur: ${err.message || 'Erreur lors de l\'enregistrement des configurations'}`);
+        errorMessage = `Erreur: ${err.message || 'Erreur lors de l\'enregistrement des configurations'}`;
       }
+      
+      setError(errorMessage);
+      Swal.fire({
+        icon: 'error',
+        title: 'Erreur',
+        text: errorMessage,
+        confirmButtonColor: '#ef4444',
+        background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+        color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827',
+      });
     } finally {
       setLoading(false);
     }

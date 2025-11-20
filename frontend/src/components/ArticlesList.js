@@ -41,6 +41,8 @@ const ArticlesList = ({ user, onUnauthorized }) => {
   });
   const [matiereSearch, setMatiereSearch] = useState('');
   const [showMatiereDropdown, setShowMatiereDropdown] = useState(false);
+  const [uniteSearch, setUniteSearch] = useState('');
+  const [showUniteDropdown, setShowUniteDropdown] = useState(false);
   const [hoveredArticle, setHoveredArticle] = useState(null);
   const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
   const [hoveredArticleDetails, setHoveredArticleDetails] = useState(null);
@@ -164,16 +166,20 @@ const ArticlesList = ({ user, onUnauthorized }) => {
         setShowMatiereDropdown(false);
         setMatiereSearch('');
       }
+      if (showUniteDropdown && !event.target.closest('.unite-dropdown-container')) {
+        setShowUniteDropdown(false);
+        setUniteSearch('');
+      }
     };
 
-    if (showMatiereDropdown) {
+    if (showMatiereDropdown || showUniteDropdown) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showMatiereDropdown]);
+  }, [showMatiereDropdown, showUniteDropdown]);
 
   // Nettoyer le timeout au démontage
   useEffect(() => {
@@ -213,11 +219,25 @@ const ArticlesList = ({ user, onUnauthorized }) => {
       )
     : matieresPlomberie;
 
+  // Filtrer les unités selon la recherche
+  const filteredUnites = uniteSearch
+    ? unitesMesure.filter((unite) =>
+        unite.toLowerCase().includes(uniteSearch.toLowerCase())
+      )
+    : unitesMesure;
+
   // Gérer la sélection d'une matière
   const handleMatiereSelect = (matiere) => {
     setForm((prev) => ({ ...prev, Matiere: matiere }));
     setMatiereSearch('');
     setShowMatiereDropdown(false);
+  };
+
+  // Gérer la sélection d'une unité
+  const handleUniteSelect = (unite) => {
+    setForm((prev) => ({ ...prev, Unite: unite }));
+    setUniteSearch('');
+    setShowUniteDropdown(false);
   };
 
   // Gérer le changement dans le champ de recherche matière
@@ -226,6 +246,14 @@ const ArticlesList = ({ user, onUnauthorized }) => {
     setMatiereSearch(value);
     setForm((prev) => ({ ...prev, Matiere: value }));
     setShowMatiereDropdown(true);
+  };
+
+  // Gérer le changement dans le champ de recherche unité
+  const handleUniteSearchChange = (e) => {
+    const value = e.target.value;
+    setUniteSearch(value);
+    setForm((prev) => ({ ...prev, Unite: value }));
+    setShowUniteDropdown(true);
   };
 
   const resetForm = () => {
@@ -254,6 +282,8 @@ const ArticlesList = ({ user, onUnauthorized }) => {
     setSuccess('');
     setMatiereSearch('');
     setShowMatiereDropdown(false);
+    setUniteSearch('');
+    setShowUniteDropdown(false);
   };
 
   const handleEdit = async (id) => {
@@ -261,6 +291,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
       setLoading(true);
       const article = await getArticleById(id);
       const matiere = article.Matiere || '';
+      const unite = article.Unite || '';
       
       // Charger l'historique des prix actifs
       let prixFournitureHT = '';
@@ -307,7 +338,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
         IdFamille: article.IdFamille ? String(article.IdFamille) : '',
         Designation: article.Designation || '',
         Description: article.Description || '',
-        Unite: article.Unite || '',
+        Unite: unite,
         Diametre: article.Diametre || '',
         Matiere: matiere,
         Classe: article.Classe || '',
@@ -325,6 +356,8 @@ const ArticlesList = ({ user, onUnauthorized }) => {
       });
       setMatiereSearch(matiere);
       setShowMatiereDropdown(false);
+      setUniteSearch(unite);
+      setShowUniteDropdown(false);
       setEditingId(id);
       setError('');
       setSuccess('');
@@ -516,10 +549,10 @@ const ArticlesList = ({ user, onUnauthorized }) => {
         </h1>
 
         {/* Formulaire de création/modification */}
-        <div className="glass-card p-6 mb-6">
-          <div className="mb-6">
-            <h2 className="text-2xl font-semibold mb-2 dark:text-white text-gray-900 flex items-center gap-2">
-              <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="glass-card p-4 mb-6">
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold mb-1 dark:text-white text-gray-900 flex items-center gap-2">
+              <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
               {editingId ? 'Modifier un Article' : 'Créer un Nouvel Article'}
@@ -527,8 +560,8 @@ const ArticlesList = ({ user, onUnauthorized }) => {
           </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-sm flex items-center gap-2">
-              <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <div className="mb-3 p-2 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-xs flex items-center gap-2">
+              <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
               </svg>
               <span>{error}</span>
@@ -536,36 +569,36 @@ const ArticlesList = ({ user, onUnauthorized }) => {
           )}
 
           {success && (
-            <div className="mb-4 p-3 bg-green-500/20 border border-green-500/50 rounded-lg text-green-400 text-sm flex items-center gap-2">
-              <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <div className="mb-3 p-2 bg-green-500/20 border border-green-500/50 rounded-lg text-green-400 text-xs flex items-center gap-2">
+              <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
               <span>{success}</span>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {/* Section: Informations principales */}
             <div>
-              <h3 className="text-lg font-semibold mb-4 dark:text-white text-gray-900 flex items-center gap-2">
-                <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <h3 className="text-sm font-semibold mb-2 dark:text-white text-gray-900 flex items-center gap-2">
+                <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 Informations principales
               </h3>
               
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {/* Famille avec icône + */}
-                <div className="flex gap-3 items-end">
+                <div className="flex gap-2 items-end">
                   <div className="flex-1">
-                    <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
+                    <label className="block text-xs font-medium dark:text-gray-300 text-gray-700 mb-1">
                       Famille d'Article <span className="text-red-400">*</span>
                     </label>
                     <select
                       name="IdFamille"
                       value={form.IdFamille}
                       onChange={handleChange}
-                      className="w-full px-4 py-2.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                      className="w-full px-3 py-1.5 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
                       required
                     >
                       <option value="">Sélectionner une famille</option>
@@ -579,10 +612,10 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                   <button
                     type="button"
                     onClick={() => setShowFamilleModal(true)}
-                    className="p-2.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 hover:border-blue-500/50 transition-all group"
+                    className="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 hover:border-blue-500/50 transition-all group"
                     title="Créer une nouvelle famille"
                   >
-                    <svg className="w-5 h-5 text-blue-500 group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-blue-500 group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
                   </button>
@@ -590,7 +623,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
 
                 {/* Désignation */}
                 <div>
-                  <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
+                  <label className="block text-xs font-medium dark:text-gray-300 text-gray-700 mb-1">
                     Désignation <span className="text-red-400">*</span>
                   </label>
                   <input
@@ -599,35 +632,68 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     onChange={handleChange}
                     maxLength={200}
                     placeholder="Ex: Tuyau, Raccord, Manchon, Coude..."
-                    className="w-full px-4 py-2.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                    className="w-full px-3 py-1.5 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
                     required
                   />
                 </div>
 
-                {/* Unité - largeur réduite */}
-                <div className="max-w-xs">
-                  <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
+                {/* Unité */}
+                <div className="max-w-xs relative unite-dropdown-container">
+                  <label className="block text-xs font-medium dark:text-gray-300 text-gray-700 mb-1">
                     Unité <span className="text-red-400">*</span>
                   </label>
-                  <select
-                    name="Unite"
-                    value={form.Unite}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
-                    required
-                  >
-                    <option value="">Sélectionner une unité</option>
-                    {unitesMesure.map((unite) => (
-                      <option key={unite} value={unite}>
-                        {unite}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={form.Unite}
+                      onChange={handleUniteSearchChange}
+                      onFocus={() => {
+                        setShowUniteDropdown(true);
+                        setUniteSearch(form.Unite);
+                      }}
+                      maxLength={50}
+                      placeholder="Rechercher..."
+                      className="w-full px-3 py-1.5 pr-8 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                      required
+                    />
+                    <svg
+                      className="absolute right-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    {showUniteDropdown && (
+                      <>
+                        {filteredUnites.length > 0 ? (
+                          <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border dark:border-white/20 border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                            {filteredUnites.map((unite) => (
+                              <button
+                                key={unite}
+                                type="button"
+                                onClick={() => handleUniteSelect(unite)}
+                                className="w-full text-left px-3 py-2 text-sm hover:bg-blue-500/20 dark:hover:bg-blue-500/20 dark:text-white text-gray-900 transition-colors first:rounded-t-lg last:rounded-b-lg"
+                              >
+                                {unite}
+                              </button>
+                            ))}
+                          </div>
+                        ) : (
+                          uniteSearch && (
+                            <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border dark:border-white/20 border-gray-300 rounded-lg shadow-lg p-3">
+                              <p className="text-xs text-gray-500 dark:text-gray-400">Aucune unité trouvée</p>
+                            </div>
+                          )
+                        )}
+                      </>
+                    )}
+                  </div>
                 </div>
 
                 {/* Description */}
                 <div>
-                  <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
+                  <label className="block text-xs font-medium dark:text-gray-300 text-gray-700 mb-1">
                     Description
                   </label>
                   <textarea
@@ -637,15 +703,15 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     maxLength={500}
                     rows={2}
                     placeholder="Description détaillée de l'article..."
-                    className="w-full px-4 py-2.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all resize-none"
+                    className="w-full px-3 py-1.5 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all resize-none"
                   />
                 </div>
               </div>
             </div>
 
             {/* Section: Variantes (optionnel) */}
-            <div className="border-t dark:border-white/10 border-gray-200/50 pt-4">
-              <h3 className="text-base font-medium mb-3 dark:text-gray-300 text-gray-700">
+            <div className="border-t dark:border-white/10 border-gray-200/50 pt-3">
+              <h3 className="text-sm font-medium mb-2 dark:text-gray-300 text-gray-700">
                 Spécifications Techniques <span className="text-xs font-normal text-gray-400">(optionnel)</span>
               </h3>
               
@@ -821,12 +887,12 @@ const ArticlesList = ({ user, onUnauthorized }) => {
             </div>
 
             {/* Section: Prix */}
-            <div className="border-t dark:border-white/10 border-gray-200/50 pt-4">
-              <h3 className="text-base font-medium mb-3 dark:text-gray-300 text-gray-700">
+            <div className="border-t dark:border-white/10 border-gray-200/50 pt-3">
+              <h3 className="text-sm font-medium mb-2 dark:text-gray-300 text-gray-700">
                 Historique des Prix <span className="text-xs font-normal text-gray-400">(optionnel)</span>
               </h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
                 {/* Prix HT Fourniture */}
                 <div>
                   <label className="block text-xs font-medium dark:text-gray-400 text-gray-600 mb-1">
@@ -839,7 +905,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     value={form.PrixFournitureHT}
                     onChange={handleChange}
                     placeholder="0.00"
-                    className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                    className="w-full px-2 py-1.5 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
                   />
                 </div>
                 
@@ -855,7 +921,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     value={form.PrixPoseHT}
                     onChange={handleChange}
                     placeholder="0.00"
-                    className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                    className="w-full px-2 py-1.5 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
                   />
                 </div>
                 
@@ -869,7 +935,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     name="DateDebutApplication"
                     value={form.DateDebutApplication}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                    className="w-full px-2 py-1.5 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
                   />
                 </div>
                 
@@ -878,25 +944,25 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                   <label className="block text-xs font-medium dark:text-gray-400 text-gray-600 mb-1">
                     Taux TVA utilisé
                   </label>
-                  <div className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 flex items-center">
+                  <div className="w-full px-2 py-1.5 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 flex items-center">
                     <span className="font-bold text-blue-500">{globalTVA}%</span>
                   </div>
                 </div>
               </div>
               
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                 {editingId 
                   ? "Modifier ces informations créera un nouvel historique des prix pour l'article." 
                   : "Ces informations seront enregistrées comme l'historique des prix de l'article."}
               </p>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t dark:border-white/10 border-gray-200/50">
+            <div className="flex justify-end gap-2 pt-3 border-t dark:border-white/10 border-gray-200/50">
               {editingId && (
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="px-6 py-2.5 bg-gray-500/80 hover:bg-gray-500 text-white rounded-lg font-medium shadow-lg transition-colors"
+                  className="px-4 py-1.5 text-sm bg-gray-500/80 hover:bg-gray-500 text-white rounded-lg font-medium shadow-lg transition-colors"
                 >
                   Annuler
                 </button>
@@ -904,7 +970,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
               <button
                 type="submit"
                 disabled={submitting}
-                className="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-medium shadow-lg hover:from-blue-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+                className="px-4 py-1.5 text-sm bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-medium shadow-lg hover:from-blue-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
               >
                 {submitting ? (
                   <>
