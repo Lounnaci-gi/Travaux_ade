@@ -3791,19 +3791,24 @@ app.get('/api/articles', async (req, res) => {
         a.Couleur,
         a.Caracteristiques,
         f.LibelleFamille,
-        ph.PrixHT,
-        ph.TauxTVA
+        pf.PrixHT AS PrixFournitureHT,
+        pf.TauxTVA AS TauxTVAFourniture,
+        pf.DateDebutApplication AS DateDebutFourniture,
+        pp.PrixHT AS PrixPoseHT,
+        pp.TauxTVA AS TauxTVAPose,
+        pp.DateDebutApplication AS DateDebutPose
       FROM Article a
       LEFT JOIN ArticleFamille f ON a.IdFamille = f.IdFamille
-      OUTER APPLY (
-        SELECT TOP 1 PrixHT, TauxTVA
-        FROM ArticlePrixHistorique
-        WHERE IdArticle = a.IdArticle
-          AND EstActif = 1
-          AND DateDebutApplication <= GETDATE()
-          AND (DateFinApplication IS NULL OR DateFinApplication >= GETDATE())
-        ORDER BY DateDebutApplication DESC
-      ) ph
+      LEFT JOIN ArticlePrixHistorique pf ON a.IdArticle = pf.IdArticle 
+        AND pf.TypePrix = 'FOURNITURE' 
+        AND pf.EstActif = 1
+        AND pf.DateDebutApplication <= GETDATE()
+        AND (pf.DateFinApplication IS NULL OR pf.DateFinApplication >= GETDATE())
+      LEFT JOIN ArticlePrixHistorique pp ON a.IdArticle = pp.IdArticle 
+        AND pp.TypePrix = 'POSE' 
+        AND pp.EstActif = 1
+        AND pp.DateDebutApplication <= GETDATE()
+        AND (pp.DateFinApplication IS NULL OR pp.DateFinApplication >= GETDATE())
       ORDER BY a.Designation
     `);
     res.json(result.recordset);

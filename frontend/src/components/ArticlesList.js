@@ -826,69 +826,40 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                 Historique des Prix <span className="text-xs font-normal text-gray-400">(optionnel)</span>
               </h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Prix Fourniture */}
-                <div className="border dark:border-white/10 border-gray-200 rounded-lg p-4">
-                  <h4 className="text-sm font-semibold mb-3 dark:text-white text-gray-900">Prix Fourniture</h4>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-xs font-medium dark:text-gray-400 text-gray-600 mb-1">
-                        Prix HT Fourniture
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        name="PrixFournitureHT"
-                        value={form.PrixFournitureHT}
-                        onChange={handleChange}
-                        placeholder="0.00"
-                        className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
-                      />
-                    </div>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                {/* Prix HT Fourniture */}
+                <div>
+                  <label className="block text-xs font-medium dark:text-gray-400 text-gray-600 mb-1">
+                    Prix HT Fourniture
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="PrixFournitureHT"
+                    value={form.PrixFournitureHT}
+                    onChange={handleChange}
+                    placeholder="0.00"
+                    className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                  />
                 </div>
                 
-                {/* Prix Pose */}
-                <div className="border dark:border-white/10 border-gray-200 rounded-lg p-4">
-                  <h4 className="text-sm font-semibold mb-3 dark:text-white text-gray-900">Prix Pose</h4>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-xs font-medium dark:text-gray-400 text-gray-600 mb-1">
-                        Prix HT Pose
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        name="PrixPoseHT"
-                        value={form.PrixPoseHT}
-                        onChange={handleChange}
-                        placeholder="0.00"
-                        className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
-                <div className="md:col-span-2 lg:col-span-3">
-                  <div className="bg-blue-500/10 dark:bg-blue-500/20 border border-blue-500/30 dark:border-blue-500/50 rounded-lg p-3">
-                    <div className="flex items-center gap-2">
-                      <svg className="w-5 h-5 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <div>
-                        <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                          Taux TVA utilisé : <span className="font-bold">{globalTVA}%</span>
-                        </p>
-                        <p className="text-xs text-blue-600 dark:text-blue-400">
-                          Ce taux est défini dans la configuration globale et s'applique à tous les articles
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                {/* Prix HT Pose */}
+                <div>
+                  <label className="block text-xs font-medium dark:text-gray-400 text-gray-600 mb-1">
+                    Prix HT Pose
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="PrixPoseHT"
+                    value={form.PrixPoseHT}
+                    onChange={handleChange}
+                    placeholder="0.00"
+                    className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                  />
                 </div>
                 
+                {/* Date Début Application */}
                 <div>
                   <label className="block text-xs font-medium dark:text-gray-400 text-gray-600 mb-1">
                     Date Début Application
@@ -901,8 +872,19 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
                   />
                 </div>
+                
+                {/* Taux TVA */}
+                <div>
+                  <label className="block text-xs font-medium dark:text-gray-400 text-gray-600 mb-1">
+                    Taux TVA utilisé
+                  </label>
+                  <div className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 flex items-center">
+                    <span className="font-bold text-blue-500">{globalTVA}%</span>
+                  </div>
+                </div>
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
                 {editingId 
                   ? "Modifier ces informations créera un nouvel historique des prix pour l'article." 
                   : "Ces informations seront enregistrées comme l'historique des prix de l'article."}
@@ -1049,7 +1031,9 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Désignation</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Famille</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Unité</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Prix HT</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Prix HT Fourniture</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Prix HT Pose</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Date Début Application</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Description</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Actions</th>
                   </tr>
@@ -1057,7 +1041,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                 <tbody>
                   {articles.length === 0 ? (
                     <tr>
-                      <td colSpan="7" className="py-8 text-center text-gray-400">
+                      <td colSpan="10" className="py-8 text-center text-gray-400">
                         Aucun article trouvé
                       </td>
                     </tr>
@@ -1145,7 +1129,15 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                           {article.Unite}
                         </td>
                         <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700 font-semibold">
-                          {article.PrixHT != null ? `${parseFloat(article.PrixHT).toFixed(2)} DH` : '—'}
+                          {article.PrixFournitureHT != null ? `${parseFloat(article.PrixFournitureHT).toFixed(2)} DH` : '—'}
+                        </td>
+                        <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700 font-semibold">
+                          {article.PrixPoseHT != null ? `${parseFloat(article.PrixPoseHT).toFixed(2)} DH` : '—'}
+                        </td>
+                        <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">
+                          {article.DateDebutFourniture || article.DateDebutPose 
+                            ? new Date(article.DateDebutFourniture || article.DateDebutPose).toLocaleDateString('fr-FR') 
+                            : '—'}
                         </td>
                         <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">
                           {article.Description || '—'}
