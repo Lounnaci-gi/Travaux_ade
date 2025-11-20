@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { alertSuccess, alertError, confirmDialog } from '../ui/alerts';
-import { getArticles, getArticleById, createArticle, updateArticle, getArticleFamilles, createArticleFamille, createArticlePrixHistorique } from '../services/api';
+import { getArticles, getArticleById, createArticle, updateArticle, getArticleFamilles, createArticleFamille, createArticlePrixHistorique, getArticlePrixHistorique } from '../services/api';
 import { isAdmin } from '../utils/auth';
 import { getConfigurations } from '../services/api';
 
@@ -261,6 +261,48 @@ const ArticlesList = ({ user, onUnauthorized }) => {
       setLoading(true);
       const article = await getArticleById(id);
       const matiere = article.Matiere || '';
+      
+      // Charger l'historique des prix actifs
+      let prixFournitureHT = '';
+      let prixPoseHT = '';
+      let dateDebutApplication = new Date().toISOString().split('T')[0];
+      
+      try {
+        const prixHistorique = await getArticlePrixHistorique(id);
+        console.log('Prix historique récupéré:', prixHistorique);
+        if (prixHistorique && Array.isArray(prixHistorique)) {
+          // Trouver les prix actifs pour Fourniture et Pose
+          const prixFournitureActif = prixHistorique.find(
+            p => p.TypePrix === 'FOURNITURE' && p.EstActif === true
+          );
+          const prixPoseActif = prixHistorique.find(
+            p => p.TypePrix === 'POSE' && p.EstActif === true
+          );
+          
+          console.log('Prix Fourniture actif trouvé:', prixFournitureActif);
+          console.log('Prix Pose actif trouvé:', prixPoseActif);
+          
+          if (prixFournitureActif) {
+            prixFournitureHT = prixFournitureActif.PrixHT != null ? String(prixFournitureActif.PrixHT) : '';
+          }
+          if (prixPoseActif) {
+            prixPoseHT = prixPoseActif.PrixHT != null ? String(prixPoseActif.PrixHT) : '';
+          }
+          
+          console.log('Prix à charger - Fourniture:', prixFournitureHT, 'Pose:', prixPoseHT);
+          
+          // Utiliser la date de début la plus récente si disponible
+          if (prixFournitureActif && prixFournitureActif.DateDebutApplication) {
+            dateDebutApplication = new Date(prixFournitureActif.DateDebutApplication).toISOString().split('T')[0];
+          } else if (prixPoseActif && prixPoseActif.DateDebutApplication) {
+            dateDebutApplication = new Date(prixPoseActif.DateDebutApplication).toISOString().split('T')[0];
+          }
+        }
+      } catch (prixError) {
+        console.error('Erreur lors du chargement de l\'historique des prix:', prixError);
+        // Continue avec les valeurs par défaut
+      }
+      
       setForm({
         IdFamille: article.IdFamille ? String(article.IdFamille) : '',
         Designation: article.Designation || '',
@@ -275,10 +317,10 @@ const ArticlesList = ({ user, onUnauthorized }) => {
         Epaisseur: article.Epaisseur != null ? String(article.Epaisseur) : '',
         Couleur: article.Couleur || '',
         Caracteristiques: article.Caracteristiques || '',
-        // Article Prix Historique fields (empty for edit mode)
-        PrixFournitureHT: '',
-        PrixPoseHT: '',
-        DateDebutApplication: '',
+        // Article Prix Historique fields - charger les prix actifs
+        PrixFournitureHT: prixFournitureHT,
+        PrixPoseHT: prixPoseHT,
+        DateDebutApplication: dateDebutApplication,
         DateFinApplication: '',
       });
       setMatiereSearch(matiere);

@@ -4389,6 +4389,7 @@ app.get('/api/articles/:id/prix-historique', verifyToken, async (req, res) => {
         SELECT 
           IdPrixHistorique,
           IdArticle,
+          TypePrix,
           PrixHT,
           TauxTVA,
           DateDebutApplication,
