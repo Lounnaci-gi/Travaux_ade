@@ -1279,10 +1279,10 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                           {article.Unite}
                         </td>
                         <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700 font-semibold">
-                          {article.PrixFournitureHT != null ? `${parseFloat(article.PrixFournitureHT).toFixed(2)} DH` : '—'}
+                          {article.PrixFournitureHT != null ? `${parseFloat(article.PrixFournitureHT).toFixed(2)} DZD` : '—'}
                         </td>
                         <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700 font-semibold">
-                          {article.PrixPoseHT != null ? `${parseFloat(article.PrixPoseHT).toFixed(2)} DH` : '—'}
+                          {article.PrixPoseHT != null ? `${parseFloat(article.PrixPoseHT).toFixed(2)} DZD` : '—'}
                         </td>
                         <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">
                           {article.DateDebutFourniture || article.DateDebutPose 

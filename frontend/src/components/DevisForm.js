@@ -631,7 +631,7 @@ const DevisForm = ({ user }) => {
                                             {art.PrixUnitaireHT !== undefined && (
                                               <div className="flex justify-between">
                                                 <span className="text-gray-500 dark:text-gray-400">Prix HT:</span>
-                                                <span className="font-medium">{art.PrixUnitaireHT?.toFixed(2)} DA</span>
+                                                <span className="font-medium">{art.PrixUnitaireHT?.toFixed(2)} DZD</span>
                                               </div>
                                             )}
                                             {art.TauxTVA !== undefined && (
