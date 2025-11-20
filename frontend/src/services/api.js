@@ -204,6 +204,22 @@ export const getPendingDemandesCount = async () => {
   return response.data;
 };
 
+// Configuration Globale
+export const getConfigurations = async () => {
+  const response = await api.get('/configurations');
+  return response.data;
+};
+
+export const getConfigurationByKey = async (key) => {
+  const response = await api.get(`/configurations/${key}`);
+  return response.data;
+};
+
+export const updateConfiguration = async (key, payload) => {
+  const response = await api.put(`/configurations/${key}`, payload);
+  return response.data;
+};
+
 export const validateDemande = async (demandeId, typeValidation) => {
   const response = await api.post(`/demandes/${demandeId}/validate`, { typeValidation });
   return response.data;

@@ -940,6 +940,8 @@ app.get('/api/unites', async (req, res) => {
         u.Fax,
         u.Email,
         u.SiteWeb,
+        u.NumerocompteBancaire,
+        u.NumeroComptePostal,
         u.Actif
       FROM Unite u
       WHERE u.Actif = 1
@@ -1223,6 +1225,13 @@ app.get('/api/centres', async (req, res) => {
         c.Adresse,
         c.Commune,
         c.CodePostal,
+        c.TelephonePrincipal,
+        c.TelephoneSecondaire,
+        c.Fax,
+        c.Email,
+        c.NomBanque,
+        c.NumerocompteBancaire,
+        c.NumeroComptePostal,
         c.Actif
       FROM Centre c
       INNER JOIN Unite u ON c.IdUnite = u.IdUnite
@@ -1465,6 +1474,13 @@ app.get('/api/agences', async (req, res) => {
         a.IdCentre,
         a.CodeAgence,
         a.NomAgence,
+        a.Adresse,
+        a.Commune,
+        a.CodePostal,
+        a.TelephonePrincipal,
+        a.TelephoneSecondaire,
+        a.Fax,
+        a.Email,
         c.IdUnite,
         u.NomUnite
       FROM AgenceCommerciale a
@@ -1628,6 +1644,35 @@ app.put('/api/agences/:id', verifyToken, async (req, res) => {
     if (update.recordset.length === 0) {
       return res.status(404).json({ error: 'Agence introuvable' });
     }
+
+    res.json(update.recordset[0]);
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour de la configuration:', error);
+    res.status(500).json({ error: error.message || 'Erreur serveur' });
+  }
+});
+
+// Mise à jour d'un article
+app.put('/api/articles/:id', verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { titre, contenu, auteur, datePublication } = req.body;
+
+    const update = await pool.request()
+      .input('id', sql.Int, id)
+      .input('titre', sql.NVarChar, titre)
+      .input('contenu', sql.NVarChar, contenu)
+      .input('auteur', sql.NVarChar, auteur)
+      .input('datePublication', sql.DateTime, datePublication)
+      .query(`
+        UPDATE Articles
+        SET titre = @titre,
+            contenu = @contenu,
+            auteur = @auteur,
+            datePublication = @datePublication
+        WHERE id = @id
+        SELECT * FROM Articles WHERE id = @id
+      `);
 
     res.json(update.recordset[0]);
   } catch (error) {
@@ -3842,17 +3887,11 @@ app.post('/api/articles', verifyToken, async (req, res) => {
       .input('Couleur', sql.NVarChar(30), Couleur?.trim() || null)
       .input('Caracteristiques', sql.NVarChar(500), Caracteristiques?.trim() || null)
       .query(`
-        INSERT INTO Article (
-          IdFamille, CodeArticle, Designation, Description, Unite,
-          Diametre, Matiere, Classe, Pression, Longueur, Largeur, Epaisseur, Couleur, Caracteristiques,
-          Actif, DateCreation
-        )
+        INSERT INTO Article (IdFamille, CodeArticle, Designation, Description, Unite, Actif, DateCreation,
+          Diametre, Matiere, Classe, Pression, Longueur, Largeur, Epaisseur, Couleur, Caracteristiques)
         OUTPUT INSERTED.*
-        VALUES (
-          @IdFamille, @CodeArticle, @Designation, @Description, @Unite,
-          @Diametre, @Matiere, @Classe, @Pression, @Longueur, @Largeur, @Epaisseur, @Couleur, @Caracteristiques,
-          1, GETDATE()
-        )
+        VALUES (@IdFamille, @CodeArticle, @Designation, @Description, @Unite, 1, GETDATE(),
+          @Diametre, @Matiere, @Classe, @Pression, @Longueur, @Largeur, @Epaisseur, @Couleur, @Caracteristiques)
       `);
 
     res.status(201).json(insert.recordset[0]);
@@ -3861,6 +3900,125 @@ app.post('/api/articles', verifyToken, async (req, res) => {
     if (error.number === 2627 || error.number === 2601) {
       return res.status(409).json({ error: 'Un article avec ce code existe déjà.' });
     }
+    res.status(500).json({ error: error.message || 'Erreur serveur' });
+  }
+});
+
+// ============================================================================
+// CONFIGURATION GLOBALE
+// ============================================================================
+
+// Get all global configurations
+app.get('/api/configurations', verifyToken, async (req, res) => {
+  try {
+    // Only admin users can access global configurations
+    const actorRoleLower = (req.user?.role || '').toLowerCase();
+    const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin') || actorRoleLower.includes('administrateur');
+    
+    if (!isAdminRole) {
+      return res.status(403).json({ error: 'Seuls les administrateurs peuvent accéder aux configurations globales.' });
+    }
+
+    const result = await pool.request().query(`
+      SELECT 
+        IdConfig,
+        Cle,
+        Valeur,
+        Description,
+        TypeDonnee,
+        DateModification,
+        IdUtilisateurModification
+      FROM ConfigurationGlobale
+      ORDER BY Cle
+    `);
+    
+    res.json(result.recordset);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des configurations globales:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Get a specific global configuration by key
+app.get('/api/configurations/:key', verifyToken, async (req, res) => {
+  try {
+    // Only admin users can access global configurations
+    const actorRoleLower = (req.user?.role || '').toLowerCase();
+    const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin') || actorRoleLower.includes('administrateur');
+    
+    if (!isAdminRole) {
+      return res.status(403).json({ error: 'Seuls les administrateurs peuvent accéder aux configurations globales.' });
+    }
+
+    const { key } = req.params;
+    
+    const result = await pool.request()
+      .input('key', sql.NVarChar, key)
+      .query(`
+        SELECT 
+          IdConfig,
+          Cle,
+          Valeur,
+          Description,
+          TypeDonnee,
+          DateModification,
+          IdUtilisateurModification
+        FROM ConfigurationGlobale
+        WHERE Cle = @key
+      `);
+    
+    if (result.recordset.length === 0) {
+      return res.status(404).json({ error: 'Configuration introuvable' });
+    }
+    
+    res.json(result.recordset[0]);
+  } catch (error) {
+    console.error('Erreur lors de la récupération de la configuration:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Update a global configuration
+app.put('/api/configurations/:key', verifyToken, async (req, res) => {
+  try {
+    // Only admin users can update global configurations
+    const actorRoleLower = (req.user?.role || '').toLowerCase();
+    const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin') || actorRoleLower.includes('administrateur');
+    
+    if (!isAdminRole) {
+      return res.status(403).json({ error: 'Seuls les administrateurs peuvent modifier les configurations globales.' });
+    }
+
+    const { key } = req.params;
+    const { Valeur } = req.body;
+    const userId = req.user?.id;
+
+    // Validate input
+    if (Valeur === undefined) {
+      return res.status(400).json({ error: 'La valeur est requise' });
+    }
+
+    const update = await pool.request()
+      .input('key', sql.NVarChar, key)
+      .input('valeur', sql.NVarChar, Valeur)
+      .input('userId', sql.Int, userId)
+      .query(`
+        UPDATE ConfigurationGlobale
+        SET 
+          Valeur = @valeur,
+          DateModification = GETDATE(),
+          IdUtilisateurModification = @userId
+        OUTPUT INSERTED.*
+        WHERE Cle = @key
+      `);
+
+    if (update.recordset.length === 0) {
+      return res.status(404).json({ error: 'Configuration introuvable' });
+    }
+
+    res.json(update.recordset[0]);
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour de la configuration:', error);
     res.status(500).json({ error: error.message || 'Erreur serveur' });
   }
 });
@@ -4264,11 +4422,21 @@ app.post('/api/articles/:id/prix-historique', verifyToken, async (req, res) => {
     if (!id) return res.status(400).json({ error: 'Id invalide' });
 
     const {
+      TypePrix,
       PrixHT,
       TauxTVA,
       DateDebutApplication,
       DateFinApplication
     } = req.body;
+
+    // Vérifier que TypePrix est fourni et valide
+    if (!TypePrix) {
+      return res.status(400).json({ error: 'TypePrix est requis (FOURNITURE ou POSE)' });
+    }
+
+    if (TypePrix !== 'FOURNITURE' && TypePrix !== 'POSE') {
+      return res.status(400).json({ error: 'TypePrix doit être "FOURNITURE" ou "POSE"' });
+    }
 
     if (PrixHT === undefined || PrixHT === null) {
       return res.status(400).json({ error: 'PrixHT est requis' });
@@ -4323,6 +4491,7 @@ app.post('/api/articles/:id/prix-historique', verifyToken, async (req, res) => {
 
     const insert = await pool.request()
       .input('IdArticle', sql.Int, id)
+      .input('TypePrix', sql.NVarChar(20), TypePrix)
       .input('PrixHT', sql.Decimal(18, 2), prixHTValue)
       .input('TauxTVA', sql.Decimal(5, 2), tauxTVAValue)
       .input('DateDebutApplication', sql.Date, dateDebut)
@@ -4330,12 +4499,12 @@ app.post('/api/articles/:id/prix-historique', verifyToken, async (req, res) => {
       .input('IdUtilisateurCreation', sql.Int, req.user?.id)
       .query(`
         INSERT INTO ArticlePrixHistorique (
-          IdArticle, PrixHT, TauxTVA, DateDebutApplication, DateFinApplication,
+          IdArticle, TypePrix, PrixHT, TauxTVA, DateDebutApplication, DateFinApplication,
           EstActif, DateCreation, IdUtilisateurCreation
         )
         OUTPUT INSERTED.*
         VALUES (
-          @IdArticle, @PrixHT, @TauxTVA, @DateDebutApplication, @DateFinApplication,
+          @IdArticle, @TypePrix, @PrixHT, @TauxTVA, @DateDebutApplication, @DateFinApplication,
           1, GETDATE(), @IdUtilisateurCreation
         )
       `);
@@ -4361,6 +4530,7 @@ app.put('/api/articles/prix-historique/:id', verifyToken, async (req, res) => {
     if (!id) return res.status(400).json({ error: 'Id invalide' });
 
     const {
+      TypePrix,
       PrixHT,
       TauxTVA,
       DateDebutApplication,
@@ -4369,6 +4539,12 @@ app.put('/api/articles/prix-historique/:id', verifyToken, async (req, res) => {
     } = req.body;
 
     // Validation des valeurs si fournies
+    if (TypePrix !== undefined && TypePrix !== null) {
+      if (TypePrix !== 'FOURNITURE' && TypePrix !== 'POSE') {
+        return res.status(400).json({ error: 'TypePrix doit être "FOURNITURE" ou "POSE"' });
+      }
+    }
+
     if (PrixHT !== undefined) {
       const prixHTValue = parseFloat(PrixHT);
       if (isNaN(prixHTValue) || prixHTValue < 0) {
@@ -4409,6 +4585,11 @@ app.put('/api/articles/prix-historique/:id', verifyToken, async (req, res) => {
     // Construire la requête de mise à jour dynamiquement
     let updateFields = [];
     let request = pool.request().input('id', sql.Int, id);
+
+    if (TypePrix !== undefined) {
+      updateFields.push('TypePrix = @TypePrix');
+      request.input('TypePrix', sql.NVarChar(20), TypePrix);
+    }
 
     if (PrixHT !== undefined) {
       updateFields.push('PrixHT = @PrixHT');

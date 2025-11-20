@@ -18,6 +18,7 @@ import ArticlesList from './components/ArticlesList';
 import DevisForm from './components/DevisForm';
 import DevisList from './components/DevisList';
 import DevisTypeForm from './components/DevisTypeForm';
+import ParametresForm from './components/ParametresForm';
 
 function App() {
   const [currentView, setCurrentView] = useState('dashboard');
@@ -152,6 +153,8 @@ function App() {
         return <DevisTypeForm user={user} onUnauthorized={() => setCurrentView('dashboard')} />;
       case 'devis-create':
         return <DevisForm user={user} onUnauthorized={() => setCurrentView('dashboard')} />;
+      case 'parametres':
+        return <ParametresForm user={user} />;
       default:
         // Placeholder pour les autres vues
         return (

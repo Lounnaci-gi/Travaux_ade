@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { alertSuccess, alertError, confirmDialog } from '../ui/alerts';
 import { getArticles, getArticleById, createArticle, updateArticle, getArticleFamilles, createArticleFamille, createArticlePrixHistorique } from '../services/api';
 import { isAdmin } from '../utils/auth';
+import { getConfigurations } from '../services/api';
 
 const ArticlesList = ({ user, onUnauthorized }) => {
   const [submitting, setSubmitting] = useState(false);
@@ -16,6 +17,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
     LibelleFamille: '',
     Description: '',
   });
+  const [globalTVA, setGlobalTVA] = useState('19.00'); // Default TVA rate
   const [submittingFamille, setSubmittingFamille] = useState(false);
   const [form, setForm] = useState({
     IdFamille: '',
@@ -32,8 +34,8 @@ const ArticlesList = ({ user, onUnauthorized }) => {
     Couleur: '',
     Caracteristiques: '',
     // Article Prix Historique fields
-    PrixHT: '',
-    TauxTVA: '',
+    PrixFournitureHT: '',
+    PrixPoseHT: '',
     DateDebutApplication: new Date().toISOString().split('T')[0],
     DateFinApplication: '',
   });
@@ -114,6 +116,26 @@ const ArticlesList = ({ user, onUnauthorized }) => {
       }
     }
   }, [user, onUnauthorized]);
+
+  // Fetch global TVA rate
+  useEffect(() => {
+    const fetchGlobalTVA = async () => {
+      try {
+        const configs = await getConfigurations();
+        const tvaConfig = configs.find(config => config.Cle === 'TAUX_TVA_DEFAUT');
+        if (tvaConfig) {
+          setGlobalTVA(tvaConfig.Valeur);
+        }
+      } catch (error) {
+        console.error('Erreur lors de la récupération du taux TVA global:', error);
+        // Keep default TVA rate
+      }
+    };
+
+    if (isAdmin(user)) {
+      fetchGlobalTVA();
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!isAdmin(user)) return;
@@ -222,8 +244,8 @@ const ArticlesList = ({ user, onUnauthorized }) => {
       Couleur: '',
       Caracteristiques: '',
       // Article Prix Historique fields
-      PrixHT: '',
-      TauxTVA: '',
+      PrixFournitureHT: '',
+      PrixPoseHT: '',
       DateDebutApplication: new Date().toISOString().split('T')[0],
       DateFinApplication: '',
     });
@@ -254,8 +276,8 @@ const ArticlesList = ({ user, onUnauthorized }) => {
         Couleur: article.Couleur || '',
         Caracteristiques: article.Caracteristiques || '',
         // Article Prix Historique fields (empty for edit mode)
-        PrixHT: '',
-        TauxTVA: '',
+        PrixFournitureHT: '',
+        PrixPoseHT: '',
         DateDebutApplication: '',
         DateFinApplication: '',
       });
@@ -386,12 +408,13 @@ const ArticlesList = ({ user, onUnauthorized }) => {
         alertSuccess('Succès', 'Article créé avec succès.');
       }
 
-      // Handle Article Prix Historique if values are provided
-      if (form.PrixHT || form.TauxTVA) {
+      // Handle Article Prix Historique for fourniture if values are provided
+      if (form.PrixFournitureHT || form.PrixPoseHT) {
         try {
           const prixPayload = {
-            PrixHT: parseDecimal(form.PrixHT),
-            TauxTVA: parseDecimal(form.TauxTVA) || 0,
+            TypePrix: 'FOURNITURE',
+            PrixHT: parseDecimal(form.PrixFournitureHT),
+            TauxTVA: parseDecimal(globalTVA) || 0,
             DateDebutApplication: form.DateDebutApplication || new Date().toISOString().split('T')[0],
             DateFinApplication: form.DateFinApplication || null,
             EstActif: true,
@@ -403,7 +426,30 @@ const ArticlesList = ({ user, onUnauthorized }) => {
             await createArticlePrixHistorique(articleId, prixPayload);
           }
         } catch (priceError) {
-          console.error('Erreur lors de la création de l\'historique des prix:', priceError);
+          console.error('Erreur lors de la création de l\'historique des prix fourniture:', priceError);
+          // We don't stop the main operation if price history fails
+        }
+      }
+
+      // Handle Article Prix Historique for pose if values are provided
+      if (form.PrixFournitureHT || form.PrixPoseHT) {
+        try {
+          const prixPayload = {
+            TypePrix: 'POSE',
+            PrixHT: parseDecimal(form.PrixPoseHT),
+            TauxTVA: parseDecimal(globalTVA) || 0,
+            DateDebutApplication: form.DateDebutApplication || new Date().toISOString().split('T')[0],
+            DateFinApplication: form.DateFinApplication || null,
+            EstActif: true,
+          };
+
+          // Only create price history if PrixHT is provided
+          if (prixPayload.PrixHT !== null) {
+            const articleId = editingId || articleResult.IdArticle;
+            await createArticlePrixHistorique(articleId, prixPayload);
+          }
+        } catch (priceError) {
+          console.error('Erreur lors de la création de l\'historique des prix pose:', priceError);
           // We don't stop the main operation if price history fails
         }
       }
@@ -737,51 +783,83 @@ const ArticlesList = ({ user, onUnauthorized }) => {
               <h3 className="text-base font-medium mb-3 dark:text-gray-300 text-gray-700">
                 Historique des Prix <span className="text-xs font-normal text-gray-400">(optionnel)</span>
               </h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-xs font-medium dark:text-gray-400 text-gray-600 mb-1">
-                      Prix HT
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      name="PrixHT"
-                      value={form.PrixHT}
-                      onChange={handleChange}
-                      placeholder="0.00"
-                      className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-xs font-medium dark:text-gray-400 text-gray-600 mb-1">
-                      Taux TVA (%)
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      name="TauxTVA"
-                      value={form.TauxTVA}
-                      onChange={handleChange}
-                      placeholder="20.00"
-                      className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-xs font-medium dark:text-gray-400 text-gray-600 mb-1">
-                      Date Début Application
-                    </label>
-                    <input
-                      type="date"
-                      name="DateDebutApplication"
-                      value={form.DateDebutApplication}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
-                    />
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Prix Fourniture */}
+                <div className="border dark:border-white/10 border-gray-200 rounded-lg p-4">
+                  <h4 className="text-sm font-semibold mb-3 dark:text-white text-gray-900">Prix Fourniture</h4>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-medium dark:text-gray-400 text-gray-600 mb-1">
+                        Prix HT Fourniture
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        name="PrixFournitureHT"
+                        value={form.PrixFournitureHT}
+                        onChange={handleChange}
+                        placeholder="0.00"
+                        className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                      />
+                    </div>
                   </div>
                 </div>
+                
+                {/* Prix Pose */}
+                <div className="border dark:border-white/10 border-gray-200 rounded-lg p-4">
+                  <h4 className="text-sm font-semibold mb-3 dark:text-white text-gray-900">Prix Pose</h4>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-medium dark:text-gray-400 text-gray-600 mb-1">
+                        Prix HT Pose
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        name="PrixPoseHT"
+                        value={form.PrixPoseHT}
+                        onChange={handleChange}
+                        placeholder="0.00"
+                        className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
+                <div className="md:col-span-2 lg:col-span-3">
+                  <div className="bg-blue-500/10 dark:bg-blue-500/20 border border-blue-500/30 dark:border-blue-500/50 rounded-lg p-3">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-5 h-5 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <div>
+                        <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                          Taux TVA utilisé : <span className="font-bold">{globalTVA}%</span>
+                        </p>
+                        <p className="text-xs text-blue-600 dark:text-blue-400">
+                          Ce taux est défini dans la configuration globale et s'applique à tous les articles
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-xs font-medium dark:text-gray-400 text-gray-600 mb-1">
+                    Date Début Application
+                  </label>
+                  <input
+                    type="date"
+                    name="DateDebutApplication"
+                    value={form.DateDebutApplication}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                  />
+                </div>
+              </div>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                 {editingId 
                   ? "Modifier ces informations créera un nouvel historique des prix pour l'article." 
@@ -808,7 +886,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                   <>
                     <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 118-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                     En cours...
                   </>
