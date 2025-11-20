@@ -43,6 +43,8 @@ const ArticlesList = ({ user, onUnauthorized }) => {
   const [showMatiereDropdown, setShowMatiereDropdown] = useState(false);
   const [uniteSearch, setUniteSearch] = useState('');
   const [showUniteDropdown, setShowUniteDropdown] = useState(false);
+  const [familleSearch, setFamilleSearch] = useState('');
+  const [showFamilleDropdown, setShowFamilleDropdown] = useState(false);
   const [hoveredArticle, setHoveredArticle] = useState(null);
   const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
   const [hoveredArticleDetails, setHoveredArticleDetails] = useState(null);
@@ -170,16 +172,20 @@ const ArticlesList = ({ user, onUnauthorized }) => {
         setShowUniteDropdown(false);
         setUniteSearch('');
       }
+      if (showFamilleDropdown && !event.target.closest('.famille-dropdown-container')) {
+        setShowFamilleDropdown(false);
+        setFamilleSearch('');
+      }
     };
 
-    if (showMatiereDropdown || showUniteDropdown) {
+    if (showMatiereDropdown || showUniteDropdown || showFamilleDropdown) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showMatiereDropdown, showUniteDropdown]);
+  }, [showMatiereDropdown, showUniteDropdown, showFamilleDropdown]);
 
   // Nettoyer le timeout au démontage
   useEffect(() => {
@@ -226,6 +232,13 @@ const ArticlesList = ({ user, onUnauthorized }) => {
       )
     : unitesMesure;
 
+  // Filtrer les familles selon la recherche
+  const filteredFamilles = familleSearch
+    ? familles.filter((famille) =>
+        famille.LibelleFamille.toLowerCase().includes(familleSearch.toLowerCase())
+      )
+    : familles;
+
   // Gérer la sélection d'une matière
   const handleMatiereSelect = (matiere) => {
     setForm((prev) => ({ ...prev, Matiere: matiere }));
@@ -238,6 +251,13 @@ const ArticlesList = ({ user, onUnauthorized }) => {
     setForm((prev) => ({ ...prev, Unite: unite }));
     setUniteSearch('');
     setShowUniteDropdown(false);
+  };
+
+  // Gérer la sélection d'une famille
+  const handleFamilleSelect = (familleId, libelleFamille) => {
+    setForm((prev) => ({ ...prev, IdFamille: familleId }));
+    setFamilleSearch(libelleFamille);
+    setShowFamilleDropdown(false);
   };
 
   // Gérer le changement dans le champ de recherche matière
@@ -254,6 +274,13 @@ const ArticlesList = ({ user, onUnauthorized }) => {
     setUniteSearch(value);
     setForm((prev) => ({ ...prev, Unite: value }));
     setShowUniteDropdown(true);
+  };
+
+  // Gérer le changement dans le champ de recherche famille
+  const handleFamilleSearchChange = (e) => {
+    const value = e.target.value;
+    setFamilleSearch(value);
+    setShowFamilleDropdown(true);
   };
 
   const resetForm = () => {
@@ -284,6 +311,8 @@ const ArticlesList = ({ user, onUnauthorized }) => {
     setShowMatiereDropdown(false);
     setUniteSearch('');
     setShowUniteDropdown(false);
+    setFamilleSearch('');
+    setShowFamilleDropdown(false);
   };
 
   const handleEdit = async (id) => {
@@ -334,6 +363,10 @@ const ArticlesList = ({ user, onUnauthorized }) => {
         // Continue avec les valeurs par défaut
       }
       
+      // Trouver le libellé de la famille
+      const famille = familles.find(f => f.IdFamille === article.IdFamille);
+      const libelleFamille = famille ? famille.LibelleFamille : '';
+          
       setForm({
         IdFamille: article.IdFamille ? String(article.IdFamille) : '',
         Designation: article.Designation || '',
@@ -358,6 +391,8 @@ const ArticlesList = ({ user, onUnauthorized }) => {
       setShowMatiereDropdown(false);
       setUniteSearch(unite);
       setShowUniteDropdown(false);
+      setFamilleSearch(libelleFamille);
+      setShowFamilleDropdown(false);
       setEditingId(id);
       setError('');
       setSuccess('');
@@ -589,16 +624,65 @@ const ArticlesList = ({ user, onUnauthorized }) => {
               
               <div className="space-y-3">
                 {/* Famille avec icône + */}
-                <div className="flex gap-2 items-end">
+                <div className="flex gap-2 items-end relative famille-dropdown-container">
                   <div className="flex-1">
                     <label className="block text-xs font-medium dark:text-gray-300 text-gray-700 mb-1">
                       Famille d'Article <span className="text-red-400">*</span>
                     </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={familleSearch}
+                        onChange={handleFamilleSearchChange}
+                        onFocus={() => {
+                          setShowFamilleDropdown(true);
+                          // Set the search value to the current selected family label
+                          const selectedFamille = familles.find(f => f.IdFamille === parseInt(form.IdFamille));
+                          setFamilleSearch(selectedFamille ? selectedFamille.LibelleFamille : '');
+                        }}
+                        placeholder="Rechercher..."
+                        className="w-full px-3 py-1.5 pr-8 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                        required
+                      />
+                      <svg
+                        className="absolute right-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                      {showFamilleDropdown && (
+                        <>
+                          {filteredFamilles.length > 0 ? (
+                            <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border dark:border-white/20 border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                              {filteredFamilles.map((famille) => (
+                                <button
+                                  key={famille.IdFamille}
+                                  type="button"
+                                  onClick={() => handleFamilleSelect(String(famille.IdFamille), famille.LibelleFamille)}
+                                  className="w-full text-left px-3 py-2 text-sm hover:bg-blue-500/20 dark:hover:bg-blue-500/20 dark:text-white text-gray-900 transition-colors first:rounded-t-lg last:rounded-b-lg"
+                                >
+                                  {famille.LibelleFamille}
+                                </button>
+                              ))}
+                            </div>
+                          ) : (
+                            familleSearch && (
+                              <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border dark:border-white/20 border-gray-300 rounded-lg shadow-lg p-3">
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Aucune famille trouvée</p>
+                              </div>
+                            )
+                          )}
+                        </>
+                      )}
+                    </div>
+                    {/* Hidden select to maintain form functionality */}
                     <select
                       name="IdFamille"
                       value={form.IdFamille}
                       onChange={handleChange}
-                      className="w-full px-3 py-1.5 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                      className="hidden"
                       required
                     >
                       <option value="">Sélectionner une famille</option>

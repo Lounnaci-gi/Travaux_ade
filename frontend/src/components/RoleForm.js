@@ -253,7 +253,7 @@ const RoleForm = ({ user, onUnauthorized }) => {
                     name="CodeRole"
                     value={form.CodeRole}
                     onChange={handleRoleSelect}
-                    className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                    className="select-field w-full px-4 py-3"
                     required
                   >
                     <option value="">Sélectionner un rôle</option>

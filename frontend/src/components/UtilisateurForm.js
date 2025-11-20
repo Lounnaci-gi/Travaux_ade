@@ -477,7 +477,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                         name="Role"
                         value={form.Role}
                         onChange={handleChange}
-                        className="w-full pl-10 pr-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="select-field w-full pl-10 pr-4 py-3"
                         required
                       >
                         <option value="">Sélectionner un rôle</option>
@@ -642,7 +642,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                           IdAgence: '',
                         }));
                       }}
-                      className="w-full px-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="select-field w-full px-4 py-3 disabled:opacity-50 disabled:cursor-not-allowed"
                       disabled={isChefCentreUser}
                     >
                       <option value="">Aucune</option>
@@ -666,7 +666,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                           IdAgence: isRoleRequiringCenter(form.Role) ? '' : prev.IdAgence,
                         }));
                       }}
-                      className="w-full px-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="select-field w-full px-4 py-3 disabled:opacity-50 disabled:cursor-not-allowed"
                       disabled={shouldDisableCenterSelection()}
                     >
                       <option value="">Aucun</option>

@@ -824,7 +824,7 @@ const DemandeForm = ({ user, onCreated }) => {
                 name="idDemandeType"
                 value={form.idDemandeType}
                 onChange={handleChange}
-                className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                className="select-field w-full px-3 py-2 text-sm"
                 required
               >
                 <option value="">Sélectionner un type</option>
@@ -852,7 +852,7 @@ const DemandeForm = ({ user, onCreated }) => {
                   name="idAgence"
                   value={form.idAgence}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  className="select-field w-full px-3 py-2 text-sm"
                   required
                   disabled={user?.idAgence && !isAdmin(user)}
                 >
@@ -939,7 +939,7 @@ const DemandeForm = ({ user, onCreated }) => {
                         <div>
                           <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Type de client *</label>
                           <select
-                            className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs"
+                            className="select-field w-full px-2 py-1.5 text-xs"
                             value={clientForm.idClientType}
                             onChange={(e)=>setClientForm((p)=>({...p, idClientType:e.target.value}))}
                           >
@@ -952,7 +952,7 @@ const DemandeForm = ({ user, onCreated }) => {
                         <div>
                           <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Statut d'occupation *</label>
                           <select
-                            className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs"
+                            className="select-field w-full px-2 py-1.5 text-xs"
                             value={clientForm.statutOccupation}
                             onChange={(e)=>setClientForm((p)=>({...p, statutOccupation:e.target.value}))}
                           >

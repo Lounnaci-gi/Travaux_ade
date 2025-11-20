@@ -74,7 +74,7 @@ const TravauxList = () => {
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="select-field px-4 py-3"
               >
                 <option value="all">Tous les statuts</option>
                 <option value="EMIS">Émis</option>

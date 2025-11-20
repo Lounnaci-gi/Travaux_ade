@@ -249,7 +249,7 @@ const AgenceForm = ({ user, onUnauthorized }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Centre <span className="text-red-400">*</span></label>
-                    <select name="IdCentre" value={form.IdCentre} onChange={handleChange} className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" required>
+                    <select name="IdCentre" value={form.IdCentre} onChange={handleChange} className="select-field w-full px-4 py-3" required>
                       <option value="">Sélectionner un centre</option>
                       {centres.map((c) => (
                         <option key={c.IdCentre} value={c.IdCentre} className="text-black">{c.CodeCentre} - {c.NomCentre}</option>

@@ -248,7 +248,7 @@ const ParametresForm = ({ user }) => {
               <select
                 value={settings.language}
                 onChange={(e) => handleChange('language', e.target.value)}
-                className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="select-field px-4 py-2"
               >
                 <option value="fr">Français</option>
                 <option value="ar">العربية</option>

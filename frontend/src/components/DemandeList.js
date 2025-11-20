@@ -444,7 +444,7 @@ const DemandeList = ({ user }) => {
               <select
                 value={filterStatut}
                 onChange={(e) => setFilterStatut(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                className="select-field w-full px-4 py-2"
               >
                 <option value="all">Tous les statuts</option>
                 {statutsUniques.map((statut) => (
@@ -463,7 +463,7 @@ const DemandeList = ({ user }) => {
               <select
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                className="select-field w-full px-4 py-2"
               >
                 <option value="all">Tous les types</option>
                 {typesUniques.map((type) => (
