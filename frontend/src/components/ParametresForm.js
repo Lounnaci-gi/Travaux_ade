@@ -165,7 +165,7 @@ const ParametresForm = ({ user }) => {
                 </p>
               </div>
               <div className="flex items-center space-x-2">
-                <span className={`px-3 py-1 rounded-lg ${settings.theme === 'light' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'}`}>
+                <span className={`px-3 py-1 rounded-lg ${settings.theme === 'light' ? 'bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'}`}>
                   Clair
                 </span>
                 <button
@@ -178,7 +178,7 @@ const ParametresForm = ({ user }) => {
                     }`}
                   />
                 </button>
-                <span className={`px-3 py-1 rounded-lg ${settings.theme === 'dark' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'}`}>
+                <span className={`px-3 py-1 rounded-lg ${settings.theme === 'dark' ? 'bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'}`}>
                   Sombre
                 </span>
               </div>
@@ -198,7 +198,7 @@ const ParametresForm = ({ user }) => {
               <button
                 onClick={() => handleChange('notifications', !settings.notifications)}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                  settings.notifications ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'
+                  settings.notifications ? 'bg-primary-500' : 'bg-gray-300 dark:bg-gray-600'
                 }`}
               >
                 <span
@@ -223,7 +223,7 @@ const ParametresForm = ({ user }) => {
               <button
                 onClick={() => handleChange('autoSave', !settings.autoSave)}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                  settings.autoSave ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'
+                  settings.autoSave ? 'bg-primary-500' : 'bg-gray-300 dark:bg-gray-600'
                 }`}
               >
                 <span
@@ -272,7 +272,7 @@ const ParametresForm = ({ user }) => {
                     max="100"
                     value={globalConfig.TAUX_TVA_DEFAUT || ''}
                     onChange={(e) => handleGlobalConfigChange('TAUX_TVA_DEFAUT', e.target.value)}
-                    className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full max-w-xs"
+                    className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 w-full max-w-xs"
                   />
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                     Taux de TVA appliqué sur tous les articles
@@ -309,7 +309,7 @@ const ParametresForm = ({ user }) => {
               // Reload page to apply settings
               window.location.reload();
             }}
-            className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors duration-300 font-medium"
+            className="px-6 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors duration-300 font-medium"
           >
             Appliquer les changements
           </button>

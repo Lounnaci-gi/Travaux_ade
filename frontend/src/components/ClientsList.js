@@ -47,7 +47,7 @@ const ClientsList = () => {
     <div className="min-h-screen p-6">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary-400 via-secondary-400 to-primary-300 bg-clip-text text-transparent">
             Liste des Clients
           </h1>
         </div>
@@ -80,7 +80,7 @@ const ClientsList = () => {
           
           {loading ? (
             <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-600"></div>
             </div>
           ) : error ? (
             <div className="p-4 rounded-lg bg-red-500/20 border border-red-500/50 text-red-300 text-sm">
@@ -136,7 +136,7 @@ const ClientsList = () => {
                           </button>
                           <button
                             onClick={() => handleEdit(client)}
-                            className="p-2 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 transition-colors"
+                            className="p-2 rounded-lg bg-primary-500/20 hover:bg-primary-500/30 text-primary-400 transition-colors"
                             title="Modifier"
                           >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

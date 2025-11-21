@@ -140,7 +140,7 @@ const ClientTypeForm = ({ user }) => {
     <div className="min-h-screen p-6">
       <div className="max-w-5xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary-400 via-secondary-400 to-primary-300 bg-clip-text text-transparent">
             Types de Clients
           </h1>
         </div>
@@ -159,7 +159,7 @@ const ClientTypeForm = ({ user }) => {
             </div>
             <div className="md:col-span-2">
               <label className="inline-flex items-center gap-2 text-sm dark:text-gray-300 text-gray-700">
-                <input type="checkbox" name="Actif" checked={form.Actif} onChange={handleChange} className="accent-blue-500" />
+                <input type="checkbox" name="Actif" checked={form.Actif} onChange={handleChange} className="accent-primary-500" />
                 Actif
               </label>
             </div>
@@ -175,7 +175,7 @@ const ClientTypeForm = ({ user }) => {
                 Annuler
               </button>
             )}
-            <button type="submit" disabled={submitting} className="px-6 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold shadow-lg disabled:opacity-50">
+            <button type="submit" disabled={submitting} className="px-6 py-3 rounded-lg bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-semibold shadow-lg disabled:opacity-50">
               {submitting ? (editingId ? 'Mise à jour...' : 'Création...') : (editingId ? 'Mettre à jour' : 'Créer le type')}
             </button>
           </div>
@@ -205,7 +205,7 @@ const ClientTypeForm = ({ user }) => {
           
           {loading ? (
             <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-600"></div>
             </div>
           ) : filteredTypes.length === 0 ? (
             <p className="dark:text-gray-400 text-gray-600">
@@ -241,7 +241,7 @@ const ClientTypeForm = ({ user }) => {
                       <td className="py-3 px-4 text-sm">
                         <button
                           onClick={() => handleEdit(t)}
-                          className="p-2 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 transition-colors"
+                          className="p-2 rounded-lg bg-primary-500/20 hover:bg-primary-500/30 text-primary-400 transition-colors"
                           title="Modifier"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

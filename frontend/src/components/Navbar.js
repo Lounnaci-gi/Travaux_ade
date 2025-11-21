@@ -262,7 +262,7 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
                           onClick={() => handleSubmenuClick(submenu.id)}
                           className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-600 dark:text-gray-300 dark:hover:text-white text-gray-700 hover:text-gray-900 transition-colors duration-200 flex items-center gap-1.5 text-sm"
                         >
-                          <div className="w-1.5 h-1.5 rounded-full bg-blue-600"></div>
+                          <div className="w-1.5 h-1.5 rounded-full bg-primary-600"></div>
                           {submenu.label}
                         </button>
                       ))}
@@ -318,7 +318,7 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
                   onClick={() => setShowUserMenu(!showUserMenu)}
                   className="flex items-center gap-2 px-3 py-1.5 rounded-lg solid-effect hover:bg-gray-100 dark:hover:bg-slate-600 dark:text-gray-300 dark:hover:text-white text-gray-700 hover:text-gray-900 transition-all text-sm"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center text-white text-xs font-bold">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-600 to-primary-800 flex items-center justify-center text-white text-xs font-bold">
                     {user.prenom?.[0]?.toUpperCase() || user.nom?.[0]?.toUpperCase() || 'U'}
                   </div>
                   <span className="hidden lg:flex items-center gap-1 text-xs font-medium dark:text-gray-300 text-gray-600">
@@ -457,7 +457,7 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
                           onClick={() => handleSubmenuClick(submenu.id)}
                           className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-600 dark:text-gray-400 dark:hover:text-white text-gray-600 hover:text-gray-900 transition-colors duration-200 flex items-center gap-1.5 text-xs"
                         >
-                          <div className="w-1.5 h-1.5 rounded-full bg-blue-600"></div>
+                          <div className="w-1.5 h-1.5 rounded-full bg-primary-600"></div>
                           {submenu.label}
                         </button>
                       ))}

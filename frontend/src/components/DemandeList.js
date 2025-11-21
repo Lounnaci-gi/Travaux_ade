@@ -120,13 +120,13 @@ const DemandeList = ({ user }) => {
 
   const getStatutBadgeClass = (codeStatut) => {
     const classes = {
-      'EN_ATTENTE': 'bg-yellow-500/20 text-yellow-400',
-      'EN_COURS': 'bg-blue-500/20 text-blue-400',
-      'VALIDE': 'bg-green-500/20 text-green-400',
-      'REJETE': 'bg-red-500/20 text-red-400',
-      'TERMINE': 'bg-purple-500/20 text-purple-400',
+      'EN_ATTENTE': 'bg-warning/20 text-warning',
+      'EN_COURS': 'bg-primary-500/20 text-primary-400',
+      'VALIDE': 'bg-success/20 text-success',
+      'REJETE': 'bg-error/20 text-error',
+      'TERMINE': 'bg-secondary-500/20 text-secondary-400',
     };
-    return classes[codeStatut] || 'bg-gray-500/20 text-gray-400';
+    return classes[codeStatut] || 'bg-secondary-500/20 text-secondary-400';
   };
 
   // Fonction pour obtenir l'état d'une validation
@@ -135,12 +135,12 @@ const DemandeList = ({ user }) => {
     const date = demande[`DateValidation${validationType}`];
     
     if (!required) {
-      return { status: 'not_required', label: 'Non requise', class: 'bg-gray-500/20 text-gray-400' };
+      return { status: 'not_required', label: 'Non requise', class: 'bg-secondary-500/20 text-secondary-400' };
     }
     if (date) {
-      return { status: 'validated', label: 'Validée', class: 'bg-green-500/20 text-green-400', date };
+      return { status: 'validated', label: 'Validée', class: 'bg-success/20 text-success', date };
     }
-    return { status: 'pending', label: 'En attente', class: 'bg-yellow-500/20 text-yellow-400' };
+    return { status: 'pending', label: 'En attente', class: 'bg-warning/20 text-warning' };
   };
 
   // Fonction pour imprimer une demande
@@ -403,7 +403,7 @@ const DemandeList = ({ user }) => {
   if (loading) {
     return (
       <div className="min-h-screen p-6 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary-600"></div>
       </div>
     );
   }
@@ -413,7 +413,7 @@ const DemandeList = ({ user }) => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary-400 via-secondary-400 to-primary-300 bg-clip-text text-transparent">
             Liste des Demandes
           </h1>
           <p className="dark:text-gray-400 text-gray-600">Gestion des demandes de travaux AquaConnect</p>
@@ -535,7 +535,7 @@ const DemandeList = ({ user }) => {
                         className="border-b border-white/5 dark:border-white/5 border-gray-100/50 hover:bg-white/5 dark:hover:bg-white/5 transition-colors"
                       >
                         <td className="py-2 px-3">
-                          <span className="font-mono font-semibold text-xs dark:text-blue-400 text-blue-600">
+                          <span className="font-mono font-semibold text-xs dark:text-primary-400 text-primary-600">
                             {demande.NumeroDemande}
                           </span>
                         </td>
@@ -653,7 +653,7 @@ const DemandeList = ({ user }) => {
                             {canValidateJuridique && (
                               <button
                                 onClick={() => handleValidate(demande, 'juridique')}
-                                className="px-1.5 py-0.5 rounded bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 text-[10px] font-semibold transition-colors"
+                                className="px-1.5 py-0.5 rounded bg-primary-500/20 hover:bg-primary-500/30 text-primary-400 text-[10px] font-semibold transition-colors"
                                 title="Valider juridiquement"
                               >
                                 ✓ JUR
@@ -694,7 +694,7 @@ const DemandeList = ({ user }) => {
               </span>
               <button
                 onClick={loadDemandes}
-                className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+                className="px-4 py-2 rounded-lg bg-gradient-to-r from-primary-500 to-secondary-500 text-white text-sm font-semibold hover:opacity-90 transition-opacity"
               >
                 Actualiser
               </button>

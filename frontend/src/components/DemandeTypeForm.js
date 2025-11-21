@@ -474,7 +474,7 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
     <div className="min-h-screen p-6">
       <div className="max-w-5xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary-400 via-secondary-400 to-primary-300 bg-clip-text text-transparent">
             Types de Travaux
           </h1>
           <p className="dark:text-gray-400 text-gray-600">Créer et lister les types de travaux (DemandeType)</p>
@@ -501,20 +501,20 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
           
           {/* Bannière d'édition */}
           {editingId && (
-            <div className="mb-6 p-4 rounded-lg bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/50 flex items-center justify-between">
+            <div className="mb-6 p-4 rounded-lg bg-gradient-to-r from-primary-500/20 to-secondary-500/20 border border-primary-500/50 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
                 <div>
-                  <span className="text-blue-300 font-semibold">Mode édition</span>
-                  <span className="text-blue-400/70 text-sm ml-2">ID: {editingId}</span>
+                  <span className="text-primary-300 font-semibold">Mode édition</span>
+                  <span className="text-primary-400/70 text-sm ml-2">ID: {editingId}</span>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={handleCancelEdit}
-                className="px-4 py-2 rounded-lg bg-blue-500/30 hover:bg-blue-500/40 text-blue-200 text-sm font-medium transition-colors"
+                className="px-4 py-2 rounded-lg bg-primary-500/30 hover:bg-primary-500/40 text-primary-200 text-sm font-medium transition-colors"
               >
                 Annuler
               </button>
@@ -524,7 +524,7 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
           {/* Section: Informations de base */}
           <div className="mb-6">
             <h3 className="text-lg font-semibold mb-4 dark:text-white text-gray-900 flex items-center gap-2">
-              <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               Informations de base
@@ -548,7 +548,7 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
                       // Délai pour permettre le clic sur une suggestion
                       setTimeout(() => setShowLibelleSuggestions(false), 200);
                     }}
-                    className="w-full px-4 py-2.5 pr-10 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all" 
+                    className="w-full px-4 py-2.5 pr-10 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all" 
                     placeholder="Ex: Branchement nouveau" 
                     required
                     autoComplete="off"
@@ -573,17 +573,17 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
                           key={index}
                           type="button"
                           onClick={() => handleLibelleSelect(suggestion)}
-                          className="w-full text-left px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-blue-500/20 transition-colors flex items-center gap-2 group"
+                          className="w-full text-left px-4 py-2.5 hover:bg-primary-50 dark:hover:bg-primary-500/20 transition-colors flex items-center gap-2 group"
                         >
                           <svg 
-                            className="w-4 h-4 text-gray-400 group-hover:text-blue-500" 
+                            className="w-4 h-4 text-gray-400 group-hover:text-primary-500" 
                             fill="none" 
                             stroke="currentColor" 
                             viewBox="0 0 24 24"
                           >
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                           </svg>
-                          <span className="text-sm dark:text-gray-300 text-gray-700 group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                          <span className="text-sm dark:text-gray-300 text-gray-700 group-hover:text-primary-600 dark:group-hover:text-primary-400">
                             {suggestion}
                           </span>
                         </button>
@@ -635,7 +635,7 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
                 value={form.Description} 
                 onChange={handleChange} 
                 rows="3"
-                className="w-full px-4 py-2.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all resize-none" 
+                className="w-full px-4 py-2.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all resize-none" 
                 placeholder="Description optionnelle du type de travaux"
               />
             </div>
@@ -757,8 +757,8 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
                         accent: 'accent-cyan-500'
                       },
                       'CHEF_SERVICE_JURIDIQUE': {
-                        checked: 'bg-blue-500/20 border-blue-500/50 dark:bg-blue-500/10',
-                        accent: 'accent-blue-500'
+                        checked: 'bg-primary-500/20 border-primary-500/50 dark:bg-primary-500/10',
+                        accent: 'accent-primary-500'
                       },
                       'CHEF_AGENCE_COMMERCIALE': {
                         checked: 'bg-purple-500/20 border-purple-500/50 dark:bg-purple-500/10',
@@ -883,8 +883,8 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
                         accent: 'accent-green-500'
                       },
                       'CHEF_SERVICE_JURIDIQUE': {
-                        checked: 'bg-blue-500/20 border-blue-500/50 dark:bg-blue-500/10',
-                        accent: 'accent-blue-500'
+                        checked: 'bg-primary-500/20 border-primary-500/50 dark:bg-primary-500/10',
+                        accent: 'accent-primary-500'
                       },
                       'CHEF_SERVICE_TECHNICO_COMMERCIAL': {
                         checked: 'bg-orange-500/20 border-orange-500/50 dark:bg-orange-500/10',
@@ -959,7 +959,7 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
             <button 
               type="submit" 
               disabled={submitting} 
-              className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium shadow-lg hover:from-blue-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+              className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-medium shadow-lg hover:from-primary-600 hover:to-secondary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
             >
               {submitting ? (
                 <>
@@ -1046,11 +1046,11 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
           
           {showTest && testResults && (
             <div className="space-y-4 mt-4">
-              <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/30">
-                <div className="text-sm text-blue-300">
+              <div className="p-4 rounded-lg bg-primary-500/10 border border-primary-500/30">
+                <div className="text-sm text-primary-300">
                   <strong>Test effectué le:</strong> {new Date(testResults.dateTest).toLocaleString('fr-FR')}
                 </div>
-                <div className="text-sm text-blue-300 mt-1">
+                <div className="text-sm text-primary-300 mt-1">
                   <strong>Utilisateurs testés:</strong> {testResults.totalUsers} | <strong>Types testés:</strong> {testResults.totalTypes}
                 </div>
               </div>
@@ -1104,8 +1104,8 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
           {showDiagnostic && diagnostic && (
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="p-4 rounded-lg bg-blue-500/20 border border-blue-500/50">
-                  <div className="text-2xl font-bold text-blue-400">{diagnostic.totalTypes}</div>
+                <div className="p-4 rounded-lg bg-primary-500/20 border border-primary-500/50">
+                  <div className="text-2xl font-bold text-primary-400">{diagnostic.totalTypes}</div>
                   <div className="text-sm text-gray-400">Total types</div>
                 </div>
                 <div className="p-4 rounded-lg bg-green-500/20 border border-green-500/50">
@@ -1159,7 +1159,7 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
                       className={`p-3 rounded-lg ${
                         rec.type === 'error'
                           ? 'bg-red-500/10 border border-red-500/30 text-red-300'
-                          : 'bg-blue-500/10 border border-blue-500/30 text-blue-300'
+                          : 'bg-primary-500/10 border border-primary-500/30 text-primary-300'
                       }`}
                     >
                       <div className="font-medium">{rec.message}</div>
@@ -1189,7 +1189,7 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
           <h2 className="text-xl font-semibold mb-4 dark:text-white text-gray-900">Types existants</h2>
           {loading ? (
             <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-500"></div>
             </div>
           ) : types.length === 0 ? (
             <p className="dark:text-gray-400 text-gray-600">Aucun type de travaux.</p>
@@ -1233,7 +1233,7 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
                           return (
                             <div className="flex flex-wrap gap-1">
                               {roleNames.map((name, idx) => (
-                                <span key={idx} className="px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 text-xs">
+                                <span key={idx} className="px-2 py-1 rounded-full bg-primary-500/20 text-primary-400 text-xs">
                                   {name}
                                 </span>
                               ))}
@@ -1249,7 +1249,7 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
                               <span className="px-2 py-1 rounded-full bg-cyan-500/20 text-cyan-400 text-xs">Chef Section RC</span>
                             )}
                             {t.ValidationJuridiqueRequise && (
-                              <span className="px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 text-xs">Juridique</span>
+                              <span className="px-2 py-1 rounded-full bg-primary-500/20 text-primary-400 text-xs">Juridique</span>
                             )}
                             {t.ValidationChefAgenceRequise && (
                               <span className="px-2 py-1 rounded-full bg-purple-500/20 text-purple-400 text-xs">Chef Agence</span>
@@ -1288,7 +1288,7 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
                       <td className="py-3 px-4 text-sm">
                         <button
                           onClick={() => handleEdit(t)}
-                          className="p-2 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 transition-colors"
+                          className="p-2 rounded-lg bg-primary-500/20 hover:bg-primary-500/30 text-primary-400 transition-colors"
                           title="Modifier"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

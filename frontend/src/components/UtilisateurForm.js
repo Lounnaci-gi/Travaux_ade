@@ -397,7 +397,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary-600"></div>
       </div>
     );
   }
@@ -406,7 +406,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
     <div className="min-h-screen p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary-400 via-secondary-400 to-primary-300 bg-clip-text text-transparent">
             Gestion des Utilisateurs
           </h1>
           <p className="dark:text-gray-400 text-gray-600">Créer et gérer les utilisateurs</p>
@@ -416,7 +416,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
         <div className="glass-card p-8 space-y-8 mb-8">
           <div className="flex items-center justify-between border-b border-white/10 dark:border-white/10 border-gray-200/50 pb-4">
             <div>
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent">
                 Créer un nouvel Utilisateur
               </h2>
               <p className="text-sm dark:text-gray-400 text-gray-600 mt-1">
@@ -424,8 +424,8 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
               </p>
             </div>
             <div className="hidden md:block">
-              <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30">
-                <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-3 rounded-xl bg-gradient-to-br from-primary-500/20 to-secondary-500/20 border border-primary-500/30">
+                <svg className="w-8 h-8 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                 </svg>
               </div>
@@ -454,8 +454,8 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
               {/* Informations générales */}
               <div className="space-y-6">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-blue-500/10">
-                    <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="p-2 rounded-lg bg-primary-500/10">
+                    <svg className="w-5 h-5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                   </div>
@@ -499,7 +499,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                       value={form.Nom}
                       onChange={handleChange}
                       placeholder="Dupont"
-                      className="w-full px-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                       required
                     />
                   </div>
@@ -512,7 +512,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                       value={form.Prenom}
                       onChange={handleChange}
                       placeholder="Jean"
-                      className="w-full px-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                       required
                     />
                   </div>
@@ -526,7 +526,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                       onChange={handleChange}
                       placeholder="0123456789"
                       maxLength={10}
-                      className="w-full px-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                     />
                   </div>
                 </div>
@@ -548,7 +548,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                         value={form.Email}
                         onChange={handleChange}
                         placeholder="jean.dupont@exemple.com"
-                        className="w-full pl-10 pr-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-full pl-10 pr-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                         required
                       />
                     </div>
@@ -584,7 +584,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                         value={form.MotDePasse}
                         onChange={handleChange}
                         placeholder="••••••••"
-                        className="w-full pl-10 pr-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-full pl-10 pr-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                         required
                         minLength={6}
                       />
@@ -607,7 +607,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                         value={form.ConfirmationMotDePasse}
                         onChange={handleChange}
                         placeholder="••••••••"
-                        className="w-full pl-10 pr-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-full pl-10 pr-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                         required
                         minLength={6}
                       />
@@ -683,7 +683,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                       name="IdAgence"
                       value={form.IdAgence}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full px-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                       disabled={shouldDisableAgencySelection()}
                     >
                       <option value="">Aucune</option>
@@ -715,7 +715,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                       name="Actif"
                       checked={form.Actif}
                       onChange={handleChange}
-                      className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                      className="w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 focus:ring-2 cursor-pointer"
                     />
                     <div>
                       <span className="text-sm font-medium dark:text-white text-gray-900">Compte actif</span>
@@ -750,7 +750,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
               <button
                 type="submit"
                 disabled={submitting}
-                className="px-8 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-8 py-3 rounded-lg bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-semibold shadow-lg shadow-primary-500/30 hover:shadow-xl hover:shadow-primary-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {submitting ? (
                   <>
@@ -821,7 +821,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                             {canModify && (
                               <button
                                 onClick={() => handleEdit(utilisateur)}
-                                className="p-2 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 transition-colors"
+                                className="p-2 rounded-lg bg-primary-500/20 hover:bg-primary-500/30 text-primary-400 transition-colors"
                                 title="Modifier"
                               >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -887,8 +887,8 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
 
             <form onSubmit={handleUpdate}>
               <div className="space-y-6">
-                <div className="mb-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
-                  <p className="text-sm text-blue-300 dark:text-blue-400">
+                <div className="mb-4 p-3 rounded-lg bg-primary-500/10 border border-primary-500/30">
+                  <p className="text-sm text-primary-300 dark:text-primary-400">
                     <strong>Note:</strong> Laissez le champ mot de passe vide si vous ne souhaitez pas le modifier.
                   </p>
                 </div>
@@ -1046,7 +1046,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                       </select>
                     </div>
                   </div>
-                  <div className="mt-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/30 text-sm dark:text-blue-300 text-blue-600">
+                  <div className="mt-4 p-3 rounded-lg bg-primary-500/10 border border-primary-500/30 text-sm dark:text-primary-300 text-primary-600">
                     {isRoleRequiringCenter(form.Role) && (
                       <p><strong>Note:</strong> Le rôle sélectionné doit être affecté à un centre.</p>
                     )}
@@ -1066,7 +1066,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                       name="Actif"
                       checked={form.Actif}
                       onChange={handleChange}
-                      className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                     />
                     <label className="ml-2 text-sm dark:text-gray-300 text-gray-700">Utilisateur actif</label>
                   </div>
@@ -1089,7 +1089,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-6 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold shadow-lg shadow-blue-500/50 hover:shadow-xl hover:shadow-blue-500/60 transition-all disabled:opacity-50"
+                  className="px-6 py-3 rounded-lg bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-semibold shadow-lg shadow-primary-500/50 hover:shadow-xl hover:shadow-primary-500/60 transition-all disabled:opacity-50"
                 >
                   {submitting ? 'Modification...' : 'Modifier l\'Utilisateur'}
                 </button>

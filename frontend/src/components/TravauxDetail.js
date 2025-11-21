@@ -34,7 +34,7 @@ const TravauxDetail = ({ travail, onBack }) => {
 
   const getStatusColor = (codeStatut) => {
     const colors = {
-      'EMIS': 'bg-blue-600',
+      'EMIS': 'bg-primary-600',
       'EN_COURS': 'bg-yellow-600',
       'TERMINE': 'bg-green-600',
       'ANNULE': 'bg-red-600',
@@ -130,14 +130,14 @@ const TravauxDetail = ({ travail, onBack }) => {
           </h2>
           {loading ? (
             <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-600"></div>
             </div>
           ) : historique.length === 0 ? (
             <p className="dark:text-gray-400 text-gray-600 text-center py-8">Aucun historique disponible</p>
           ) : (
             <div className="space-y-4">
               {historique.map((item, index) => (
-                <div key={item.IdHistorique} className="border-l-4 border-blue-600 pl-4 py-2">
+                <div key={item.IdHistorique} className="border-l-4 border-primary-600 pl-4 py-2">
                   <div className="flex items-start justify-between mb-2">
                     <div>
                       <p className="dark:text-white text-gray-900 font-semibold">{item.TypeAction}</p>

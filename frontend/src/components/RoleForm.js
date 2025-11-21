@@ -204,7 +204,7 @@ const RoleForm = ({ user, onUnauthorized }) => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary-600"></div>
       </div>
     );
   }
@@ -213,7 +213,7 @@ const RoleForm = ({ user, onUnauthorized }) => {
     <div className="min-h-screen p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary-400 via-secondary-400 to-primary-300 bg-clip-text text-transparent">
             Gestion des Rôles
           </h1>
           <p className="dark:text-gray-400 text-gray-600">Créer et gérer les rôles utilisateurs</p>
@@ -303,7 +303,7 @@ const RoleForm = ({ user, onUnauthorized }) => {
                     name="Actif"
                     checked={form.Actif}
                     onChange={handleChange}
-                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                   />
                   <label className="ml-2 text-sm dark:text-gray-300 text-gray-700">Rôle actif</label>
                 </div>
@@ -314,7 +314,7 @@ const RoleForm = ({ user, onUnauthorized }) => {
               <button
                 type="submit"
                 disabled={submitting}
-                className="px-6 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold shadow-lg shadow-blue-500/50 hover:shadow-xl hover:shadow-blue-500/60 transition-all disabled:opacity-50"
+                className="px-6 py-3 rounded-lg bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-semibold shadow-lg shadow-primary-500/50 hover:shadow-xl hover:shadow-primary-500/60 transition-all disabled:opacity-50"
               >
                 {submitting ? 'Enregistrement...' : editingId ? 'Modifier le Rôle' : 'Créer le Rôle'}
               </button>
@@ -360,7 +360,7 @@ const RoleForm = ({ user, onUnauthorized }) => {
                             type="button"
                             onClick={() => handleEdit(role)}
                             disabled={submitting}
-                            className="p-2 rounded-lg hover:bg-blue-500/20 text-blue-400 hover:text-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="p-2 rounded-lg hover:bg-primary-500/20 text-primary-400 hover:text-primary-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             title="Modifier"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

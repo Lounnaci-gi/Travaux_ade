@@ -103,7 +103,7 @@ const Login = ({ onLogin }) => {
         <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity">
           <div className="glass-card max-w-sm w-full mx-auto p-6 text-center space-y-4 animate-fadeIn shadow-2xl border border-white/10">
             <div className="flex justify-center">
-              <div className="p-3 rounded-2xl bg-gradient-to-br from-red-500 via-purple-500 to-blue-500 shadow-lg shadow-red-500/30">
+              <div className="p-3 rounded-2xl bg-gradient-to-br from-red-500 via-purple-500 to-primary-500 shadow-lg shadow-red-500/30">
                 <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -143,9 +143,9 @@ const Login = ({ onLogin }) => {
 
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 dark:opacity-20 opacity-10 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 dark:opacity-20 opacity-10 animate-blob animation-delay-2000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 dark:opacity-20 opacity-10 animate-blob animation-delay-4000"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 dark:opacity-20 opacity-10 animate-blob"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-secondary-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 dark:opacity-20 opacity-10 animate-blob animation-delay-2000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-primary-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 dark:opacity-20 opacity-10 animate-blob animation-delay-4000"></div>
       </div>
 
       {/* Login Card */}

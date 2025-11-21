@@ -5,12 +5,12 @@ import { fr } from 'date-fns/locale/fr';
 const TravauxCard = ({ travail, onClick }) => {
   const getStatusColor = (codeStatut) => {
     const colors = {
-      'EMIS': 'bg-blue-600',
-      'EN_COURS': 'bg-yellow-600',
-      'TERMINE': 'bg-green-600',
-      'ANNULE': 'bg-red-600',
+      'EMIS': 'bg-primary-600',
+      'EN_COURS': 'bg-warning',
+      'TERMINE': 'bg-success',
+      'ANNULE': 'bg-error',
     };
-    return colors[codeStatut] || 'bg-gray-600';
+    return colors[codeStatut] || 'bg-secondary-600';
   };
 
   const formatDate = (date) => {
@@ -30,7 +30,7 @@ const TravauxCard = ({ travail, onClick }) => {
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
-            <h3 className="text-xl font-bold dark:text-white text-gray-900 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+            <h3 className="text-xl font-bold dark:text-white text-gray-900 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
               {travail.NumeroOrdre}
             </h3>
             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(travail.CodeStatut)} text-white`}>

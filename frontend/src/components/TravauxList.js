@@ -67,7 +67,7 @@ const TravauxList = () => {
                 placeholder="Rechercher par numéro, client ou demande..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg dark:bg-slate-700 bg-white border dark:border-slate-600 border-gray-300 dark:text-white text-gray-900 dark:placeholder-gray-400 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 rounded-lg dark:bg-slate-700 bg-white border dark:border-slate-600 border-gray-300 dark:text-white text-gray-900 dark:placeholder-gray-400 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-transparent transition-all"
               />
             </div>
             <div>
@@ -89,7 +89,7 @@ const TravauxList = () => {
         {/* Loading */}
         {loading ? (
           <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-600"></div>
+            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary-600"></div>
           </div>
         ) : (
           <>

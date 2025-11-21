@@ -161,7 +161,7 @@ const DevisTypeForm = ({ user, onUnauthorized }) => {
               value={formData.LibelleTypeDevis}
               onChange={handleInputChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
               placeholder="Ex: Devis Standard, Devis Urgent..."
             />
           </div>
@@ -174,7 +174,7 @@ const DevisTypeForm = ({ user, onUnauthorized }) => {
                 name="ValidationChefServiceTechnicoCommercialRequise"
                 checked={formData.ValidationChefServiceTechnicoCommercialRequise}
                 onChange={handleInputChange}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
               />
               <label htmlFor="ValidationChefServiceTechnicoCommercialRequise" className="ml-2 block text-sm text-gray-900 dark:text-white">
                 Validation Chef Service Technico-Commercial requise
@@ -188,7 +188,7 @@ const DevisTypeForm = ({ user, onUnauthorized }) => {
                 name="ValidationChefCentreRequise"
                 checked={formData.ValidationChefCentreRequise}
                 onChange={handleInputChange}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
               />
               <label htmlFor="ValidationChefCentreRequise" className="ml-2 block text-sm text-gray-900 dark:text-white">
                 Validation Chef de Centre requise
@@ -202,7 +202,7 @@ const DevisTypeForm = ({ user, onUnauthorized }) => {
                 name="ValidationChefAgenceRequise"
                 checked={formData.ValidationChefAgenceRequise}
                 onChange={handleInputChange}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
               />
               <label htmlFor="ValidationChefAgenceRequise" className="ml-2 block text-sm text-gray-900 dark:text-white">
                 Validation Chef d'Agence requise
@@ -217,7 +217,7 @@ const DevisTypeForm = ({ user, onUnauthorized }) => {
               name="Actif"
               checked={formData.Actif}
               onChange={handleInputChange}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
             />
             <label htmlFor="Actif" className="ml-2 block text-sm text-gray-900 dark:text-white">
               Actif
@@ -229,7 +229,7 @@ const DevisTypeForm = ({ user, onUnauthorized }) => {
               <button
                 type="button"
                 onClick={handleCancelEdit}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
               >
                 Annuler
               </button>
@@ -237,7 +237,7 @@ const DevisTypeForm = ({ user, onUnauthorized }) => {
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+              className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
             >
               {loading ? (
                 <>
@@ -297,7 +297,7 @@ const DevisTypeForm = ({ user, onUnauthorized }) => {
                     <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
                       <div className="flex flex-col space-y-1">
                         {type.ValidationChefServiceTechnicoCommercialRequise && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-800/30 dark:text-blue-300">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800 dark:bg-primary-800/30 dark:text-primary-300">
                             Chef Service TC
                           </span>
                         )}

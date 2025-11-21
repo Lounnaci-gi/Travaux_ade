@@ -579,7 +579,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
   return (
     <div className="min-h-screen p-6 relative">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+        <h1 className="text-3xl font-bold mb-6 bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent">
           Gestion des Articles
         </h1>
 
@@ -587,7 +587,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
         <div className="glass-card p-4 mb-6">
           <div className="mb-4">
             <h2 className="text-xl font-semibold mb-1 dark:text-white text-gray-900 flex items-center gap-2">
-              <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
               {editingId ? 'Modifier un Article' : 'Créer un Nouvel Article'}
@@ -616,7 +616,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
             {/* Section: Informations principales */}
             <div>
               <h3 className="text-sm font-semibold mb-2 dark:text-white text-gray-900 flex items-center gap-2">
-                <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 Informations principales
@@ -641,7 +641,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                           setFamilleSearch(selectedFamille ? selectedFamille.LibelleFamille : '');
                         }}
                         placeholder="Rechercher..."
-                        className="w-full px-3 py-1.5 pr-8 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                        className="w-full px-3 py-1.5 pr-8 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
                         required
                       />
                       <svg
@@ -661,7 +661,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                                   key={famille.IdFamille}
                                   type="button"
                                   onClick={() => handleFamilleSelect(String(famille.IdFamille), famille.LibelleFamille)}
-                                  className="w-full text-left px-3 py-2 text-sm hover:bg-blue-500/20 dark:hover:bg-blue-500/20 dark:text-white text-gray-900 transition-colors first:rounded-t-lg last:rounded-b-lg"
+                                  className="w-full text-left px-3 py-2 text-sm hover:bg-primary-500/20 dark:hover:bg-primary-500/20 dark:text-white text-gray-900 transition-colors first:rounded-t-lg last:rounded-b-lg"
                                 >
                                   {famille.LibelleFamille}
                                 </button>
@@ -696,10 +696,10 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                   <button
                     type="button"
                     onClick={() => setShowFamilleModal(true)}
-                    className="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 hover:border-blue-500/50 transition-all group"
+                    className="p-1.5 rounded-lg bg-primary-500/10 hover:bg-primary-500/20 border border-primary-500/30 hover:border-primary-500/50 transition-all group"
                     title="Créer une nouvelle famille"
                   >
-                    <svg className="w-4 h-4 text-blue-500 group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-primary-500 group-hover:text-primary-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
                   </button>
@@ -716,7 +716,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     onChange={handleChange}
                     maxLength={200}
                     placeholder="Ex: Tuyau, Raccord, Manchon, Coude..."
-                    className="w-full px-3 py-1.5 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                    className="w-full px-3 py-1.5 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
                     required
                   />
                 </div>
@@ -737,7 +737,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                       }}
                       maxLength={50}
                       placeholder="Rechercher..."
-                      className="w-full px-3 py-1.5 pr-8 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                      className="w-full px-3 py-1.5 pr-8 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
                       required
                     />
                     <svg
@@ -757,7 +757,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                                 key={unite}
                                 type="button"
                                 onClick={() => handleUniteSelect(unite)}
-                                className="w-full text-left px-3 py-2 text-sm hover:bg-blue-500/20 dark:hover:bg-blue-500/20 dark:text-white text-gray-900 transition-colors first:rounded-t-lg last:rounded-b-lg"
+                                className="w-full text-left px-3 py-2 text-sm hover:bg-primary-500/20 dark:hover:bg-primary-500/20 dark:text-white text-gray-900 transition-colors first:rounded-t-lg last:rounded-b-lg"
                               >
                                 {unite}
                               </button>
@@ -787,7 +787,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     maxLength={500}
                     rows={2}
                     placeholder="Description détaillée de l'article..."
-                    className="w-full px-3 py-1.5 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all resize-none"
+                    className="w-full px-3 py-1.5 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all resize-none"
                   />
                 </div>
               </div>
@@ -810,7 +810,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     onChange={handleChange}
                     maxLength={20}
                     placeholder="DN15"
-                    className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                    className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
                   />
                 </div>
                   
@@ -829,7 +829,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                         }}
                         maxLength={50}
                         placeholder="Rechercher..."
-                        className="w-full px-3 py-2 pr-8 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                        className="w-full px-3 py-2 pr-8 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
                       />
                       <svg
                         className="absolute right-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
@@ -848,7 +848,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                                   key={matiere}
                                   type="button"
                                   onClick={() => handleMatiereSelect(matiere)}
-                                  className="w-full text-left px-3 py-2 text-sm hover:bg-blue-500/20 dark:hover:bg-blue-500/20 dark:text-white text-gray-900 transition-colors first:rounded-t-lg last:rounded-b-lg"
+                                  className="w-full text-left px-3 py-2 text-sm hover:bg-primary-500/20 dark:hover:bg-primary-500/20 dark:text-white text-gray-900 transition-colors first:rounded-t-lg last:rounded-b-lg"
                                 >
                                   {matiere}
                                 </button>
@@ -876,7 +876,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     onChange={handleChange}
                     maxLength={20}
                     placeholder="C6"
-                    className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                    className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
                   />
                 </div>
                 
@@ -890,7 +890,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     onChange={handleChange}
                     maxLength={20}
                     placeholder="PN10"
-                    className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                    className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
                   />
                 </div>
                 
@@ -905,7 +905,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     value={form.Longueur}
                     onChange={handleChange}
                     placeholder="m"
-                    className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                    className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
                   />
                 </div>
                 
@@ -920,7 +920,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     value={form.Largeur}
                     onChange={handleChange}
                     placeholder="cm"
-                    className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                    className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
                   />
                 </div>
                 
@@ -935,7 +935,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     value={form.Epaisseur}
                     onChange={handleChange}
                     placeholder="mm"
-                    className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                    className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
                   />
                 </div>
                 
@@ -949,7 +949,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     onChange={handleChange}
                     maxLength={30}
                     placeholder="Bleu"
-                    className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                    className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
                   />
                 </div>
                 
@@ -964,7 +964,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     maxLength={500}
                     rows={2}
                     placeholder="Informations complémentaires..."
-                    className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all resize-none"
+                    className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all resize-none"
                   />
                 </div>
               </div>
@@ -989,7 +989,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     value={form.PrixFournitureHT}
                     onChange={handleChange}
                     placeholder="0.00"
-                    className="w-full px-2 py-1.5 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                    className="w-full px-2 py-1.5 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
                   />
                 </div>
                 
@@ -1005,7 +1005,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     value={form.PrixPoseHT}
                     onChange={handleChange}
                     placeholder="0.00"
-                    className="w-full px-2 py-1.5 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                    className="w-full px-2 py-1.5 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
                   />
                 </div>
                 
@@ -1019,7 +1019,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     name="DateDebutApplication"
                     value={form.DateDebutApplication}
                     onChange={handleChange}
-                    className="w-full px-2 py-1.5 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                    className="w-full px-2 py-1.5 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
                   />
                 </div>
                 
@@ -1029,7 +1029,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     Taux TVA utilisé
                   </label>
                   <div className="w-full px-2 py-1.5 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 flex items-center">
-                    <span className="font-bold text-blue-500">{globalTVA}%</span>
+                    <span className="font-bold text-primary-500">{globalTVA}%</span>
                   </div>
                 </div>
               </div>
@@ -1054,7 +1054,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
               <button
                 type="submit"
                 disabled={submitting}
-                className="px-4 py-1.5 text-sm bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-medium shadow-lg hover:from-blue-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+                className="px-4 py-1.5 text-sm bg-gradient-to-r from-primary-500 to-secondary-500 text-white rounded-lg font-medium shadow-lg hover:from-primary-600 hover:to-secondary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
               >
                 {submitting ? (
                   <>
@@ -1142,7 +1142,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                   <button
                     type="submit"
                     disabled={submittingFamille}
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-primary-500 to-secondary-500 text-white rounded-lg hover:from-primary-600 hover:to-secondary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   >
                     {submittingFamille ? 'Création...' : 'Créer'}
                   </button>
@@ -1170,7 +1170,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
 
           {loading ? (
             <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+              <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary-600"></div>
             </div>
           ) : (
             <div className="overflow-x-auto relative">
@@ -1295,7 +1295,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                         <td className="py-3 px-4" onMouseEnter={() => setShowHoverCard(true)}>
                           <button
                             onClick={() => handleEdit(article.IdArticle)}
-                            className="text-blue-500 hover:text-blue-600 mr-3"
+                            className="text-primary-500 hover:text-primary-600 mr-3"
                             title="Modifier"
                           >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1346,7 +1346,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
             <div className="space-y-3">
               <div className="flex items-center justify-between border-b dark:border-white/10 border-gray-200 pb-2">
                 <h3 className="text-lg font-semibold dark:text-white text-gray-900 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                   </svg>
                   {hoveredArticle.Designation}
@@ -1355,7 +1355,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
               
               {loadingHoverDetails ? (
                 <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
+                  <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary-600"></div>
                 </div>
               ) : hoveredArticleDetails ? (
                 <div className="space-y-2 text-sm">
@@ -1387,7 +1387,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                       <div className="space-y-1">
                         {hoveredArticleDetails.Diametre && (
                           <div className="flex items-center gap-2">
-                            <span className="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400">Diamètre: {hoveredArticleDetails.Diametre}</span>
+                            <span className="text-xs px-2 py-0.5 rounded bg-primary-500/20 text-primary-400">Diamètre: {hoveredArticleDetails.Diametre}</span>
                           </div>
                         )}
                         {hoveredArticleDetails.Matiere && (

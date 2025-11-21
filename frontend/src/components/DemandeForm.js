@@ -791,7 +791,7 @@ const DemandeForm = ({ user, onCreated }) => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
       </div>
     );
   }
@@ -802,7 +802,7 @@ const DemandeForm = ({ user, onCreated }) => {
         <div className="mb-3 mt-0">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold mb-1 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              <h1 className="text-2xl font-bold mb-1 bg-gradient-to-r from-primary-400 via-secondary-400 to-primary-300 bg-clip-text text-transparent">
                 Nouvelle Demande
               </h1>
               <p className="dark:text-gray-400 text-gray-600 text-sm">Enregistrer une nouvelle demande dans le système</p>
@@ -893,7 +893,7 @@ const DemandeForm = ({ user, onCreated }) => {
                             setTimeout(() => setShowClientDropdown(false), 150);
                           }}
                           placeholder="Rechercher un client (nom, prénom ou ID)"
-                          className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                          className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
                         />
                         {showClientDropdown && (
                           <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border dark:border-white/20 border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
@@ -904,7 +904,7 @@ const DemandeForm = ({ user, onCreated }) => {
                                   type="button"
                                   onMouseDown={(e) => e.preventDefault()} // Prevent blur before click
                                   onClick={() => handleClientSelect(client.IdClient.toString())}
-                                  className="w-full text-left px-3 py-2 text-sm hover:bg-blue-500/20 dark:hover:bg-blue-500/20 dark:text-white text-gray-900 transition-colors first:rounded-t-lg last:rounded-b-lg"
+                                  className="w-full text-left px-3 py-2 text-sm hover:bg-primary-500/20 dark:hover:bg-primary-500/20 dark:text-white text-gray-900 transition-colors first:rounded-t-lg last:rounded-b-lg"
                                 >
                                   <div className="font-medium">{client.Nom} {client.Prenom || ''}</div>
                                   <div className="text-xs text-gray-500 dark:text-gray-400">ID: {client.IdClient}</div>
@@ -921,7 +921,7 @@ const DemandeForm = ({ user, onCreated }) => {
                       <div className="mt-2">
                         <button
                           type="button"
-                          className="inline-flex items-center justify-center p-1.5 rounded-full bg-blue-500/20 border border-blue-400/40 text-blue-200 hover:bg-blue-500/30 hover:text-white transition-colors"
+                          className="inline-flex items-center justify-center p-1.5 rounded-full bg-primary-500/20 border border-primary-400/40 text-primary-200 hover:bg-primary-500/30 hover:text-white transition-colors"
                           title="Créer un nouveau client"
                           aria-label="Créer un nouveau client"
                           onClick={() => { setNewClientMode(true); setForm((p)=>({...p, idClient:''})); setSelectedClient(null); setClientSearch(''); }}
@@ -1049,7 +1049,7 @@ const DemandeForm = ({ user, onCreated }) => {
                                   setTimeout(() => setShowDiametreDropdown(false), 150);
                                 }}
                                 placeholder="Sélectionner un diamètre..."
-                                className="w-full px-2 py-1.5 pr-6 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all text-xs"
+                                className="w-full px-2 py-1.5 pr-6 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all text-xs"
                               />
                               <svg
                                 className="absolute right-1.5 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none"
@@ -1069,7 +1069,7 @@ const DemandeForm = ({ user, onCreated }) => {
                                           type="button"
                                           onMouseDown={(e) => e.preventDefault()}
                                           onClick={() => handleDiametreSelect(diametre)}
-                                          className="w-full text-left px-2 py-1.5 text-xs hover:bg-blue-500/20 dark:hover:bg-blue-500/20 dark:text-white text-gray-900 transition-colors first:rounded-t-lg last:rounded-b-lg"
+                                          className="w-full text-left px-2 py-1.5 text-xs hover:bg-primary-500/20 dark:hover:bg-primary-500/20 dark:text-white text-gray-900 transition-colors first:rounded-t-lg last:rounded-b-lg"
                                         >
                                           {diametre}
                                         </button>
@@ -1155,7 +1155,7 @@ const DemandeForm = ({ user, onCreated }) => {
                     value={form.commentaire}
                     onChange={handleChange}
                     rows="3"
-                    className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 dark:placeholder-gray-400 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 dark:placeholder-gray-400 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
                     placeholder="Ajouter des détails ou pièces justificatives (références)"
                   />
                 </div>
@@ -1176,7 +1176,7 @@ const DemandeForm = ({ user, onCreated }) => {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="p-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/50 hover:shadow-xl hover:shadow-blue-500/60 transition-all disabled:opacity-50"
+                    className="p-2 rounded-full bg-gradient-to-r from-primary-500 to-secondary-500 text-white shadow-lg shadow-primary-500/50 hover:shadow-xl hover:shadow-primary-500/60 transition-all disabled:opacity-50"
                     title={submitting ? 'Enregistrement en cours' : 'Enregistrer la demande'}
                     aria-label={submitting ? 'Enregistrement en cours' : 'Enregistrer la demande'}
                   >

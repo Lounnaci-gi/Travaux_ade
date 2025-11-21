@@ -372,7 +372,7 @@ const DevisForm = ({ user }) => {
                   value={demandeSearch}
                   onChange={handleDemandeSearchChange}
                   onFocus={() => setShowDemandeDropdown(true)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
                   placeholder="Rechercher une demande..."
                   autoComplete="off"
                 />
@@ -387,7 +387,7 @@ const DevisForm = ({ user }) => {
                         {filteredDemandes.map((d) => (
                           <li
                             key={d.IdDemande}
-                            className="px-4 py-2 hover:bg-blue-100 dark:hover:bg-blue-900 cursor-pointer text-gray-900 dark:text-white"
+                            className="px-4 py-2 hover:bg-primary-100 dark:hover:bg-primary-900 cursor-pointer text-gray-900 dark:text-white"
                             onClick={() => handleDemandeSelect(d)}
                           >
                             <div className="font-medium">{d.NumeroDemande}</div>
@@ -469,7 +469,7 @@ const DevisForm = ({ user }) => {
                 value={formData.commentaire}
                 onChange={handleInputChange}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
                 placeholder="Ajouter un commentaire (optionnel)"
               />
             </div>
@@ -482,7 +482,7 @@ const DevisForm = ({ user }) => {
               <button
                 type="button"
                 onClick={addArticle}
-                className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
               >
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -543,7 +543,7 @@ const DevisForm = ({ user }) => {
                                 }}
                                 onFocus={() => setShowArticleDropdown(prev => ({ ...prev, [index]: true }))}
                                 placeholder="Rechercher un article..."
-                                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
                               />
                               
                               {showArticleDropdown[index] && (
@@ -558,7 +558,7 @@ const DevisForm = ({ user }) => {
                                       .map((art) => (
                                         <li
                                           key={art.IdArticle}
-                                          className="px-4 py-3 hover:bg-blue-100 dark:hover:bg-blue-900 cursor-pointer text-gray-900 dark:text-white"
+                                          className="px-4 py-3 hover:bg-primary-100 dark:hover:bg-primary-900 cursor-pointer text-gray-900 dark:text-white"
                                           onClick={() => {
                                             handleArticleSelect(index, art.IdArticle);
                                             setShowArticleDropdown(prev => ({ ...prev, [index]: false }));
@@ -675,7 +675,7 @@ const DevisForm = ({ user }) => {
                                 min="0"
                                 value={article.quantite}
                                 onChange={(e) => handleArticleChange(index, 'quantite', e.target.value)}
-                                className="w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                                className="w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
                               />
                               <span className="text-sm text-gray-500 dark:text-gray-400">
                                 {article.unite}
@@ -689,7 +689,7 @@ const DevisForm = ({ user }) => {
                               min="0"
                               value={article.prixUnitaireHT}
                               onChange={(e) => handleArticleChange(index, 'prixUnitaireHT', e.target.value)}
-                              className="w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                              className="w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
                             />
                           </td>
                           <td className="px-4 py-2 whitespace-nowrap">
@@ -700,7 +700,7 @@ const DevisForm = ({ user }) => {
                               max="100"
                               value={article.tauxTVAApplique}
                               onChange={(e) => handleArticleChange(index, 'tauxTVAApplique', e.target.value)}
-                              className="w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                              className="w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
                             />
                           </td>
                           <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
@@ -755,14 +755,14 @@ const DevisForm = ({ user }) => {
           <button
             type="button"
             onClick={() => window.history.back()}
-            className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
           >
             Annuler
           </button>
           <button
             type="submit"
             disabled={loading}
-            className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
           >
             {loading ? (
               <>
