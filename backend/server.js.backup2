@@ -1655,97 +1655,28 @@ app.put('/api/agences/:id', verifyToken, async (req, res) => {
 // Mise à jour d'un article
 app.put('/api/articles/:id', verifyToken, async (req, res) => {
   try {
-    // Vérifier que l'utilisateur est admin
-    const actorRoleLower = (req.user?.role || '').toLowerCase();
-    const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin');
-    if (!isAdminRole) {
-      return res.status(403).json({ error: 'Seuls les administrateurs peuvent modifier des articles.' });
-    }
-
-    const id = parseInt(req.params.id);
-    if (!id) return res.status(400).json({ error: 'Id invalide' });
-
-    const {
-      IdFamille,
-      Designation,
-      Description,
-      Unite,
-      Diametre,
-      Matiere,
-      Classe,
-      Pression,
-      Longueur,
-      Largeur,
-      Epaisseur,
-      Couleur,
-      Caracteristiques
-    } = req.body;
-
-    if (!IdFamille || !Designation || !Unite) {
-      return res.status(400).json({ error: 'IdFamille, Designation et Unite sont requis' });
-    }
-
-    // Validation des longueurs de champs
-    const lengthConstraints = [
-      { field: 'Designation', value: Designation, max: 200, label: 'Désignation' },
-      { field: 'Description', value: Description, max: 500, label: 'Description' },
-      { field: 'Unite', value: Unite, max: 50, label: 'Unité' },
-      { field: 'Diametre', value: Diametre, max: 20, label: 'Diamètre' },
-      { field: 'Matiere', value: Matiere, max: 50, label: 'Matière' },
-      { field: 'Classe', value: Classe, max: 20, label: 'Classe' },
-      { field: 'Pression', value: Pression, max: 20, label: 'Pression' },
-      { field: 'Couleur', value: Couleur, max: 30, label: 'Couleur' },
-      { field: 'Caracteristiques', value: Caracteristiques, max: 500, label: 'Caractéristiques' },
-    ];
-
-    for (const { field, value, max, label } of lengthConstraints) {
-      if (value && typeof value === 'string' && value.trim().length > max) {
-        return res.status(400).json({ error: `Le champ ${label} ne doit pas dépasser ${max} caractères.` });
-      }
-    }
+    const { id } = req.params;
+    const { titre, contenu, auteur, datePublication } = req.body;
 
     const update = await pool.request()
       .input('id', sql.Int, id)
-      .input('IdFamille', sql.Int, IdFamille)
-      .input('Designation', sql.NVarChar(200), Designation.trim())
-      .input('Description', sql.NVarChar(500), Description?.trim() || null)
-      .input('Unite', sql.NVarChar(50), Unite.trim())
-      .input('Diametre', sql.NVarChar(20), Diametre?.trim() || null)
-      .input('Matiere', sql.NVarChar(50), Matiere?.trim() || null)
-      .input('Classe', sql.NVarChar(20), Classe?.trim() || null)
-      .input('Pression', sql.NVarChar(20), Pression?.trim() || null)
-      .input('Longueur', sql.Decimal(10, 2), Longueur || null)
-      .input('Largeur', sql.Decimal(10, 2), Largeur || null)
-      .input('Epaisseur', sql.Decimal(10, 2), Epaisseur || null)
-      .input('Couleur', sql.NVarChar(30), Couleur?.trim() || null)
-      .input('Caracteristiques', sql.NVarChar(500), Caracteristiques?.trim() || null)
+      .input('titre', sql.NVarChar, titre)
+      .input('contenu', sql.NVarChar, contenu)
+      .input('auteur', sql.NVarChar, auteur)
+      .input('datePublication', sql.DateTime, datePublication)
       .query(`
-        UPDATE Article SET
-          IdFamille = @IdFamille,
-          Designation = @Designation,
-          Description = @Description,
-          Unite = @Unite,
-          Diametre = @Diametre,
-          Matiere = @Matiere,
-          Classe = @Classe,
-          Pression = @Pression,
-          Longueur = @Longueur,
-          Largeur = @Largeur,
-          Epaisseur = @Epaisseur,
-          Couleur = @Couleur,
-          Caracteristiques = @Caracteristiques,
-          DateModification = GETDATE()
-        OUTPUT INSERTED.*
+        UPDATE Article
+        SET IdFamille = @IdFamille,\n          Designation = @Designation,\n          Description = @Description,\n          Unite = @Unite,\n          Diametre = @Diametre,\n          Matiere = @Matiere,\n          Classe = @Classe,\n          Pression = @Pression,\n          Longueur = @Longueur,\n          Largeur = @Largeur,\n          Epaisseur = @Epaisseur,\n          Couleur = @Couleur,\n          Caracteristiques = @Caracteristiques,\n          DateModification = GETDATE()
+            contenu = @contenu,
+            auteur = @auteur,
+            datePublication = @datePublication
         WHERE IdArticle = @id
+        SELECT * FROM Article WHERE IdArticle = @id
       `);
-
-    if (update.recordset.length === 0) {
-      return res.status(404).json({ error: 'Article introuvable' });
-    }
 
     res.json(update.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la mise à jour de l\'article:', error);
+    console.error('Erreur lors de la mise à jour de l\'agence:', error);
     res.status(500).json({ error: error.message || 'Erreur serveur' });
   }
 });
@@ -4093,6 +4024,104 @@ app.put('/api/configurations/:key', verifyToken, async (req, res) => {
     res.json(update.recordset[0]);
   } catch (error) {
     console.error('Erreur lors de la mise à jour de la configuration:', error);
+    res.status(500).json({ error: error.message || 'Erreur serveur' });
+  }
+});
+
+// Mise à jour d'un article
+app.put('/api/articles/:id', verifyToken, async (req, res) => {
+  try {
+    // Vérifier que l'utilisateur est admin
+    const actorRoleLower = (req.user?.role || '').toLowerCase();
+    const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin');
+    if (!isAdminRole) {
+      return res.status(403).json({ error: 'Seuls les administrateurs peuvent modifier des articles.' });
+    }
+
+    const id = parseInt(req.params.id);
+    if (!id) return res.status(400).json({ error: 'Id invalide' });
+
+    const {
+      IdFamille,
+      Designation,
+      Description,
+      Unite,
+      Diametre,
+      Matiere,
+      Classe,
+      Pression,
+      Longueur,
+      Largeur,
+      Epaisseur,
+      Couleur,
+      Caracteristiques
+    } = req.body;
+
+    if (!IdFamille || !Designation || !Unite) {
+      return res.status(400).json({ error: 'IdFamille, Designation et Unite sont requis' });
+    }
+
+    // Validation des longueurs de champs
+    const lengthConstraints = [
+      { field: 'Designation', value: Designation, max: 200, label: 'Désignation' },
+      { field: 'Description', value: Description, max: 500, label: 'Description' },
+      { field: 'Unite', value: Unite, max: 50, label: 'Unité' },
+      { field: 'Diametre', value: Diametre, max: 20, label: 'Diamètre' },
+      { field: 'Matiere', value: Matiere, max: 50, label: 'Matière' },
+      { field: 'Classe', value: Classe, max: 20, label: 'Classe' },
+      { field: 'Pression', value: Pression, max: 20, label: 'Pression' },
+      { field: 'Couleur', value: Couleur, max: 30, label: 'Couleur' },
+      { field: 'Caracteristiques', value: Caracteristiques, max: 500, label: 'Caractéristiques' },
+    ];
+
+    for (const { field, value, max, label } of lengthConstraints) {
+      if (value && typeof value === 'string' && value.trim().length > max) {
+        return res.status(400).json({ error: `Le champ ${label} ne doit pas dépasser ${max} caractères.` });
+      }
+    }
+
+    const update = await pool.request()
+      .input('id', sql.Int, id)
+      .input('IdFamille', sql.Int, IdFamille)
+      .input('Designation', sql.NVarChar(200), Designation.trim())
+      .input('Description', sql.NVarChar(500), Description?.trim() || null)
+      .input('Unite', sql.NVarChar(50), Unite.trim())
+      .input('Diametre', sql.NVarChar(20), Diametre?.trim() || null)
+      .input('Matiere', sql.NVarChar(50), Matiere?.trim() || null)
+      .input('Classe', sql.NVarChar(20), Classe?.trim() || null)
+      .input('Pression', sql.NVarChar(20), Pression?.trim() || null)
+      .input('Longueur', sql.Decimal(10, 2), Longueur || null)
+      .input('Largeur', sql.Decimal(10, 2), Largeur || null)
+      .input('Epaisseur', sql.Decimal(10, 2), Epaisseur || null)
+      .input('Couleur', sql.NVarChar(30), Couleur?.trim() || null)
+      .input('Caracteristiques', sql.NVarChar(500), Caracteristiques?.trim() || null)
+      .query(`
+        UPDATE Article SET
+          IdFamille = @IdFamille,
+          Designation = @Designation,
+          Description = @Description,
+          Unite = @Unite,
+          Diametre = @Diametre,
+          Matiere = @Matiere,
+          Classe = @Classe,
+          Pression = @Pression,
+          Longueur = @Longueur,
+          Largeur = @Largeur,
+          Epaisseur = @Epaisseur,
+          Couleur = @Couleur,
+          Caracteristiques = @Caracteristiques,
+          DateModification = GETDATE()
+        OUTPUT INSERTED.*
+        WHERE IdArticle = @id
+      `);
+
+    if (update.recordset.length === 0) {
+      return res.status(404).json({ error: 'Article introuvable' });
+    }
+
+    res.json(update.recordset[0]);
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour de l\'article:', error);
     res.status(500).json({ error: error.message || 'Erreur serveur' });
   }
 });
