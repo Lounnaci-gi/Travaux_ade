@@ -14,7 +14,8 @@ const DevisForm = ({ user }) => {
         quantite: '',
         prixUnitaireHT: '',
         tauxTVAApplique: '',
-        unite: ''
+        unite: '',
+        typePrix: 'FOURNITURE' // Add this field - default to Fourniture
       }
     ]
   });
@@ -131,6 +132,35 @@ const DevisForm = ({ user }) => {
       if (selectedArticle) {
         updatedArticles[index].designation = selectedArticle.Designation;
         updatedArticles[index].unite = selectedArticle.Unite;
+        // Set default price based on typePrix selection
+        if (updatedArticles[index].typePrix === 'FOURNITURE' && selectedArticle.PrixFournitureHT) {
+          updatedArticles[index].prixUnitaireHT = selectedArticle.PrixFournitureHT;
+        } else if (updatedArticles[index].typePrix === 'POSE' && selectedArticle.PrixPoseHT) {
+          updatedArticles[index].prixUnitaireHT = selectedArticle.PrixPoseHT;
+        } else if (updatedArticles[index].typePrix === 'BOTH') {
+          // For BOTH, we'll use fourniture price as default
+          updatedArticles[index].prixUnitaireHT = selectedArticle.PrixFournitureHT || selectedArticle.PrixPoseHT || '';
+        }
+        updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVA || '';
+      }
+    }
+    
+    // If we're changing the typePrix, update the price
+    if (field === 'typePrix') {
+      const selectedArticle = availableArticles.find(a => a.IdArticle === updatedArticles[index].idArticle);
+      if (selectedArticle) {
+        if (value === 'FOURNITURE' && selectedArticle.PrixFournitureHT) {
+          updatedArticles[index].prixUnitaireHT = selectedArticle.PrixFournitureHT;
+        } else if (value === 'POSE' && selectedArticle.PrixPoseHT) {
+          updatedArticles[index].prixUnitaireHT = selectedArticle.PrixPoseHT;
+        } else if (value === 'BOTH') {
+          // For BOTH, we'll sum the prices
+          const fourniturePrice = parseFloat(selectedArticle.PrixFournitureHT) || 0;
+          const posePrice = parseFloat(selectedArticle.PrixPoseHT) || 0;
+          updatedArticles[index].prixUnitaireHT = (fourniturePrice + posePrice).toString();
+        } else {
+          updatedArticles[index].prixUnitaireHT = '';
+        }
       }
     }
     
@@ -151,6 +181,23 @@ const DevisForm = ({ user }) => {
         unite: selectedArticle.Unite
       };
       
+      // Set price based on current typePrix selection
+      if (updatedArticles[index].typePrix === 'FOURNITURE' && selectedArticle.PrixFournitureHT) {
+        updatedArticles[index].prixUnitaireHT = selectedArticle.PrixFournitureHT;
+      } else if (updatedArticles[index].typePrix === 'POSE' && selectedArticle.PrixPoseHT) {
+        updatedArticles[index].prixUnitaireHT = selectedArticle.PrixPoseHT;
+      } else if (updatedArticles[index].typePrix === 'BOTH') {
+        // For BOTH, we'll sum the prices
+        const fourniturePrice = parseFloat(selectedArticle.PrixFournitureHT) || 0;
+        const posePrice = parseFloat(selectedArticle.PrixPoseHT) || 0;
+        updatedArticles[index].prixUnitaireHT = (fourniturePrice + posePrice).toString();
+      }
+      
+      // Set TVA if available
+      if (selectedArticle.TauxTVA) {
+        updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVA.toString();
+      }
+      
       setFormData(prev => ({
         ...prev,
         articles: updatedArticles
@@ -169,7 +216,8 @@ const DevisForm = ({ user }) => {
           quantite: '',
           prixUnitaireHT: '',
           tauxTVAApplique: '',
-          unite: ''
+          unite: '',
+          typePrix: 'FOURNITURE' // Add this field - default to Fourniture
         }
       ]
     }));
@@ -267,7 +315,8 @@ const DevisForm = ({ user }) => {
           idArticle: article.idArticle,
           quantite: parseFloat(article.quantite),
           prixUnitaireHT: parseFloat(article.prixUnitaireHT),
-          tauxTVAApplique: parseFloat(article.tauxTVAApplique)
+          tauxTVAApplique: parseFloat(article.tauxTVAApplique),
+          typePrix: article.typePrix // Include the typePrix field
         }))
       };
       
@@ -287,7 +336,8 @@ const DevisForm = ({ user }) => {
             quantite: '',
             prixUnitaireHT: '',
             tauxTVAApplique: '',
-            unite: ''
+            unite: '',
+            typePrix: 'FOURNITURE' // Add this field - default to Fourniture
           }
         ]
       });
@@ -504,6 +554,9 @@ const DevisForm = ({ user }) => {
                         Article
                       </th>
                       <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        Type
+                      </th>
+                      <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                         Quantité
                       </th>
                       <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -586,54 +639,14 @@ const DevisForm = ({ user }) => {
                                                 <span className="font-medium">{art.Pression}</span>
                                               </div>
                                             )}
-                                            {art.Couleur && (
-                                              <div className="flex justify-between">
-                                                <span className="text-gray-500 dark:text-gray-400">Couleur:</span>
-                                                <span className="font-medium">{art.Couleur}</span>
-                                              </div>
-                                            )}
-                                            {art.Matiere && (
-                                              <div className="flex justify-between">
-                                                <span className="text-gray-500 dark:text-gray-400">Matière:</span>
-                                                <span className="font-medium">{art.Matiere}</span>
-                                              </div>
-                                            )}
-                                            {art.Classe && (
-                                              <div className="flex justify-between">
-                                                <span className="text-gray-500 dark:text-gray-400">Classe:</span>
-                                                <span className="font-medium">{art.Classe}</span>
-                                              </div>
-                                            )}
-                                            {art.Longueur && (
-                                              <div className="flex justify-between">
-                                                <span className="text-gray-500 dark:text-gray-400">Longueur:</span>
-                                                <span className="font-medium">{art.Longueur}</span>
-                                              </div>
-                                            )}
-                                            {art.Largeur && (
-                                              <div className="flex justify-between">
-                                                <span className="text-gray-500 dark:text-gray-400">Largeur:</span>
-                                                <span className="font-medium">{art.Largeur}</span>
-                                              </div>
-                                            )}
-                                            {art.Epaisseur && (
-                                              <div className="flex justify-between">
-                                                <span className="text-gray-500 dark:text-gray-400">Épaisseur:</span>
-                                                <span className="font-medium">{art.Epaisseur}</span>
-                                              </div>
-                                            )}
-                                            {art.Caracteristiques && (
-                                              <div className="col-span-2 flex justify-between">
-                                                <span className="text-gray-500 dark:text-gray-400">Caractéristiques:</span>
-                                                <span className="font-medium">{art.Caracteristiques}</span>
-                                              </div>
-                                            )}
-                                            {art.PrixUnitaireHT !== undefined && (
-                                              <div className="flex justify-between">
-                                                <span className="text-gray-500 dark:text-gray-400">Prix HT:</span>
-                                                <span className="font-medium">{art.PrixUnitaireHT?.toFixed(2)} DZD</span>
-                                              </div>
-                                            )}
+                                            <div className="flex justify-between">
+                                              <span className="text-gray-500 dark:text-gray-400">Fourniture:</span>
+                                              <span className="font-medium">{art.PrixFournitureHT ? `${parseFloat(art.PrixFournitureHT).toFixed(2)} DZD` : 'N/A'}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                              <span className="text-gray-500 dark:text-gray-400">Pose:</span>
+                                              <span className="font-medium">{art.PrixPoseHT ? `${parseFloat(art.PrixPoseHT).toFixed(2)} DZD` : 'N/A'}</span>
+                                            </div>
                                             {art.TauxTVA !== undefined && (
                                               <div className="flex justify-between">
                                                 <span className="text-gray-500 dark:text-gray-400">TVA:</span>
@@ -666,6 +679,17 @@ const DevisForm = ({ user }) => {
                                 value={article.idArticle || ''}
                               />
                             </div>
+                          </td>
+                          <td className="px-4 py-2 whitespace-nowrap">
+                            <select
+                              value={article.typePrix || 'FOURNITURE'}
+                              onChange={(e) => handleArticleChange(index, 'typePrix', e.target.value)}
+                              className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                            >
+                              <option value="FOURNITURE">Fourniture</option>
+                              <option value="POSE">Pose</option>
+                              <option value="BOTH">Les deux</option>
+                            </select>
                           </td>
                           <td className="px-4 py-2 whitespace-nowrap">
                             <div className="flex items-center space-x-2">

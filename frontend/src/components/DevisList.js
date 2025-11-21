@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { getDevisList } from '../services/api';
+import DevisDetail from './DevisDetail';
 
 const DevisList = ({ user }) => {
   const [devisList, setDevisList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [selectedDevisId, setSelectedDevisId] = useState(null);
 
   useEffect(() => {
     loadDevisList();
@@ -22,6 +24,10 @@ const DevisList = ({ user }) => {
       setLoading(false);
     }
   };
+
+  if (selectedDevisId) {
+    return <DevisDetail devisId={selectedDevisId} onBack={() => setSelectedDevisId(null)} />;
+  }
 
   if (loading) {
     return (
@@ -103,7 +109,7 @@ const DevisList = ({ user }) => {
                       {devis.NumeroDemande}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                      {devis.ClientNom} {devis.ClientPrenom}
+                      {devis.Client}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                       {devis.LibelleTypeDevis}
@@ -124,7 +130,10 @@ const DevisList = ({ user }) => {
                       {new Date(devis.DateCreation).toLocaleDateString('fr-FR')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button className="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300 mr-3">
+                      <button 
+                        onClick={() => setSelectedDevisId(devis.IdDevis)}
+                        className="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300 mr-3"
+                      >
                         Voir
                       </button>
                       <button className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-3">

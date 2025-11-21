@@ -3836,6 +3836,357 @@ app.get('/api/articles/:id', verifyToken, async (req, res) => {
     console.error('Erreur lors de la récupération de l\'article:', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
+}
+
+// Récupérer un devis par ID
+app.get('/api/devis/:id', verifyToken, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (!id) return res.status(400).json({ error: 'Id invalide' });
+    
+    const result = await pool.request()
+      .input('id', sql.Int, id)
+      .query(`
+        SELECT 
+          d.IdDevis,
+          d.NumeroDevis,
+          d.IdDemande,
+          d.IdTypeDevis,
+          d.MontantTotalHT,
+          d.MontantTotalTVA,
+          d.MontantTotalTTC,
+          d.Commentaire,
+          d.DateCreation,
+          dt.LibelleTypeDevis,
+          dem.NumeroDemande,
+          c.Nom + ' ' + ISNULL(c.Prenom, '') as Client,
+          c.AdresseResidence,
+          c.CommuneResidence,
+          c.CodePostalResidence,
+          c.TelephonePrincipal,
+          u.Nom + ' ' + ISNULL(u.Prenom, '') as UtilisateurCreation
+        FROM Devis d
+        INNER JOIN TypeDevis dt ON d.IdTypeDevis = dt.IdTypeDevis
+        INNER JOIN DemandeTravaux dem ON d.IdDemande = dem.IdDemande
+        INNER JOIN Client c ON dem.IdClient = c.IdClient
+        INNER JOIN Utilisateur u ON d.IdUtilisateurCreation = u.IdUtilisateur
+        WHERE d.IdDevis = @id
+      `);
+    
+    if (result.recordset.length === 0) {
+      return res.status(404).json({ error: 'Devis introuvable' });
+    }
+    
+    const devis = result.recordset[0];
+    
+    // Récupérer les articles du devis
+    const articlesResult = await pool.request()
+      .input('idDevis', sql.Int, id)
+      .query(`
+        SELECT 
+          IdDevisArticle,
+          IdArticle,
+          Designation,
+          Unite,
+          Quantite,
+          PrixUnitaireHT,
+          TauxTVAApplique,
+          MontantHT,
+          MontantTVA,
+          MontantTTC,
+          Remarque
+        FROM DevisArticle
+        WHERE IdDevis = @idDevis
+        ORDER BY IdDevisArticle
+      `);
+    
+    devis.articles = articlesResult.recordset;
+    
+    res.json(devis);
+  } catch (error) {
+    console.error('Erreur lors de la récupération du devis:', error);
+    res.status(500).json({ error: 'Erreur serveur lors de la récupération du devis' });
+  }
+});
+
+// ============================================================================
+// DEVIS
+// ============================================================================
+
+// Créer un nouveau devis
+app.post('/api/devis', verifyToken, async (req, res) => {
+  const transaction = new sql.Transaction(pool);
+  
+  try {
+    await transaction.begin();
+    const request = new sql.Request(transaction);
+    
+    const { idDemande, idTypeDevis, commentaire, articles } = req.body;
+    
+    // Validation
+    if (!idDemande) {
+      await transaction.rollback();
+      return res.status(400).json({ error: 'idDemande est requis' });
+    }
+    
+    if (!idTypeDevis) {
+      await transaction.rollback();
+      return res.status(400).json({ error: 'idTypeDevis est requis' });
+    }
+    
+    if (!articles || !Array.isArray(articles) || articles.length === 0) {
+      await transaction.rollback();
+      return res.status(400).json({ error: 'articles est requis et doit être un tableau non vide' });
+    }
+    
+    // Vérifier que la demande existe et est active
+    const demandeResult = await request
+      .input('idDemande', sql.Int, idDemande)
+      .query(`
+        SELECT IdDemande, NumeroDemande, IdAgence
+        FROM DemandeTravaux
+        WHERE IdDemande = @idDemande AND Actif = 1
+      `);
+    
+    if (demandeResult.recordset.length === 0) {
+      await transaction.rollback();
+      return res.status(404).json({ error: 'Demande introuvable ou inactive' });
+    }
+    
+    const demande = demandeResult.recordset[0];
+    
+    // Vérifier que le type de devis existe et est actif
+    const typeDevisResult = await request
+      .input('idTypeDevis', sql.Int, idTypeDevis)
+      .query(`
+        SELECT IdTypeDevis, CodeTypeDevis, LibelleTypeDevis
+        FROM TypeDevis
+        WHERE IdTypeDevis = @idTypeDevis AND Actif = 1
+      `);
+    
+    if (typeDevisResult.recordset.length === 0) {
+      await transaction.rollback();
+      return res.status(404).json({ error: 'Type de devis introuvable ou inactif' });
+    }
+    
+    // Générer le numéro de devis (format: DV-AGENCE-YEAR-XXXX)
+    const currentYear = new Date().getFullYear();
+    const agenceCode = await request
+      .input('idAgence', sql.Int, demande.IdAgence)
+      .query(`
+        SELECT CodeAgence
+        FROM AgenceCommerciale
+        WHERE IdAgence = @idAgence
+      `);
+    
+    if (agenceCode.recordset.length === 0) {
+      await transaction.rollback();
+      return res.status(404).json({ error: 'Agence commerciale introuvable' });
+    }
+    
+    const agencePrefix = agenceCode.recordset[0].CodeAgence;
+    const numeroBase = `DV-${agencePrefix}-${currentYear}`;
+    
+    const maxNumberResult = await request
+      .input('numeroBase', sql.NVarChar, `${numeroBase}-%`)
+      .query(`
+        SELECT ISNULL(MAX(CAST(SUBSTRING(NumeroDevis, LEN(@numeroBase) + 2, LEN(NumeroDevis)) AS INT)), 0) as MaxNum
+        FROM Devis
+        WHERE NumeroDevis LIKE @numeroBase + '-%'
+      `);
+    
+    const nextNumber = maxNumberResult.recordset[0].MaxNum + 1;
+    const numeroDevis = `${numeroBase}-${String(nextNumber).padStart(4, '0')}`;
+    
+    // Insérer le devis
+    const insertDevisResult = await request
+      .input('NumeroDevis', sql.NVarChar(50), numeroDevis)
+      .input('IdDemande', sql.Int, idDemande)
+      .input('IdTypeDevis', sql.Int, idTypeDevis)
+      .input('IdUtilisateurCreation', sql.Int, req.user?.id)
+      .input('Commentaire', sql.NVarChar(sql.MAX), commentaire || null)
+      .query(`
+        INSERT INTO Devis (
+          NumeroDevis, IdDemande, IdTypeDevis, IdUtilisateurCreation, 
+          MontantTotalHT, MontantTotalTVA, MontantTotalTTC, Commentaire
+        )
+        OUTPUT INSERTED.IdDevis
+        VALUES (
+          @NumeroDevis, @IdDemande, @IdTypeDevis, @IdUtilisateurCreation,
+          0, 0, 0, @Commentaire
+        )
+      `);
+    
+    const idDevis = insertDevisResult.recordset[0].IdDevis;
+    
+    // Insérer les articles du devis
+    let montantTotalHT = 0;
+    let montantTotalTVA = 0;
+    
+    for (const article of articles) {
+      const {
+        idArticle,
+        quantite,
+        prixUnitaireHT,
+        tauxTVAApplique,
+        typePrix // This is the new field we're adding
+      } = article;
+      
+      // Validation
+      if (!idArticle) {
+        await transaction.rollback();
+        return res.status(400).json({ error: 'idArticle est requis pour chaque article' });
+      }
+      
+      if (!quantite || quantite <= 0) {
+        await transaction.rollback();
+        return res.status(400).json({ error: 'quantite doit être un nombre positif' });
+      }
+      
+      if (prixUnitaireHT === undefined || prixUnitaireHT === null || prixUnitaireHT < 0) {
+        await transaction.rollback();
+        return res.status(400).json({ error: 'prixUnitaireHT doit être un nombre positif' });
+      }
+      
+      if (tauxTVAApplique === undefined || tauxTVAApplique === null || tauxTVAApplique < 0 || tauxTVAApplique > 100) {
+        await transaction.rollback();
+        return res.status(400).json({ error: 'tauxTVAApplique doit être un nombre entre 0 et 100' });
+      }
+      
+      // Vérifier que l'article existe et est actif
+      const articleResult = await request
+        .input('idArticle', sql.Int, idArticle)
+        .query(`
+          SELECT IdArticle, CodeArticle, Designation, Unite
+          FROM Article
+          WHERE IdArticle = @idArticle AND Actif = 1
+        `);
+      
+      if (articleResult.recordset.length === 0) {
+        await transaction.rollback();
+        return res.status(404).json({ error: `Article avec id ${idArticle} introuvable ou inactif` });
+      }
+      
+      const articleData = articleResult.recordset[0];
+      
+      // Calculer les montants
+      const quantiteValue = parseFloat(quantite);
+      const prixUnitaireValue = parseFloat(prixUnitaireHT);
+      const tauxTVAValue = parseFloat(tauxTVAApplique);
+      
+      const montantHT = quantiteValue * prixUnitaireValue;
+      const montantTVA = montantHT * (tauxTVAValue / 100);
+      const montantTTC = montantHT + montantTVA;
+      
+      montantTotalHT += montantHT;
+      montantTotalTVA += montantTVA;
+      
+      // Insérer l'article dans DevisArticle
+      await request
+        .input('IdDevis', sql.Int, idDevis)
+        .input('IdArticle', sql.Int, idArticle)
+        .input('Designation', sql.NVarChar(200), articleData.Designation)
+        .input('Unite', sql.NVarChar(50), articleData.Unite)
+        .input('Quantite', sql.Decimal(18, 3), quantiteValue)
+        .input('PrixUnitaireHT', sql.Decimal(18, 2), prixUnitaireValue)
+        .input('TauxTVAApplique', sql.Decimal(5, 2), tauxTVAValue)
+        .input('Remarque', sql.NVarChar(500), typePrix || null) // Store typePrix in Remarque field for now
+        .query(`
+          INSERT INTO DevisArticle (
+            IdDevis, IdArticle, Designation, Unite, Quantite, 
+            PrixUnitaireHT, TauxTVAApplique, Remarque
+          )
+          VALUES (
+            @IdDevis, @IdArticle, @Designation, @Unite, @Quantite,
+            @PrixUnitaireHT, @TauxTVAApplique, @Remarque
+          )
+        `);
+    }
+    
+    // Mettre à jour les montants totaux du devis
+    const montantTotalTTC = montantTotalHT + montantTotalTVA;
+    
+    await request
+      .input('IdDevis', sql.Int, idDevis)
+      .input('MontantTotalHT', sql.Decimal(18, 2), montantTotalHT)
+      .input('MontantTotalTVA', sql.Decimal(18, 2), montantTotalTVA)
+      .input('MontantTotalTTC', sql.Decimal(18, 2), montantTotalTTC)
+      .query(`
+        UPDATE Devis
+        SET 
+          MontantTotalHT = @MontantTotalHT,
+          MontantTotalTVA = @MontantTotalTVA,
+          MontantTotalTTC = @MontantTotalTTC
+        WHERE IdDevis = @IdDevis
+      `);
+    
+    await transaction.commit();
+    
+    // Retourner le devis créé
+    const devisResult = await pool.request()
+      .input('idDevis', sql.Int, idDevis)
+      .query(`
+        SELECT 
+          d.IdDevis,
+          d.NumeroDevis,
+          d.IdDemande,
+          d.IdTypeDevis,
+          d.MontantTotalHT,
+          d.MontantTotalTVA,
+          d.MontantTotalTTC,
+          d.Commentaire,
+          d.DateCreation,
+          dt.LibelleTypeDevis,
+          dem.NumeroDemande
+        FROM Devis d
+        INNER JOIN TypeDevis dt ON d.IdTypeDevis = dt.IdTypeDevis
+        INNER JOIN DemandeTravaux dem ON d.IdDemande = dem.IdDemande
+        WHERE d.IdDevis = @idDevis
+      `);
+    
+    res.status(201).json(devisResult.recordset[0]);
+  } catch (error) {
+    console.error('Erreur lors de la création du devis:', error);
+    try {
+      await transaction.rollback();
+    } catch (rollbackError) {
+      console.error('Erreur lors du rollback:', rollbackError);
+    }
+    res.status(500).json({ error: error.message || 'Erreur serveur lors de la création du devis' });
+  }
+});
+
+// Récupérer tous les devis
+app.get('/api/devis', verifyToken, async (req, res) => {
+  try {
+    const result = await pool.request().query(`
+      SELECT 
+        d.IdDevis,
+        d.NumeroDevis,
+        d.IdDemande,
+        d.IdTypeDevis,
+        d.MontantTotalHT,
+        d.MontantTotalTVA,
+        d.MontantTotalTTC,
+        d.Commentaire,
+        d.DateCreation,
+        dt.LibelleTypeDevis,
+        dem.NumeroDemande,
+        c.Nom + ' ' + ISNULL(c.Prenom, '') as Client
+      FROM Devis d
+      INNER JOIN TypeDevis dt ON d.IdTypeDevis = dt.IdTypeDevis
+      INNER JOIN DemandeTravaux dem ON d.IdDemande = dem.IdDemande
+      INNER JOIN Client c ON dem.IdClient = c.IdClient
+      ORDER BY d.DateCreation DESC
+    `);
+    
+    res.json(result.recordset);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des devis:', error);
+    res.status(500).json({ error: 'Erreur serveur lors de la récupération des devis' });
+  }
+});
+
 });
 
 // Liste des articles
