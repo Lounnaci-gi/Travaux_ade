@@ -101,7 +101,7 @@ const Login = ({ onLogin }) => {
     <div className="min-h-screen flex items-center justify-center p-4 relative">
       {lockTimer && lockTimer.remainingMs > 0 && (
         <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity">
-          <div className="glass-card max-w-sm w-full mx-auto p-6 text-center space-y-4 animate-fadeIn shadow-2xl border border-white/10">
+          <div className="solid-card max-w-sm w-full mx-auto p-6 text-center space-y-4 animate-fadeIn shadow-2xl">
             <div className="flex justify-center">
               <div className="p-3 rounded-2xl bg-gradient-to-br from-red-500 via-purple-500 to-primary-500 shadow-lg shadow-red-500/30">
                 <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -126,17 +126,17 @@ const Login = ({ onLogin }) => {
       {/* Theme Toggle Button */}
       <button
         onClick={toggleTheme}
-        className="absolute top-4 right-4 p-2 rounded-lg glass-effect hover:bg-white/10 dark:hover:bg-white/10 dark:text-gray-300 dark:hover:text-white text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-all duration-300 group"
+        className="absolute top-4 right-4 p-2 rounded-lg solid-effect hover:bg-white/10 dark:hover:bg-white/10 dark:text-gray-300 dark:hover:text-white text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-all duration-300 group"
         title={isDark ? 'Activer le mode clair' : 'Activer le mode sombre'}
         aria-label="Toggle theme"
       >
         {isDark ? (
           <svg className="w-6 h-6 transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
           </svg>
         ) : (
           <svg className="w-6 h-6 transition-transform duration-300 group-hover:-rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
           </svg>
         )}
       </button>
@@ -150,7 +150,7 @@ const Login = ({ onLogin }) => {
 
       {/* Login Card */}
       <div className="relative w-full max-w-sm mx-auto">
-        <div className="glass-card p-6 space-y-5">
+        <div className="solid-card p-6 space-y-5">
           {/* Logo and Title */}
           <div className="text-center space-y-4">
             <div className="flex justify-center">
@@ -175,7 +175,7 @@ const Login = ({ onLogin }) => {
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 dark:text-gray-400 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 dark:text-gray-400 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </div>
@@ -186,7 +186,8 @@ const Login = ({ onLogin }) => {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="input-field pl-10 pr-4 py-2"
+                  //className="input-field pl-10 pr-4 py-3"
+                  className="w-full pl-10 pr-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                   placeholder="Identifiant utilisateur"
                 />
               </div>
@@ -210,7 +211,7 @@ const Login = ({ onLogin }) => {
                   value={formData.password}
                   onChange={handleChange}
                   required
-                  className="input-field pl-10 pr-12 py-2"
+                  className="w-full pl-10 pr-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                   placeholder="••••••••"
                 />
                 <button
