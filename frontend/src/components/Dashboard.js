@@ -34,44 +34,44 @@ const Dashboard = () => {
       title: 'Total Travaux',
       value: stats.TotalTravaux || 0,
       icon: (
-        <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
         </svg>
       ),
-      color: 'bg-blue-500',
+      color: 'bg-blue-600',
       delay: 0,
     },
     {
       title: 'En Cours',
       value: stats.TravauxEnCours || 0,
       icon: (
-        <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
-      color: 'bg-yellow-500',
+      color: 'bg-yellow-600',
       delay: 100,
     },
     {
       title: 'Terminés',
       value: stats.TravauxTermines || 0,
       icon: (
-        <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
-      color: 'bg-green-500',
+      color: 'bg-green-600',
       delay: 200,
     },
     {
       title: 'En Attente',
       value: stats.TravauxEnAttente || 0,
       icon: (
-        <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
-      color: 'bg-purple-500',
+      color: 'bg-purple-600',
       delay: 300,
     },
   ];
@@ -88,7 +88,7 @@ const Dashboard = () => {
         
         {loading ? (
           <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-600"></div>
           </div>
         ) : (
           <>
@@ -99,11 +99,11 @@ const Dashboard = () => {
                   return (
                     <div
                       key={index}
-                      className="glass-card p-6 transform transition-all duration-500 hover:scale-105 hover:-translate-y-2"
+                      className="solid-card transform transition-all duration-500 hover:-translate-y-1"
                       style={{ animationDelay: `${card.delay}ms` }}
                     >
                       <div className="flex items-center justify-between mb-4">
-                        <div className={`p-3 rounded-xl ${card.color} bg-opacity-20 backdrop-blur-sm`}>
+                        <div className={`p-3 rounded-lg ${card.color} bg-opacity-20`}>
                           {card.icon}
                         </div>
                         <div className="text-right">
@@ -115,7 +115,7 @@ const Dashboard = () => {
                       </div>
                       <div className="h-1 w-full dark:bg-gray-700 bg-gray-300 rounded-full overflow-hidden mb-3">
                         <div 
-                          className={`h-full ${card.color} animate-pulse`}
+                          className={`h-full ${card.color}`}
                           style={{ width: '100%' }}
                         ></div>
                       </div>
@@ -124,7 +124,7 @@ const Dashboard = () => {
                           {stats.DemandesEnAttenteParType.map((item, idx) => (
                             <div
                               key={idx}
-                              className="flex items-center justify-between p-2 rounded-lg bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/10"
+                              className="flex items-center justify-between p-2 rounded-lg bg-gray-100 dark:bg-slate-600"
                             >
                               <span className="text-xs dark:text-gray-300 text-gray-700 truncate flex-1 mr-2">
                                 {item.TypeDemande || 'Non spécifié'}

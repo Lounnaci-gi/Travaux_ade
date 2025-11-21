@@ -52,14 +52,14 @@ const TravauxList = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold mb-2 text-gradient">
             Suivi des Travaux
           </h1>
           <p className="dark:text-gray-400 text-gray-600">Gestion des ordres d'exécution AquaConnect</p>
         </div>
 
         {/* Filters */}
-        <div className="glass-card p-6 mb-6">
+        <div className="solid-card mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <input
@@ -67,7 +67,7 @@ const TravauxList = () => {
                 placeholder="Rechercher par numéro, client ou demande..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 dark:placeholder-gray-400 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 rounded-lg dark:bg-slate-700 bg-white border dark:border-slate-600 border-gray-300 dark:text-white text-gray-900 dark:placeholder-gray-400 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
               />
             </div>
             <div>
@@ -89,7 +89,7 @@ const TravauxList = () => {
         {/* Loading */}
         {loading ? (
           <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-600"></div>
           </div>
         ) : (
           <>
@@ -100,7 +100,7 @@ const TravauxList = () => {
 
             {/* Travaux Grid */}
             {filteredTravaux.length === 0 ? (
-              <div className="glass-card p-12 text-center">
+              <div className="solid-card p-12 text-center">
                 <p className="dark:text-gray-400 text-gray-600 text-lg">Aucun travail trouvé</p>
               </div>
             ) : (
@@ -122,4 +122,3 @@ const TravauxList = () => {
 };
 
 export default TravauxList;
-

@@ -5,12 +5,12 @@ import { fr } from 'date-fns/locale/fr';
 const TravauxCard = ({ travail, onClick }) => {
   const getStatusColor = (codeStatut) => {
     const colors = {
-      'EMIS': 'bg-blue-500',
-      'EN_COURS': 'bg-yellow-500',
-      'TERMINE': 'bg-green-500',
-      'ANNULE': 'bg-red-500',
+      'EMIS': 'bg-blue-600',
+      'EN_COURS': 'bg-yellow-600',
+      'TERMINE': 'bg-green-600',
+      'ANNULE': 'bg-red-600',
     };
-    return colors[codeStatut] || 'bg-gray-500';
+    return colors[codeStatut] || 'bg-gray-600';
   };
 
   const formatDate = (date) => {
@@ -25,12 +25,12 @@ const TravauxCard = ({ travail, onClick }) => {
   return (
     <div
       onClick={onClick}
-      className="glass-card p-6 cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-2xl group"
+      className="solid-card cursor-pointer transform transition-all duration-300 hover:-translate-y-1 group"
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
-            <h3 className="text-xl font-bold dark:text-white text-gray-900 group-hover:text-blue-400 dark:group-hover:text-blue-400 transition-colors">
+            <h3 className="text-xl font-bold dark:text-white text-gray-900 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
               {travail.NumeroOrdre}
             </h3>
             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(travail.CodeStatut)} text-white`}>
@@ -46,7 +46,7 @@ const TravauxCard = ({ travail, onClick }) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t dark:border-white/10 border-gray-200/50">
+      <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t dark:border-slate-600 border-gray-200">
         <div>
           <p className="text-xs dark:text-gray-400 text-gray-600 mb-1">Date d'émission</p>
           <p className="text-sm font-semibold dark:text-white text-gray-900">{formatDate(travail.DateEmission)}</p>
@@ -58,7 +58,7 @@ const TravauxCard = ({ travail, onClick }) => {
         {travail.MontantTotalTTC && (
           <div className="col-span-2">
             <p className="text-xs dark:text-gray-400 text-gray-600 mb-1">Montant TTC</p>
-            <p className="text-lg font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
+            <p className="text-lg font-bold text-gradient">
               {parseFloat(travail.MontantTotalTTC).toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' })}
             </p>
           </div>
@@ -66,7 +66,7 @@ const TravauxCard = ({ travail, onClick }) => {
       </div>
 
       {travail.Commentaire && (
-        <div className="mt-4 pt-4 border-t dark:border-white/10 border-gray-200/50">
+        <div className="mt-4 pt-4 border-t dark:border-slate-600 border-gray-200">
           <p className="text-xs dark:text-gray-400 text-gray-600 mb-1">Commentaire</p>
           <p className="text-sm dark:text-gray-300 text-gray-700 line-clamp-2">{travail.Commentaire}</p>
         </div>
@@ -76,4 +76,3 @@ const TravauxCard = ({ travail, onClick }) => {
 };
 
 export default TravauxCard;
-

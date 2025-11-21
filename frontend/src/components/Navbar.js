@@ -195,7 +195,7 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
   };
 
   return (
-    <nav ref={menuRef} className="glass-effect border-b border-white/20 dark:border-white/20 border-gray-200/50 sticky top-0 z-50 backdrop-blur-lg">
+    <nav ref={menuRef} className="solid-effect border-b dark:border-slate-600 border-gray-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 py-2">
         <div className="flex items-center justify-between">
           {/* Logo */}
@@ -207,7 +207,7 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
               <h1 className="text-lg font-bold text-gradient">
                 AquaConnect
               </h1>
-              <p className="text-[10px] text-gray-400 dark:text-gray-400 text-gray-600">Gestion des Branchements</p>
+              <p className="text-[10px] dark:text-gray-400 text-gray-600">Gestion des Branchements</p>
             </div>
           </div>
 
@@ -233,7 +233,7 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
                     className={`px-3 py-1.5 rounded-lg transition-all duration-300 flex items-center gap-1.5 text-sm ${
                       isActive
                         ? 'btn-primary'
-                        : 'glass-effect hover:bg-white/10 dark:hover:bg-white/10 dark:text-gray-300 dark:hover:text-white text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+                        : 'solid-effect hover:bg-gray-100 dark:hover:bg-slate-600 dark:text-gray-300 dark:hover:text-white text-gray-700 hover:text-gray-900'
                     }`}
                     title={item.label}
                   >
@@ -253,16 +253,16 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
 
                   {/* Submenu */}
                   {item.submenu && isOpen && (
-                    <div className="absolute top-full left-0 mt-1.5 w-48 glass-card p-1.5 animate-fadeIn">
+                    <div className="absolute top-full left-0 mt-1.5 w-48 solid-card p-1.5 animate-fadeIn">
                       {item.submenu
                         .filter((submenu) => !submenu.adminOnly || isAdmin(user) || (isChefCentre && submenu.id === 'utilisateurs-create'))
                         .map((submenu) => (
                         <button
                           key={submenu.id}
                           onClick={() => handleSubmenuClick(submenu.id)}
-                          className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-white/10 dark:hover:bg-white/10 dark:text-gray-300 dark:hover:text-white text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200 flex items-center gap-1.5 text-sm"
+                          className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-600 dark:text-gray-300 dark:hover:text-white text-gray-700 hover:text-gray-900 transition-colors duration-200 flex items-center gap-1.5 text-sm"
                         >
-                          <div className="w-1.5 h-1.5 rounded-full bg-blue-400"></div>
+                          <div className="w-1.5 h-1.5 rounded-full bg-blue-600"></div>
                           {submenu.label}
                         </button>
                       ))}
@@ -279,14 +279,14 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
             {pendingCount > 0 && (
               <button
                 onClick={() => setCurrentView('demandes-list')}
-                className="relative p-1.5 rounded-lg glass-effect hover:bg-white/10 dark:hover:bg-white/10 dark:text-gray-300 dark:hover:text-white text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-all duration-300"
+                className="relative p-1.5 rounded-lg solid-effect hover:bg-gray-100 dark:hover:bg-slate-600 dark:text-gray-300 dark:hover:text-white text-gray-700 hover:text-gray-900 transition-all duration-300"
                 title={`${pendingCount} demande(s) en attente de validation`}
                 aria-label="Notifications"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
-                <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full animate-pulse">
+                <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-600 rounded-full animate-pulse">
                   {pendingCount > 99 ? '99+' : pendingCount}
                 </span>
               </button>
@@ -295,7 +295,7 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
             {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
-                  className="p-1.5 rounded-lg glass-effect hover:bg-white/10 dark:hover:bg-white/10 dark:text-gray-300 dark:hover:text-white text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-all duration-300 group relative"
+                  className="p-1.5 rounded-lg solid-effect hover:bg-gray-100 dark:hover:bg-slate-600 dark:text-gray-300 dark:hover:text-white text-gray-700 hover:text-gray-900 transition-all duration-300 group relative"
               title={isDark ? 'Activer le mode clair' : 'Activer le mode sombre'}
               aria-label="Toggle theme"
             >
@@ -316,12 +316,12 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
               <div className="relative">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg glass-effect hover:bg-white/10 dark:hover:bg-white/10 dark:text-gray-300 dark:hover:text-white text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-all text-sm"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg solid-effect hover:bg-gray-100 dark:hover:bg-slate-600 dark:text-gray-300 dark:hover:text-white text-gray-700 hover:text-gray-900 transition-all text-sm"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center text-white text-xs font-bold">
                     {user.prenom?.[0]?.toUpperCase() || user.nom?.[0]?.toUpperCase() || 'U'}
                   </div>
-                  <span className="hidden lg:flex items-center gap-1 text-xs font-medium text-gray-600 dark:text-gray-300">
+                  <span className="hidden lg:flex items-center gap-1 text-xs font-medium dark:text-gray-300 text-gray-600">
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5z" />
@@ -334,15 +334,15 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
                 </button>
 
                 {showUserMenu && (
-                  <div className="absolute right-0 mt-1.5 w-48 glass-card p-1.5 animate-fadeIn">
-                    <div className="px-3 py-2 border-b border-white/10 dark:border-white/10 border-gray-200/50 mb-1">
-                      <p className="text-sm font-semibold text-white dark:text-white text-gray-900">{user.prenom} {user.nom}</p>
-                      <p className="text-xs text-gray-400 dark:text-gray-400 text-gray-600">{user.email}</p>
-                      <p className="text-xs text-gray-400 dark:text-gray-400 text-gray-600 mt-1">{user.role}</p>
+                  <div className="absolute right-0 mt-1.5 w-48 solid-card p-1.5 animate-fadeIn">
+                    <div className="px-3 py-2 border-b dark:border-slate-600 border-gray-200 mb-1">
+                      <p className="text-sm font-semibold dark:text-white text-gray-900">{user.prenom} {user.nom}</p>
+                      <p className="text-xs dark:text-gray-400 text-gray-600">{user.email}</p>
+                      <p className="text-xs dark:text-gray-400 text-gray-600 mt-1">{user.role}</p>
                     </div>
                     <button
                       onClick={onLogout}
-                      className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-white/10 dark:hover:bg-white/10 dark:text-gray-300 dark:hover:text-red-400 text-gray-700 hover:text-red-600 hover:bg-red-50 transition-colors duration-200 flex items-center gap-2 text-sm"
+                      className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-red-500/20 dark:hover:bg-red-500/20 dark:text-gray-300 dark:hover:text-red-400 text-gray-700 hover:text-red-600 transition-colors duration-200 flex items-center gap-2 text-sm"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -361,14 +361,14 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
             {pendingCount > 0 && (
               <button
                 onClick={() => setCurrentView('demandes-list')}
-                className="relative p-1.5 rounded-lg glass-effect hover:bg-white/10 dark:hover:bg-white/10 dark:text-gray-300 dark:hover:text-white text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-all duration-300"
+                className="relative p-1.5 rounded-lg solid-effect hover:bg-gray-100 dark:hover:bg-slate-600 dark:text-gray-300 dark:hover:text-white text-gray-700 hover:text-gray-900 transition-all duration-300"
                 title={`${pendingCount} demande(s) en attente de validation`}
                 aria-label="Notifications"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
-                <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full animate-pulse">
+                <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-600 rounded-full animate-pulse">
                   {pendingCount > 99 ? '99+' : pendingCount}
                 </span>
               </button>
@@ -377,7 +377,7 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
             {/* Theme Toggle Mobile */}
             <button
               onClick={toggleTheme}
-                  className="p-1.5 rounded-lg glass-effect hover:bg-white/10 dark:hover:bg-white/10 dark:text-gray-300 text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-all duration-300"
+                  className="p-1.5 rounded-lg solid-effect hover:bg-gray-100 dark:hover:bg-slate-600 dark:text-gray-300 text-gray-700 hover:text-gray-900 transition-all duration-300"
               title={isDark ? 'Activer le mode clair' : 'Activer le mode sombre'}
               aria-label="Toggle theme"
             >
@@ -395,7 +395,7 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setOpenMenu(openMenu === 'mobile' ? null : 'mobile')}
-                  className="p-1.5 rounded-lg glass-effect hover:bg-white/10 dark:hover:bg-white/10 dark:text-gray-300 text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  className="p-1.5 rounded-lg solid-effect hover:bg-gray-100 dark:hover:bg-slate-600 dark:text-gray-300 text-gray-700 hover:text-gray-900"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -409,10 +409,10 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
           <div className="md:hidden mt-3 pb-3 space-y-1.5">
             {/* User Info Mobile */}
             {user && (
-              <div className="px-3 py-2 mb-2 glass-effect rounded-lg border-b border-white/10 dark:border-white/10 border-gray-200/50">
-                <p className="text-sm font-semibold text-white dark:text-white text-gray-900">{user.prenom} {user.nom}</p>
-                <p className="text-xs text-gray-400 dark:text-gray-400 text-gray-600">{user.email}</p>
-                <p className="text-xs text-gray-400 dark:text-gray-400 text-gray-600 mt-1">{user.role}</p>
+              <div className="px-3 py-2 mb-2 solid-effect rounded-lg border-b dark:border-slate-600 border-gray-200">
+                <p className="text-sm font-semibold dark:text-white text-gray-900">{user.prenom} {user.nom}</p>
+                <p className="text-xs dark:text-gray-400 text-gray-600">{user.email}</p>
+                <p className="text-xs dark:text-gray-400 text-gray-600 mt-1">{user.role}</p>
               </div>
             )}
             
@@ -435,7 +435,7 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
                     className={`w-full text-left px-3 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 text-sm ${
                       isActive
                         ? 'btn-primary'
-                        : 'glass-effect hover:bg-white/10 dark:hover:bg-white/10 dark:text-gray-300 text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+                        : 'solid-effect hover:bg-gray-100 dark:hover:bg-slate-600 dark:text-gray-300 text-gray-700 hover:text-gray-900'
                     }`}
                     title={item.label}
                   >
@@ -455,9 +455,9 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
                         <button
                           key={submenu.id}
                           onClick={() => handleSubmenuClick(submenu.id)}
-                          className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-white/10 dark:hover:bg-white/10 dark:text-gray-400 dark:hover:text-white text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200 flex items-center gap-1.5 text-xs"
+                          className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-600 dark:text-gray-400 dark:hover:text-white text-gray-600 hover:text-gray-900 transition-colors duration-200 flex items-center gap-1.5 text-xs"
                         >
-                          <div className="w-1.5 h-1.5 rounded-full bg-blue-400"></div>
+                          <div className="w-1.5 h-1.5 rounded-full bg-blue-600"></div>
                           {submenu.label}
                         </button>
                       ))}
@@ -472,7 +472,7 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
               <>
                 <button
                   onClick={onLogout}
-                  className="w-full text-left px-3 py-2 rounded-lg glass-effect hover:bg-red-500/20 dark:hover:bg-red-500/20 dark:text-gray-300 dark:hover:text-red-400 text-gray-700 hover:text-red-600 hover:bg-red-50 transition-colors duration-200 flex items-center gap-2 text-sm mt-2"
+                  className="w-full text-left px-3 py-2 rounded-lg solid-effect hover:bg-red-500/20 dark:hover:bg-red-500/20 dark:text-gray-300 dark:hover:text-red-400 text-gray-700 hover:text-red-600 transition-colors duration-200 flex items-center gap-2 text-sm mt-2"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
