@@ -4310,7 +4310,7 @@ app.get('/api/devis', verifyToken, async (req, res) => {
 app.get('/api/articles', async (req, res) => {
   try {
     const result = await pool.request().query(`
-      SELECT TOP 200
+      SELECT 
         a.IdArticle,
         a.CodeArticle,
         a.Designation,
@@ -4336,16 +4336,32 @@ app.get('/api/articles', async (req, res) => {
         pp.DateDebutApplication AS DateDebutPose
       FROM Article a
       LEFT JOIN ArticleFamille f ON a.IdFamille = f.IdFamille
-      LEFT JOIN ArticlePrixHistorique pf ON a.IdArticle = pf.IdArticle 
-        AND pf.TypePrix = 'FOURNITURE' 
-        AND pf.EstActif = 1
-        AND pf.DateDebutApplication <= GETDATE()
-        AND (pf.DateFinApplication IS NULL OR pf.DateFinApplication >= GETDATE())
-      LEFT JOIN ArticlePrixHistorique pp ON a.IdArticle = pp.IdArticle 
-        AND pp.TypePrix = 'POSE' 
-        AND pp.EstActif = 1
-        AND pp.DateDebutApplication <= GETDATE()
-        AND (pp.DateFinApplication IS NULL OR pp.DateFinApplication >= GETDATE())
+      LEFT JOIN (
+        SELECT 
+          IdArticle, 
+          PrixHT, 
+          TauxTVA, 
+          DateDebutApplication,
+          ROW_NUMBER() OVER (PARTITION BY IdArticle ORDER BY DateDebutApplication DESC) as rn
+        FROM ArticlePrixHistorique 
+        WHERE TypePrix = 'FOURNITURE' 
+          AND EstActif = 1
+          AND DateDebutApplication <= GETDATE()
+          AND (DateFinApplication IS NULL OR DateFinApplication >= GETDATE())
+      ) pf ON a.IdArticle = pf.IdArticle AND pf.rn = 1
+      LEFT JOIN (
+        SELECT 
+          IdArticle, 
+          PrixHT, 
+          TauxTVA, 
+          DateDebutApplication,
+          ROW_NUMBER() OVER (PARTITION BY IdArticle ORDER BY DateDebutApplication DESC) as rn
+        FROM ArticlePrixHistorique 
+        WHERE TypePrix = 'POSE' 
+          AND EstActif = 1
+          AND DateDebutApplication <= GETDATE()
+          AND (DateFinApplication IS NULL OR DateFinApplication >= GETDATE())
+      ) pp ON a.IdArticle = pp.IdArticle AND pp.rn = 1
       ORDER BY a.Designation
     `);
     res.json(result.recordset);
