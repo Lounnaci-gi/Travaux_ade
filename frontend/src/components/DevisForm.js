@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getDemandes, getDevisTypes, getArticles, createDevis } from '../services/api';
+import { getDemandes, getDevisTypes, getArticles, createDevis, getConfigurationByKey } from '../services/api';
 import { alertSuccess, alertError } from '../ui/alerts';
 
 const DevisForm = ({ user }) => {
+  const [globalTVA, setGlobalTVA] = useState('19.00');
+  
   const [formData, setFormData] = useState({
     idDemande: '',
     idTypeDevis: '',
@@ -13,7 +15,7 @@ const DevisForm = ({ user }) => {
         designation: '',
         quantite: '',
         prixUnitaireHT: '',
-        tauxTVAApplique: '',
+        tauxTVAApplique: '19.00',
         unite: '',
         typePrix: 'FOURNITURE' // Add this field - default to Fourniture
       }
@@ -31,6 +33,29 @@ const DevisForm = ({ user }) => {
   const [filteredDemandes, setFilteredDemandes] = useState([]);
   const [showDemandeDropdown, setShowDemandeDropdown] = useState(false);
   const dropdownRef = useRef(null);
+
+  // Load global TVA rate from ConfigurationGlobale
+  useEffect(() => {
+    const loadGlobalTVA = async () => {
+      try {
+        const tvaConfig = await getConfigurationByKey('TAUX_TVA_DEFAUT');
+        if (tvaConfig && tvaConfig.Valeur) {
+          setGlobalTVA(tvaConfig.Valeur);
+          // Update existing articles with the loaded TVA rate
+          setFormData(prev => ({
+            ...prev,
+            articles: prev.articles.map(article => ({
+              ...article,
+              tauxTVAApplique: article.tauxTVAApplique || tvaConfig.Valeur
+            }))
+          }));
+        }
+      } catch (err) {
+        // Keep default TVA rate if error
+      }
+    };
+    loadGlobalTVA();
+  }, []);
 
   // Load initial data
   useEffect(() => {
@@ -53,7 +78,6 @@ const DevisForm = ({ user }) => {
           }));
         }
       } catch (err) {
-        console.error('Erreur lors du chargement des données:', err);
         setError('Erreur lors du chargement des données');
       }
     };
@@ -141,7 +165,7 @@ const DevisForm = ({ user }) => {
           // For BOTH, we'll use fourniture price as default
           updatedArticles[index].prixUnitaireHT = selectedArticle.PrixFournitureHT || selectedArticle.PrixPoseHT || '';
         }
-        updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVA || '';
+        updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVA || globalTVA;
       }
     }
     
@@ -198,9 +222,11 @@ const DevisForm = ({ user }) => {
         updatedArticles[index].prixUnitaireHT = (fourniturePrice + posePrice).toString();
       }
       
-      // Set TVA if available
+      // Set TVA if available, otherwise use global TVA
       if (selectedArticle.TauxTVA) {
         updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVA.toString();
+      } else {
+        updatedArticles[index].tauxTVAApplique = globalTVA;
       }
       
       setFormData(prev => ({
@@ -223,7 +249,7 @@ const DevisForm = ({ user }) => {
           designation: '',
           quantite: '',
           prixUnitaireHT: '',
-          tauxTVAApplique: '',
+          tauxTVAApplique: globalTVA,
           unite: '',
           typePrix: 'FOURNITURE' // Add this field - default to Fourniture
         }
@@ -354,7 +380,6 @@ const DevisForm = ({ user }) => {
       // Reset form
       resetForm();
     } catch (err) {
-      console.error('Erreur lors de la création du devis:', err);
       setError(err.response?.data?.message || 'Erreur lors de la création du devis');
       alertError('Erreur', err.response?.data?.message || 'Erreur lors de la création du devis');
     } finally {
@@ -373,7 +398,7 @@ const DevisForm = ({ user }) => {
           designation: '',
           quantite: '',
           prixUnitaireHT: '',
-          tauxTVAApplique: '',
+          tauxTVAApplique: globalTVA,
           unite: '',
           typePrix: 'FOURNITURE' // Add this field - default to Fourniture
         }
@@ -468,7 +493,7 @@ const DevisForm = ({ user }) => {
                 </svg>
                 
                 {showDemandeDropdown && (
-                  <div className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 shadow-lg rounded-md overflow-hidden border border-gray-200 dark:border-gray-700" style={{ zIndex: 9999 }}>
+                  <div className="absolute mt-1 w-full bg-white dark:bg-gray-800 shadow-lg rounded-md overflow-hidden border border-gray-200 dark:border-gray-700" style={{ zIndex: 10000 }}>
                     {filteredDemandes.length > 0 ? (
                       <ul className="max-h-60 overflow-y-auto">
                         {filteredDemandes.map((d) => (
@@ -622,9 +647,9 @@ const DevisForm = ({ user }) => {
                       return (
                         <tr key={index}>
                           <td className="px-4 py-2 whitespace-nowrap">
-                            <div className="relative" ref={el => articleDropdownRefs.current[index] = el}>
+                            <div className="relative" ref={el => articleDropdownRefs.current[index] = el} style={{ zIndex: 10000 - index }}>
                               {/* Searchable input for articles */}
-                              <div className="relative">
+                              <div className="relative" style={{ zIndex: 10000 - index }}>
                                 <input
                                   type="text"
                                   value={articleSearch[index] || ''}
@@ -642,7 +667,7 @@ const DevisForm = ({ user }) => {
                                 </svg>
                                 
                                 {showArticleDropdown[index] && (
-                                  <div className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 shadow-lg rounded-md overflow-hidden border border-gray-200 dark:border-gray-700" style={{ zIndex: 9999 }}>
+                                  <div className="absolute mt-1 w-full bg-white dark:bg-gray-800 shadow-lg rounded-md overflow-hidden border border-gray-200 dark:border-gray-700" style={{ zIndex: 10001 }}>
                                     <ul className="max-h-60 overflow-y-auto">
                                       {availableArticles
                                         .filter(art => 

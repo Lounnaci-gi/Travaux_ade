@@ -559,7 +559,6 @@ const DemandeForm = ({ user, onCreated }) => {
           
           if (filteredTypes.length === 0) {
             if (typesData.length === 0) {
-              console.warn('Aucun type de demande dans la base de données');
               setError('Aucun type de demande trouvé dans la base de données. Veuillez contacter l\'administrateur.');
             } else {
               const activeTypes = typesData.filter(t => {
@@ -569,9 +568,6 @@ const DemandeForm = ({ user, onCreated }) => {
               const activeCount = activeTypes.length;
               const inactiveCount = typesData.length - activeCount;
               const userRoleDisplay = user?.role || user?.codeRole || user?.Role || user?.CodeRole || 'non défini';
-              console.warn('Aucun type de demande disponible pour cet utilisateur après filtrage');
-              console.warn(`- Types actifs: ${activeCount}, Types inactifs: ${inactiveCount}`);
-              console.warn(`- Rôle utilisateur: ${userRoleDisplay}`);
               
               // Utiliser SweetAlert2 pour afficher un message simple et compréhensible
               alertError('Aucun type de demande disponible', `Aucun type de demande n'est disponible pour votre rôle (${userRoleDisplay}). Veuillez contacter l'administrateur ou le chef de centre pour configurer les permissions.`);
@@ -581,7 +577,6 @@ const DemandeForm = ({ user, onCreated }) => {
             setError(''); // Effacer l'erreur si des types sont disponibles
           }
         } else {
-          console.error('Erreur lors du chargement des types de demande:', typesRes.reason);
           const errorMsg = typesRes.reason?.response?.data?.error || typesRes.reason?.message || 'Erreur lors du chargement des types de travaux';
           setError(errorMsg);
           setTypes([]); // S'assurer que la liste est vide en cas d'erreur
@@ -590,20 +585,14 @@ const DemandeForm = ({ user, onCreated }) => {
         // Traiter les autres référentiels
         if (clientsRes.status === 'fulfilled') {
           setClients(clientsRes.value || []);
-        } else {
-          console.error('Erreur lors du chargement des clients:', clientsRes.reason);
         }
         
         if (agencesRes.status === 'fulfilled') {
           setAgences(agencesRes.value || []);
-        } else {
-          console.error('Erreur lors du chargement des agences:', agencesRes.reason);
         }
         
         if (clientTypesRes.status === 'fulfilled') {
           setClientTypes(clientTypesRes.value || []);
-        } else {
-          console.error('Erreur lors du chargement des types de clients:', clientTypesRes.reason);
         }
 
         // Pré-remplir automatiquement l'agence de l'utilisateur connecté
@@ -616,8 +605,6 @@ const DemandeForm = ({ user, onCreated }) => {
       } catch (e) {
         const errorMsg = e.response?.data?.error || e.message || 'Erreur lors du chargement des données';
         setError(errorMsg);
-        console.error('Erreur lors du chargement:', e);
-        console.error('Détails de l\'erreur:', e.response);
         setTypes([]); // S'assurer que la liste est vide en cas d'erreur
       } finally {
         setLoading(false);
@@ -760,7 +747,7 @@ const DemandeForm = ({ user, onCreated }) => {
         });
       }
     } catch (e) {
-      console.error(e);
+      // Error submitting form
       const msg = e.response?.data?.error || 'Erreur lors de la création de la demande';
       setError(msg);
       alertError('Erreur', msg);

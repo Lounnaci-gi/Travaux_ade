@@ -70,11 +70,11 @@ app.use((req, res, next) => {
   express.json()(req, res, next);
 });
 
-// Middleware de logging pour les requêtes API
-app.use('/api', (req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
-  next();
-});
+// Middleware de logging pour les requêtes API (désactivé en production)
+// app.use('/api', (req, res, next) => {
+//   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+//   next();
+// });
 
 // SQL Server Configuration
 const useWindowsAuth = process.env.DB_USE_WINDOWS_AUTH === 'true';
@@ -100,43 +100,16 @@ if (useWindowsAuth) {
       enableArithAbort: true,
     },
   };
-  console.log('🔐 Configuration: Authentification SQL Server');
+  // Configuration: Authentification SQL Server
 }
 
-// Afficher la configuration (sans mot de passe)
-console.log('📋 Configuration de connexion:');
-console.log(`   - Serveur: ${dbConfig.server}:${dbConfig.port}`);
-console.log(`   - Base de données: ${dbConfig.database}`);
-if (!useWindowsAuth) {
-  console.log(`   - Utilisateur: ${dbConfig.user}`);
-  console.log(`   - Chiffrement: ${dbConfig.options.encrypt}`);
-  console.log(`   - Trust Certificate: ${dbConfig.options.trustServerCertificate}`);
-}
+// Configuration de connexion (logs désactivés)
 
 // Database Connection Pool
 let pool;
 
 const connectDB = async () => {
   try {
-    // Vérifier que les variables d'environnement sont chargées
-    console.log('🔍 Vérification des variables d\'environnement...');
-    
-    // Afficher quelles variables sont présentes (sans valeurs sensibles)
-    const envVars = {
-      DB_SERVER: process.env.DB_SERVER ? '✓' : '✗',
-      DB_PORT: process.env.DB_PORT ? '✓' : '✗',
-      DB_DATABASE: process.env.DB_DATABASE ? '✓' : '✗',
-      DB_USER: process.env.DB_USER ? '✓' : '✗',
-      DB_PASSWORD: process.env.DB_PASSWORD ? (process.env.DB_PASSWORD.length > 0 ? '✓' : '✗ vide') : '✗',
-    };
-    
-    console.log('Variables d\'environnement détectées:');
-    console.log(`  DB_SERVER: ${envVars.DB_SERVER}`);
-    console.log(`  DB_PORT: ${envVars.DB_PORT}`);
-    console.log(`  DB_DATABASE: ${envVars.DB_DATABASE}`);
-    console.log(`  DB_USER: ${envVars.DB_USER}`);
-    console.log(`  DB_PASSWORD: ${envVars.DB_PASSWORD}`);
-    
     if (!useWindowsAuth && (!process.env.DB_USER || !process.env.DB_PASSWORD)) {
       console.error('\n❌ Variables DB_USER et DB_PASSWORD requises pour l\'authentification SQL Server');
       console.error('💡 Vérifiez que votre fichier .env contient bien ces variables');
@@ -144,14 +117,11 @@ const connectDB = async () => {
       process.exit(1);
     }
 
-    console.log('🔄 Tentative de connexion à la base de données...');
     pool = await sql.connect(dbConfig);
-    console.log('✅ Connexion à la base de données réussie');
     
     // Tester la connexion avec une requête simple
     const testRequest = pool.request();
-    const testResult = await testRequest.query('SELECT @@VERSION as Version');
-    console.log('✅ Test de connexion réussi');
+    await testRequest.query('SELECT @@VERSION as Version');
   } catch (error) {
     console.error('❌ Erreur de connexion à la base de données:');
     console.error(`   Code: ${error.code}`);
@@ -215,7 +185,7 @@ app.get('/api/travaux', async (req, res) => {
     
     res.json(result.recordset);
   } catch (error) {
-    console.error('Erreur lors de la récupération des travaux:', error);
+    // Error retrieving travaux
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -250,7 +220,7 @@ app.get('/api/travaux/:id', async (req, res) => {
     
     res.json(result.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la récupération du travail:', error);
+    // Error retrieving travail
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -278,7 +248,7 @@ app.get('/api/travaux/:id/historique', async (req, res) => {
     
     res.json(result.recordset);
   } catch (error) {
-    console.error('Erreur lors de la récupération de l\'historique:', error);
+    // Error retrieving historique
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -424,7 +394,7 @@ app.post('/api/auth/login', async (req, res) => {
       user: userInfo,
     });
   } catch (error) {
-    console.error('Erreur lors de la connexion:', error);
+    // Error during login
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -464,7 +434,7 @@ app.get('/api/auth/verify', (req, res) => {
       return res.status(401).json({ valid: false, error: 'Erreur de vérification du token' });
     }
   } catch (error) {
-    console.error('Erreur dans /api/auth/verify:', error);
+    // Error verifying token
     return res.status(500).json({ valid: false, error: 'Erreur serveur' });
   }
 });
@@ -575,7 +545,7 @@ app.get('/api/stats', verifyToken, async (req, res) => {
     
     res.json(result);
   } catch (error) {
-    console.error('Erreur lors de la récupération des statistiques:', error);
+    // Error retrieving statistics
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -660,7 +630,7 @@ app.get('/api/clients', async (req, res) => {
     const result = await request.query(query);
     res.json(result.recordset);
   } catch (error) {
-    console.error('Erreur lors de la récupération des clients:', error);
+    // Error retrieving clients
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -675,7 +645,7 @@ app.get('/api/clients/types', async (req, res) => {
     `);
     res.json(result.recordset);
   } catch (error) {
-    console.error('Erreur lors de la récupération des types de clients:', error);
+    // Error retrieving client types
     try {
       return res.status(200).json([]);
     } catch (_) {
@@ -721,7 +691,7 @@ app.get('/api/clients/:id', async (req, res) => {
     if (result.recordset.length === 0) return res.status(404).json({ error: 'Client introuvable' });
     res.json(result.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la récupération du client:', error);
+    // Error retrieving client
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -734,7 +704,7 @@ app.get('/api/clients/types/health', async (req, res) => {
     const countRes = await pool.request().query(`SELECT COUNT(*) as Total FROM dbo.ClientType`);
     return res.json({ total: countRes.recordset[0].Total });
   } catch (error) {
-    console.error('ClientType health error:', error);
+    // ClientType health error
     return res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -811,7 +781,7 @@ app.post('/api/clients', verifyToken, async (req, res) => {
 
     return res.status(201).json(insert.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la création du client:', error);
+    // Error creating client
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -854,7 +824,7 @@ app.post('/api/clients/types', verifyToken, async (req, res) => {
 
     return res.status(201).json(insert.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la création du type client:', error);
+    // Error creating client type
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -898,7 +868,7 @@ app.put('/api/clients/types/:id', verifyToken, async (req, res) => {
 
     res.json(update.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la modification du type client:', error);
+    // Error updating client type
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -932,7 +902,7 @@ app.get('/api/unites/:id', verifyToken, async (req, res) => {
     
     res.json(result.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la récupération de l\'unité:', error);
+    // Error retrieving unite
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -962,7 +932,7 @@ app.get('/api/unites', async (req, res) => {
     `);
     res.json(result.recordset);
   } catch (error) {
-    console.error('Erreur lors de la récupération des unités:', error);
+    // Error retrieving unites
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -1068,9 +1038,7 @@ app.post('/api/unites', verifyToken, async (req, res) => {
 
     return res.status(201).json(insert.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la création de l\'unité:', error);
-    console.error('Détails:', error.message);
-    console.error('Stack:', error.stack);
+    // Error creating unite
     res.status(500).json({ error: error.message || 'Erreur serveur' });
   }
 });
@@ -1185,7 +1153,7 @@ app.put('/api/unites/:id', verifyToken, async (req, res) => {
 
     res.json(update.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la mise à jour de l\'unité:', error);
+    // Error updating unite
     res.status(500).json({ error: error.message || 'Erreur serveur' });
   }
 });
@@ -1219,7 +1187,7 @@ app.get('/api/centres/:id', verifyToken, async (req, res) => {
     
     res.json(result.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la récupération du centre:', error);
+    // Error retrieving centre
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -1253,7 +1221,7 @@ app.get('/api/centres', async (req, res) => {
     `);
     res.json(result.recordset);
   } catch (error) {
-    console.error('Erreur lors de la récupération des centres:', error);
+    // Error retrieving centres
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -1344,9 +1312,7 @@ app.post('/api/centres', verifyToken, async (req, res) => {
 
     return res.status(201).json(insert.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la création du centre:', error);
-    console.error('Détails:', error.message);
-    console.error('Stack:', error.stack);
+    // Error creating centre
     res.status(500).json({ error: error.message || 'Erreur serveur' });
   }
 });
@@ -1440,7 +1406,7 @@ app.put('/api/centres/:id', verifyToken, async (req, res) => {
 
     res.json(update.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la mise à jour du centre:', error);
+    // Error updating centre
     res.status(500).json({ error: error.message || 'Erreur serveur' });
   }
 });
@@ -1473,7 +1439,7 @@ app.get('/api/agences/:id', verifyToken, async (req, res) => {
     
     res.json(result.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la récupération de l\'agence:', error);
+    // Error retrieving agence
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -1504,7 +1470,7 @@ app.get('/api/agences', async (req, res) => {
     `);
     res.json(result.recordset);
   } catch (error) {
-    console.error('Erreur lors de la récupération des agences:', error);
+    // Error retrieving agences
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -1580,9 +1546,7 @@ app.post('/api/agences', verifyToken, async (req, res) => {
 
     return res.status(201).json(insert.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la création de l\'agence:', error);
-    console.error('Détails:', error.message);
-    console.error('Stack:', error.stack);
+    // Error creating agence
     res.status(500).json({ error: error.message || 'Erreur serveur' });
   }
 });
@@ -1660,7 +1624,7 @@ app.put('/api/agences/:id', verifyToken, async (req, res) => {
 
     res.json(update.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la mise à jour de la configuration:', error);
+    // Error updating configuration
     res.status(500).json({ error: error.message || 'Erreur serveur' });
   }
 });
@@ -1758,7 +1722,7 @@ app.put('/api/articles/:id', verifyToken, async (req, res) => {
 
     res.json(update.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la mise à jour de l\'article:', error);
+    // Error updating article
     res.status(500).json({ error: error.message || 'Erreur serveur' });
   }
 });
@@ -1877,7 +1841,7 @@ app.get('/api/roles', async (req, res) => {
     }));
     res.json(roles);
   } catch (error) {
-    console.error('Erreur lors de la récupération des rôles:', error);
+    // Error retrieving roles
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -1887,9 +1851,7 @@ app.post('/api/roles', verifyToken, async (req, res) => {
   try {
     return res.status(400).json({ error: 'La création de rôles n\'est pas autorisée. Les rôles sont prédéfinis.' });
   } catch (error) {
-    console.error('Erreur lors de la création du rôle:', error);
-    console.error('Détails:', error.message);
-    console.error('Stack:', error.stack);
+    // Error creating role
     res.status(500).json({ error: error.message || 'Erreur serveur' });
   }
 });
@@ -1899,7 +1861,7 @@ app.put('/api/roles/:id', verifyToken, async (req, res) => {
   try {
     return res.status(400).json({ error: 'La modification de rôles n\'est pas autorisée. Les rôles sont prédéfinis.' });
   } catch (error) {
-    console.error('Erreur lors de la mise à jour du rôle:', error);
+    // Error updating role
     res.status(500).json({ error: error.message || 'Erreur serveur' });
   }
 });
@@ -1909,7 +1871,7 @@ app.delete('/api/roles/:id', verifyToken, async (req, res) => {
   try {
     return res.status(400).json({ error: 'La suppression de rôles n\'est pas autorisée. Les rôles sont prédéfinis.' });
   } catch (error) {
-    console.error('Erreur lors de la suppression du rôle:', error);
+    // Error deleting role
     res.status(500).json({ error: error.message || 'Erreur serveur' });
   }
 });
@@ -2073,7 +2035,7 @@ const validateUniquenessConstraints = async (Role, IdCentre, IdAgence, IdUtilisa
     
     return { valid: true };
   } catch (error) {
-    console.error('Erreur lors de la validation des contraintes d\'unicité:', error);
+    // Error validating uniqueness constraints
     return { valid: false, error: 'Erreur lors de la validation: ' + error.message };
   }
 };
@@ -2129,7 +2091,7 @@ app.get('/api/utilisateurs', verifyToken, async (req, res) => {
     const result = await request.query(query);
     res.json(result.recordset);
   } catch (error) {
-    console.error('Erreur lors de la récupération des utilisateurs:', error);
+    // Error retrieving utilisateurs
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -2267,9 +2229,7 @@ app.post('/api/utilisateurs', verifyToken, async (req, res) => {
 
     return res.status(201).json(userInfo.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la création de l\'utilisateur:', error);
-    console.error('Détails:', error.message);
-    console.error('Stack:', error.stack);
+    // Error creating utilisateur
     res.status(500).json({ error: error.message || 'Erreur serveur' });
   }
 });
@@ -2435,9 +2395,7 @@ app.put('/api/utilisateurs/:id', verifyToken, async (req, res) => {
 
     return res.json(userInfo.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la modification de l\'utilisateur:', error);
-    console.error('Détails:', error.message);
-    console.error('Stack:', error.stack);
+    // Error updating utilisateur
     res.status(500).json({ error: error.message || 'Erreur serveur' });
   }
 });
@@ -2495,9 +2453,7 @@ app.delete('/api/utilisateurs/:id', verifyToken, async (req, res) => {
 
     res.json({ message: 'Utilisateur supprimé avec succès' });
   } catch (error) {
-    console.error('Erreur lors de la suppression de l\'utilisateur:', error);
-    console.error('Détails:', error.message);
-    console.error('Stack:', error.stack);
+    // Error deleting utilisateur
     res.status(500).json({ error: error.message || 'Erreur serveur' });
   }
 });
@@ -2524,7 +2480,7 @@ app.get('/api/demandes/types', async (req, res) => {
     `);
     res.json(result.recordset);
   } catch (error) {
-    console.error('Erreur lors de la récupération des types de demandes:', error);
+    // Error retrieving demande types
     res.status(500).json({ error: 'Erreur serveur lors de la récupération des types de demandes' });
   }
 });
@@ -2608,7 +2564,7 @@ app.post('/api/demandes/types', verifyToken, async (req, res) => {
 
     res.status(201).json(insert.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la création du type de travaux:', error);
+    // Error creating demande type
     res.status(500).json({ error: error.message || 'Erreur serveur' });
   }
 });
@@ -2680,7 +2636,7 @@ app.put('/api/demandes/types/:id', verifyToken, async (req, res) => {
 
     res.json(update.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la modification du type de travaux:', error);
+    // Error updating demande type
     res.status(500).json({ error: error.message || 'Erreur serveur' });
   }
 });
@@ -2803,7 +2759,7 @@ app.get('/api/demandes/types/test-authorizations', verifyToken, async (req, res)
 
     res.json(testResults);
   } catch (error) {
-    console.error('Erreur lors du test des autorisations:', error);
+    // Error testing authorizations
     res.status(500).json({ error: 'Erreur serveur lors du test' });
   }
 });
@@ -2910,7 +2866,7 @@ app.get('/api/demandes/types/diagnostic', verifyToken, async (req, res) => {
 
     res.json(diagnostic);
   } catch (error) {
-    console.error('Erreur lors du diagnostic des types de travaux:', error);
+    // Error diagnosing demande types
     res.status(500).json({ error: 'Erreur serveur lors du diagnostic' });
   }
 });
@@ -3212,20 +3168,9 @@ app.post('/api/demandes', verifyToken, async (req, res) => {
         await transaction.rollback(); 
       }
     } catch (rollbackError) {
-      console.error('Erreur lors du rollback:', rollbackError);
+      // Error during rollback
     }
-    console.error('Erreur lors de la création de la demande:', error);
-    console.error('Détails de l\'erreur:', {
-      message: error.message,
-      code: error.code,
-      number: error.number,
-      state: error.state,
-      class: error.class,
-      serverName: error.serverName,
-      procName: error.procName,
-      lineNumber: error.lineNumber,
-      originalError: error.originalError?.message
-    });
+    // Error creating demande
     
     // Messages d'erreur plus spécifiques
     let errorMessage = 'Erreur serveur';
@@ -3355,7 +3300,7 @@ app.get('/api/demandes', verifyToken, async (req, res) => {
     `);
     res.json(result.recordset);
   } catch (error) {
-    console.error('Erreur lors de la récupération des demandes:', error);
+    // Error retrieving demandes
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -3452,7 +3397,7 @@ app.get('/api/demandes/pending-count', verifyToken, async (req, res) => {
     const count = result.recordset[0]?.count || 0;
     res.json({ count: parseInt(count) });
   } catch (error) {
-    console.error('Erreur lors de la récupération du nombre de demandes non validées:', error);
+    // Error retrieving pending demandes count
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -3623,7 +3568,7 @@ app.post('/api/demandes/:id/validate', verifyToken, async (req, res) => {
 
     res.json(updatedDemande.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la validation de la demande:', error);
+    // Error validating demande
     res.status(500).json({ error: error.message || 'Erreur serveur' });
   }
 });
@@ -3662,7 +3607,7 @@ app.get('/api/demandes/:id', verifyToken, async (req, res) => {
     
     res.json(result.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la récupération de la demande:', error);
+    // Error retrieving demande
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -3705,7 +3650,7 @@ app.post('/api/demandes/statuts/init', verifyToken, async (req, res) => {
 
     res.json({ message: 'Statuts initialisés avec succès' });
   } catch (error) {
-    console.error('Erreur lors de l\'initialisation des statuts:', error);
+    // Error initializing statuts
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -3721,7 +3666,7 @@ app.get('/api/demandes/statuts', async (req, res) => {
     `);
     res.json(result.recordset);
   } catch (error) {
-    console.error('Erreur lors de la récupération des statuts:', error);
+    // Error retrieving statuts
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -3741,7 +3686,7 @@ app.get('/api/articles/familles', async (req, res) => {
     `);
     res.json(result.recordset);
   } catch (error) {
-    console.error('Erreur lors de la récupération des familles d\'articles:', error);
+    // Error retrieving article familles
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -3812,7 +3757,7 @@ app.post('/api/articles/familles', verifyToken, async (req, res) => {
 
     res.status(201).json(insert.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la création de la famille d\'articles:', error);
+    // Error creating article famille
     if (error.number === 2627 || error.number === 2601) {
       return res.status(409).json({ error: 'Une famille avec ce code existe déjà.' });
     }
@@ -3846,7 +3791,7 @@ app.get('/api/articles/:id', verifyToken, async (req, res) => {
     
     res.json(result.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la récupération de l\'article:', error);
+    // Error retrieving article
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -3857,22 +3802,11 @@ app.get('/api/articles/:id', verifyToken, async (req, res) => {
 
 // Récupérer tous les types de devis
 app.get('/api/devis/types', async (req, res) => {
-  console.log('========================================');
-  console.log('[GET /api/devis/types] ===== ROUTE ATTEINTE =====');
-  console.log('[GET /api/devis/types] Timestamp:', new Date().toISOString());
-  console.log('[GET /api/devis/types] Headers:', JSON.stringify(req.headers, null, 2));
-  console.log('[GET /api/devis/types] Query:', req.query);
-  console.log('[GET /api/devis/types] Body:', req.body);
-  console.log('========================================');
-  
   try {
     // Vérifier que le pool est disponible
     if (!pool) {
-      console.error('[GET /api/devis/types] Pool de connexion non disponible');
       return res.status(503).json({ error: 'Service temporairement indisponible. Connexion à la base de données non établie.' });
     }
-
-    console.log('[GET /api/devis/types] Pool disponible, exécution de la requête SQL...');
     
     let result;
     try {
@@ -3891,20 +3825,8 @@ app.get('/api/devis/types', async (req, res) => {
         ORDER BY LibelleTypeDevis
       `);
     } catch (sqlError) {
-      console.error('[GET /api/devis/types] Erreur SQL:', sqlError);
-      console.error('[GET /api/devis/types] Détails SQL:', {
-        message: sqlError.message,
-        code: sqlError.code,
-        number: sqlError.number,
-        state: sqlError.state,
-        class: sqlError.class,
-        serverName: sqlError.serverName,
-        originalError: sqlError.originalError?.message
-      });
-      
       // Si la table n'existe pas
       if (sqlError.number === 208 || sqlError.message?.includes('Invalid object name') || sqlError.message?.includes('TypeDevis')) {
-        console.error('[GET /api/devis/types] Table TypeDevis introuvable');
         return res.status(500).json({ 
           error: 'Table TypeDevis introuvable dans la base de données. Veuillez contacter l\'administrateur.',
           details: process.env.NODE_ENV === 'development' ? sqlError.message : undefined
@@ -3915,21 +3837,8 @@ app.get('/api/devis/types', async (req, res) => {
       throw sqlError;
     }
     
-    console.log('[GET /api/devis/types] Successfully retrieved devis types:', result.recordset.length);
     res.json(result.recordset);
   } catch (error) {
-    console.error('[GET /api/devis/types] Erreur générale:', error);
-    console.error('[GET /api/devis/types] Détails complets:', {
-      message: error.message,
-      code: error.code,
-      number: error.number,
-      state: error.state,
-      class: error.class,
-      serverName: error.serverName,
-      originalError: error.originalError?.message,
-      stack: error.stack
-    });
-    
     // Gérer les erreurs spécifiques
     if (error.code === 'ETIMEOUT' || error.code === 'ESOCKET') {
       return res.status(503).json({ error: 'Service temporairement indisponible. Problème de connexion à la base de données.' });
@@ -3944,7 +3853,6 @@ app.get('/api/devis/types', async (req, res) => {
     
     // Retourner l'erreur avec le message détaillé
     const errorMessage = error.message || 'Erreur serveur lors de la récupération des types de devis';
-    console.error('[GET /api/devis/types] Retour erreur 500:', errorMessage);
     res.status(500).json({ 
       error: errorMessage,
       details: process.env.NODE_ENV === 'development' ? {
@@ -4023,7 +3931,7 @@ app.get('/api/devis/:id', verifyToken, async (req, res) => {
     
     res.json(devis);
   } catch (error) {
-    console.error('Erreur lors de la récupération du devis:', error);
+    // Error retrieving devis
     res.status(500).json({ error: 'Erreur serveur lors de la récupération du devis' });
   }
 });
@@ -4265,11 +4173,11 @@ app.post('/api/devis', verifyToken, async (req, res) => {
     
     res.status(201).json(devisResult.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la création du devis:', error);
+    // Error creating devis
     try {
       await transaction.rollback();
     } catch (rollbackError) {
-      console.error('Erreur lors du rollback:', rollbackError);
+      // Error during rollback
     }
     res.status(500).json({ error: error.message || 'Erreur serveur lors de la création du devis' });
   }
@@ -4301,7 +4209,7 @@ app.get('/api/devis', verifyToken, async (req, res) => {
     
     res.json(result.recordset);
   } catch (error) {
-    console.error('Erreur lors de la récupération des devis:', error);
+    // Error retrieving devis list
     res.status(500).json({ error: 'Erreur serveur lors de la récupération des devis' });
   }
 });
@@ -4366,7 +4274,7 @@ app.get('/api/articles', async (req, res) => {
     `);
     res.json(result.recordset);
   } catch (error) {
-    console.error('Erreur lors de la récupération des articles:', error);
+    // Error retrieving articles
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -4454,7 +4362,7 @@ app.post('/api/articles', verifyToken, async (req, res) => {
 
     res.status(201).json(insert.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la création de l\'article:', error);
+    // Error creating article
     if (error.number === 2627 || error.number === 2601) {
       return res.status(409).json({ error: 'Un article avec ce code existe déjà.' });
     }
@@ -4492,7 +4400,7 @@ app.get('/api/configurations', verifyToken, async (req, res) => {
     
     res.json(result.recordset);
   } catch (error) {
-    console.error('Erreur lors de la récupération des configurations globales:', error);
+    // Error retrieving configurations
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -4531,7 +4439,7 @@ app.get('/api/configurations/:key', verifyToken, async (req, res) => {
     
     res.json(result.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la récupération de la configuration:', error);
+    // Error retrieving configuration
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -4576,7 +4484,7 @@ app.put('/api/configurations/:key', verifyToken, async (req, res) => {
 
     res.json(update.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la mise à jour de la configuration:', error);
+    // Error updating configuration
     res.status(500).json({ error: error.message || 'Erreur serveur' });
   }
 });
@@ -4672,7 +4580,7 @@ app.post('/api/devis/types', verifyToken, async (req, res) => {
 
     res.status(201).json(insert.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la création du type de devis:', error);
+    // Error creating devis type
     if (error.number === 2627 || error.number === 2601) {
       return res.status(409).json({ error: 'Un type de devis avec ce code existe déjà.' });
     }
@@ -4753,7 +4661,7 @@ app.put('/api/devis/types/:id', verifyToken, async (req, res) => {
 
     res.json(update.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la mise à jour du type de devis:', error);
+    // Error updating devis type
     if (error.number === 2627 || error.number === 2601) {
       return res.status(409).json({ error: 'Un type de devis avec ce libellé existe déjà.' });
     }
@@ -4798,7 +4706,7 @@ app.delete('/api/devis/types/:id', verifyToken, async (req, res) => {
 
     res.json({ message: 'Type de devis supprimé avec succès' });
   } catch (error) {
-    console.error('Erreur lors de la suppression du type de devis:', error);
+    // Error deleting devis type
     res.status(500).json({ error: error.message || 'Erreur serveur' });
   }
 });
@@ -4834,7 +4742,7 @@ app.get('/api/articles/:id/prix-historique', verifyToken, async (req, res) => {
     
     res.json(result.recordset);
   } catch (error) {
-    console.error('Erreur lors de la récupération de l\'historique des prix:', error);
+    // Error retrieving price history
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -4942,7 +4850,7 @@ app.post('/api/articles/:id/prix-historique', verifyToken, async (req, res) => {
 
     res.status(201).json(insert.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la création de l\'historique de prix:', error);
+    // Error creating price history
     res.status(500).json({ error: error.message || 'Erreur serveur' });
   }
 });
@@ -5068,7 +4976,7 @@ app.put('/api/articles/prix-historique/:id', verifyToken, async (req, res) => {
 
     res.json(update.recordset[0]);
   } catch (error) {
-    console.error('Erreur lors de la mise à jour de l\'historique de prix:', error);
+    // Error updating price history
     res.status(500).json({ error: error.message || 'Erreur serveur' });
   }
 });
@@ -5132,7 +5040,7 @@ app.delete('/api/articles/prix-historique/:id', verifyToken, async (req, res) =>
 
     res.json({ message: 'Historique de prix supprimé avec succès' });
   } catch (error) {
-    console.error('Erreur lors de la suppression de l\'historique de prix:', error);
+    // Error deleting price history
     res.status(500).json({ error: error.message || 'Erreur serveur' });
   }
 });

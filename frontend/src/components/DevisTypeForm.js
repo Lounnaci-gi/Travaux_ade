@@ -24,7 +24,7 @@ const DevisTypeForm = ({ user, onUnauthorized }) => {
       const data = await getDevisTypes();
       setDevisTypes(data);
     } catch (err) {
-      console.error('Erreur lors du chargement des types de devis:', err);
+      // Error loading devis types
       setError('Erreur lors du chargement des types de devis');
     }
   };
@@ -69,7 +69,7 @@ const DevisTypeForm = ({ user, onUnauthorized }) => {
       setEditingId(null);
       loadDevisTypes();
     } catch (err) {
-      console.error('Erreur lors de l\'enregistrement du type de devis:', err);
+      // Error saving devis type
       setError(err.message || 'Erreur lors de l\'enregistrement du type de devis');
     } finally {
       setLoading(false);
@@ -108,7 +108,7 @@ const DevisTypeForm = ({ user, onUnauthorized }) => {
         setSuccess('Type de devis supprimé avec succès!');
         loadDevisTypes();
       } catch (err) {
-        console.error('Erreur lors de la suppression du type de devis:', err);
+        // Error deleting devis type
         setError(err.response?.data?.error || err.message || 'Erreur lors de la suppression du type de devis');
       } finally {
         setLoading(false);

@@ -60,7 +60,7 @@ const UniteForm = ({ user, onUnauthorized }) => {
         const list = await getUnites();
         setUnites(list || []);
       } catch (e) {
-        console.error('Erreur lors du chargement des unités:', e);
+        // Error loading unites
       } finally {
         setLoading(false);
       }
@@ -239,7 +239,7 @@ const UniteForm = ({ user, onUnauthorized }) => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (e) {
       alertError('Erreur', 'Impossible de charger les données de l\'unité');
-      console.error(e);
+      // Error submitting form
     } finally {
       setLoading(false);
     }

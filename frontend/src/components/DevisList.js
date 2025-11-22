@@ -18,7 +18,7 @@ const DevisList = ({ user }) => {
       const data = await getDevisList();
       setDevisList(data);
     } catch (err) {
-      console.error('Erreur lors du chargement des devis:', err);
+      // Error loading devis list
       setError('Erreur lors du chargement des devis');
     } finally {
       setLoading(false);

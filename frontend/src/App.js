@@ -86,7 +86,7 @@ function App() {
         setUser(parsedUser);
         setIsAuthenticated(true);
       } catch (e) {
-        console.error('Error parsing user data:', e);
+        // Error parsing user data
         localStorage.removeItem('token');
         localStorage.removeItem('user');
       }

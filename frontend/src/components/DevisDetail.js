@@ -12,7 +12,7 @@ const DevisDetail = ({ devisId, onBack }) => {
       const data = await getDevis(devisId);
       setDevis(data);
     } catch (err) {
-      console.error('Erreur lors du chargement du devis:', err);
+      // Error loading devis
       setError('Erreur lors du chargement du devis');
     } finally {
       setLoading(false);

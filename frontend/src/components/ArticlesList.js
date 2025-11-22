@@ -131,7 +131,6 @@ const ArticlesList = ({ user, onUnauthorized }) => {
           setGlobalTVA(tvaConfig.Valeur);
         }
       } catch (error) {
-        console.error('Erreur lors de la récupération du taux TVA global:', error);
         // Keep default TVA rate
       }
     };
@@ -153,7 +152,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
         setArticles(articlesList || []);
         setFamilles(famillesList || []);
       } catch (e) {
-        console.error('Erreur lors du chargement des données:', e);
+        // Error loading data
       } finally {
         setLoading(false);
       }
@@ -329,7 +328,6 @@ const ArticlesList = ({ user, onUnauthorized }) => {
       
       try {
         const prixHistorique = await getArticlePrixHistorique(id);
-        console.log('Prix historique récupéré:', prixHistorique);
         if (prixHistorique && Array.isArray(prixHistorique)) {
           // Trouver les prix actifs pour Fourniture et Pose
           const prixFournitureActif = prixHistorique.find(
@@ -339,17 +337,12 @@ const ArticlesList = ({ user, onUnauthorized }) => {
             p => p.TypePrix === 'POSE' && p.EstActif === true
           );
           
-          console.log('Prix Fourniture actif trouvé:', prixFournitureActif);
-          console.log('Prix Pose actif trouvé:', prixPoseActif);
-          
           if (prixFournitureActif) {
             prixFournitureHT = prixFournitureActif.PrixHT != null ? String(prixFournitureActif.PrixHT) : '';
           }
           if (prixPoseActif) {
             prixPoseHT = prixPoseActif.PrixHT != null ? String(prixPoseActif.PrixHT) : '';
           }
-          
-          console.log('Prix à charger - Fourniture:', prixFournitureHT, 'Pose:', prixPoseHT);
           
           // Utiliser la date de début la plus récente si disponible
           if (prixFournitureActif && prixFournitureActif.DateDebutApplication) {
@@ -359,7 +352,6 @@ const ArticlesList = ({ user, onUnauthorized }) => {
           }
         }
       } catch (prixError) {
-        console.error('Erreur lors du chargement de l\'historique des prix:', prixError);
         // Continue avec les valeurs par défaut
       }
       
@@ -397,9 +389,8 @@ const ArticlesList = ({ user, onUnauthorized }) => {
       setError('');
       setSuccess('');
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    } catch (e) {
-      alertError('Erreur', 'Impossible de charger l\'article.');
-      console.error(e);
+      } catch (e) {
+        alertError('Erreur', 'Impossible de charger l\'article.');
     } finally {
       setLoading(false);
     }
@@ -536,7 +527,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
             await createArticlePrixHistorique(articleId, prixPayload);
           }
         } catch (priceError) {
-          console.error('Erreur lors de la création de l\'historique des prix fourniture:', priceError);
+          // Error creating price history for fourniture
           // We don't stop the main operation if price history fails
         }
       }
@@ -559,7 +550,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
             await createArticlePrixHistorique(articleId, prixPayload);
           }
         } catch (priceError) {
-          console.error('Erreur lors de la création de l\'historique des prix pose:', priceError);
+          // Error creating price history for pose
           // We don't stop the main operation if price history fails
         }
       }
@@ -1248,7 +1239,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                               const details = await getArticleById(articleToShow.IdArticle);
                               setHoveredArticleDetails(details);
                             } catch (error) {
-                              console.error('Erreur lors du chargement des détails:', error);
+                              // Error loading article details
                               setHoveredArticleDetails(null);
                             } finally {
                               setLoadingHoverDetails(false);

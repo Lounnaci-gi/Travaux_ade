@@ -48,7 +48,7 @@ const RoleForm = ({ user, onUnauthorized }) => {
         setRoles(rolesList || []);
       } catch (e) {
         setError('Erreur lors du chargement des rôles');
-        console.error(e);
+        // Error submitting form
       } finally {
         setLoading(false);
       }

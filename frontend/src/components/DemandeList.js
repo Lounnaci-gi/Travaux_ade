@@ -23,8 +23,7 @@ const DemandeList = ({ user }) => {
       const data = await getDemandes();
       setDemandes(data);
     } catch (error) {
-      console.error('Erreur lors du chargement des demandes:', error);
-      console.error('Détails de l\'erreur:', error.response);
+      // Error loading demandes
       const errorMsg = error.response?.data?.error || error.message || 'Impossible de charger les demandes';
       alertError('Erreur', errorMsg);
     } finally {
@@ -395,7 +394,7 @@ const DemandeList = ({ user }) => {
         printWindow.close();
       }, 500);
     } catch (error) {
-      console.error('Erreur lors de l\'impression de la demande:', error);
+      // Error printing demande
       alertError('Erreur', 'Impossible d\'imprimer la demande');
     }
   };

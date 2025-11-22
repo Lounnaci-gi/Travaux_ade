@@ -70,7 +70,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
         }
       } catch (e) {
         setError('Erreur lors du chargement des données');
-        console.error(e);
+        // Error loading data
       } finally {
         setLoading(false);
       }

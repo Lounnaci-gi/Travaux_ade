@@ -13,7 +13,7 @@ const ClientsList = () => {
       const data = await getClients(search);
       setClients(data);
     } catch (err) {
-      console.error('Erreur lors du chargement des clients:', err);
+      // Error loading clients
       setError('Erreur lors du chargement des clients');
     } finally {
       setLoading(false);

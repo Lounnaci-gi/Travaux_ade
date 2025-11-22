@@ -23,7 +23,7 @@ const Dashboard = () => {
       const data = await getStats();
       setStats(data);
     } catch (error) {
-      console.error('Erreur lors du chargement des statistiques:', error);
+      // Error loading statistics
     } finally {
       setLoading(false);
     }

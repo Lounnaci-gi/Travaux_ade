@@ -20,7 +20,7 @@ const TravauxList = () => {
       const data = await getTravaux();
       setTravaux(data);
     } catch (error) {
-      console.error('Erreur lors du chargement des travaux:', error);
+      // Error loading travaux
     } finally {
       setLoading(false);
     }

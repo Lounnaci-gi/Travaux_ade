@@ -198,7 +198,7 @@ const CentreForm = ({ user, onUnauthorized }) => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (e) {
       alertError('Erreur', 'Impossible de charger les données du centre');
-      console.error(e);
+      // Error submitting form
     } finally {
       setLoading(false);
     }

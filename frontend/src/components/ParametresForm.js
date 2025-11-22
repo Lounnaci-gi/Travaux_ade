@@ -42,13 +42,9 @@ const ParametresForm = ({ user }) => {
       
       setGlobalConfig(configObject);
     } catch (err) {
-      console.error('Erreur détaillée:', err);
       if (err.response) {
         // The request was made and the server responded with a status code
         // that falls out of the range of 2xx
-        console.error('Response data:', err.response.data);
-        console.error('Response status:', err.response.status);
-        console.error('Response headers:', err.response.headers);
         
         if (err.response.status === 403) {
           setError('Accès refusé: Vous n\'avez pas les permissions nécessaires pour accéder aux configurations globales.');
@@ -59,11 +55,11 @@ const ParametresForm = ({ user }) => {
         }
       } else if (err.request) {
         // The request was made but no response was received
-        console.error('Request data:', err.request);
+        // Request error
         setError('Erreur réseau: Impossible de contacter le serveur. Vérifiez votre connexion.');
       } else {
         // Something happened in setting up the request that triggered an Error
-        console.error('Error message:', err.message);
+        // Error message
         setError(`Erreur: ${err.message || 'Erreur lors du chargement des configurations globales'}`);
       }
     } finally {

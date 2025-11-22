@@ -65,7 +65,7 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
         const data = await getPendingDemandesCount();
         setPendingCount(data.count || 0);
       } catch (error) {
-        console.error('Erreur lors du chargement des notifications:', error);
+        // Error loading notifications
         setPendingCount(0);
       }
     };

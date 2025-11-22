@@ -13,7 +13,7 @@ const TravauxDetail = ({ travail, onBack }) => {
       const data = await getTravauxHistorique(travail.IdOrdre);
       setHistorique(data);
     } catch (error) {
-      console.error('Erreur lors du chargement de l\'historique:', error);
+      // Error loading history
     } finally {
       setLoading(false);
     }

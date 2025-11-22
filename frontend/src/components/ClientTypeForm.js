@@ -24,7 +24,7 @@ const ClientTypeForm = ({ user }) => {
       const data = await getClientTypes();
       setTypes(data);
     } catch (e) {
-      console.error('ClientType load error:', e?.response?.data || e.message);
+      // Error loading client type
       setError('Erreur lors du chargement des types de clients');
     } finally {
       setLoading(false);

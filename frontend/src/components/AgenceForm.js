@@ -180,7 +180,7 @@ const AgenceForm = ({ user, onUnauthorized }) => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (e) {
       alertError('Erreur', 'Impossible de charger les données de l\'agence');
-      console.error(e);
+      // Error submitting form
     } finally {
       setLoading(false);
     }

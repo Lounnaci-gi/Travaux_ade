@@ -91,7 +91,7 @@ const Login = ({ onLogin }) => {
       }
     } catch (err) {
       setError('Erreur de connexion au serveur');
-      console.error('Erreur login:', err);
+      // Login error
     } finally {
       setLoading(false);
     }

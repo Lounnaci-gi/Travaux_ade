@@ -246,7 +246,7 @@ export const logout = async () => {
         },
       });
     } catch (error) {
-      console.error('Logout error:', error);
+      // Logout error
     }
   }
   localStorage.removeItem('token');

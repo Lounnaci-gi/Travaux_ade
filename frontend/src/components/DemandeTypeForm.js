@@ -187,7 +187,7 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
       setDiagnostic(data);
       setShowDiagnostic(true);
     } catch (e) {
-      console.error('Erreur lors du chargement du diagnostic:', e);
+      // Error loading diagnostic
       alertError('Erreur', 'Impossible de charger le diagnostic des types de travaux');
     } finally {
       setLoadingDiagnostic(false);
@@ -201,7 +201,7 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
       setTestResults(data);
       setShowTest(true);
     } catch (e) {
-      console.error('Erreur lors du test des autorisations:', e);
+      // Error testing authorizations
       alertError('Erreur', 'Impossible de tester les autorisations');
     } finally {
       setLoadingTest(false);
@@ -424,8 +424,7 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
       resetForm();
       await load();
     } catch (e) {
-      console.error('Erreur complète:', e);
-      console.error('Response:', e.response);
+      // Error submitting form
       let msg = 'Erreur inconnue';
       if (e.response?.status === 404) {
         msg = 'Route non trouvée. Veuillez redémarrer le serveur backend.';
