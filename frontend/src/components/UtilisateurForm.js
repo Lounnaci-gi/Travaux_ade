@@ -31,15 +31,6 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
 
   const isChefCentreUser = isChefCentre(user);
 
-  // Check if user is Chef Service Juridique
-  const isChefServiceJuridiqueUser = (u) => {
-    if (!u || !u.role) return false;
-    const role = u.role.toString().toLowerCase();
-    return role.includes('chef') && (role.includes('juridique') || role.includes('jurid'));
-  };
-
-  const isChefServiceJuridiqueCurrentUser = isChefServiceJuridiqueUser(user);
-
   useEffect(() => {
     if (!isAdmin(user) && !isChefCentreUser) {
       if (onUnauthorized) {
@@ -48,7 +39,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
         alertError('Accès refusé', 'Seuls les administrateurs peuvent créer des utilisateurs.');
       }
     }
-  }, [user, onUnauthorized]);
+  }, [user, onUnauthorized, isChefCentreUser]);
 
   useEffect(() => {
     if (!isAdmin(user) && !isChefCentreUser) return;
@@ -85,7 +76,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
       }
     };
     load();
-  }, [user]);
+  }, [user, isChefCentreUser]);
 
   if (!isAdmin(user) && !isChefCentreUser) {
     return (
@@ -117,9 +108,9 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
     if (!role) return false;
     const roleStr = role.toString().toLowerCase();
     return (
-      roleStr.includes('chef') && roleStr.includes('centre') ||
+      (roleStr.includes('chef') && roleStr.includes('centre')) ||
       roleStr.includes('juridique') || roleStr.includes('jurid') ||
-      roleStr.includes('technico') && roleStr.includes('commercial')
+      (roleStr.includes('technico') && roleStr.includes('commercial'))
     );
   };
 

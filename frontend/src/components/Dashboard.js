@@ -76,9 +76,6 @@ const Dashboard = () => {
     },
   ];
 
-  // Calculer le total des demandes en attente
-  const totalDemandesEnAttente = stats.DemandesEnAttenteParType?.reduce((sum, item) => sum + (item.Nombre || 0), 0) || 0;
-
   return (
     <div className="p-6">
       <div className="max-w-7xl mx-auto">

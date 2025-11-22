@@ -32,7 +32,7 @@ const formatUserDisplayName = (user) => {
 const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
   const isChefCentre = !!(user && user.codeRole && (user.codeRole.toLowerCase().includes('chef') && user.codeRole.toLowerCase().includes('centre')));
   const userDisplayName = formatUserDisplayName(user);
-  const { theme, toggleTheme, isDark } = useTheme();
+  const { toggleTheme, isDark } = useTheme();
   const [openMenu, setOpenMenu] = useState(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);

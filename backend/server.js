@@ -61,7 +61,20 @@ const getRemainingLockMessage = (lockUntil) => {
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+// Middleware express.json() avec gestion d'erreur pour éviter les 400 sur les requêtes GET
+app.use((req, res, next) => {
+  // Pour les requêtes GET, on ignore le body parsing
+  if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') {
+    return next();
+  }
+  express.json()(req, res, next);
+});
+
+// Middleware de logging pour les requêtes API
+app.use('/api', (req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  next();
+});
 
 // SQL Server Configuration
 const useWindowsAuth = process.env.DB_USE_WINDOWS_AUTH === 'true';
@@ -3836,7 +3849,113 @@ app.get('/api/articles/:id', verifyToken, async (req, res) => {
     console.error('Erreur lors de la récupération de l\'article:', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
-}
+});
+
+// ============================================================================
+// DEVIS TYPES (DOIT ÊTRE AVANT /api/devis/:id pour éviter les conflits)
+// ============================================================================
+
+// Récupérer tous les types de devis
+app.get('/api/devis/types', async (req, res) => {
+  console.log('========================================');
+  console.log('[GET /api/devis/types] ===== ROUTE ATTEINTE =====');
+  console.log('[GET /api/devis/types] Timestamp:', new Date().toISOString());
+  console.log('[GET /api/devis/types] Headers:', JSON.stringify(req.headers, null, 2));
+  console.log('[GET /api/devis/types] Query:', req.query);
+  console.log('[GET /api/devis/types] Body:', req.body);
+  console.log('========================================');
+  
+  try {
+    // Vérifier que le pool est disponible
+    if (!pool) {
+      console.error('[GET /api/devis/types] Pool de connexion non disponible');
+      return res.status(503).json({ error: 'Service temporairement indisponible. Connexion à la base de données non établie.' });
+    }
+
+    console.log('[GET /api/devis/types] Pool disponible, exécution de la requête SQL...');
+    
+    let result;
+    try {
+      result = await pool.request().query(`
+        SELECT 
+          IdTypeDevis, 
+          CodeTypeDevis, 
+          LibelleTypeDevis,
+          ValidationChefServiceTechnicoCommercialRequise,
+          ValidationChefCentreRequise,
+          ValidationChefAgenceRequise,
+          Actif,
+          DateCreation
+        FROM TypeDevis
+        WHERE Actif = 1
+        ORDER BY LibelleTypeDevis
+      `);
+    } catch (sqlError) {
+      console.error('[GET /api/devis/types] Erreur SQL:', sqlError);
+      console.error('[GET /api/devis/types] Détails SQL:', {
+        message: sqlError.message,
+        code: sqlError.code,
+        number: sqlError.number,
+        state: sqlError.state,
+        class: sqlError.class,
+        serverName: sqlError.serverName,
+        originalError: sqlError.originalError?.message
+      });
+      
+      // Si la table n'existe pas
+      if (sqlError.number === 208 || sqlError.message?.includes('Invalid object name') || sqlError.message?.includes('TypeDevis')) {
+        console.error('[GET /api/devis/types] Table TypeDevis introuvable');
+        return res.status(500).json({ 
+          error: 'Table TypeDevis introuvable dans la base de données. Veuillez contacter l\'administrateur.',
+          details: process.env.NODE_ENV === 'development' ? sqlError.message : undefined
+        });
+      }
+      
+      // Relancer l'erreur pour qu'elle soit gérée par le catch principal
+      throw sqlError;
+    }
+    
+    console.log('[GET /api/devis/types] Successfully retrieved devis types:', result.recordset.length);
+    res.json(result.recordset);
+  } catch (error) {
+    console.error('[GET /api/devis/types] Erreur générale:', error);
+    console.error('[GET /api/devis/types] Détails complets:', {
+      message: error.message,
+      code: error.code,
+      number: error.number,
+      state: error.state,
+      class: error.class,
+      serverName: error.serverName,
+      originalError: error.originalError?.message,
+      stack: error.stack
+    });
+    
+    // Gérer les erreurs spécifiques
+    if (error.code === 'ETIMEOUT' || error.code === 'ESOCKET') {
+      return res.status(503).json({ error: 'Service temporairement indisponible. Problème de connexion à la base de données.' });
+    }
+    
+    if (error.number === 208 || error.message?.includes('Invalid object name')) {
+      return res.status(500).json({ 
+        error: 'Table TypeDevis introuvable dans la base de données. Veuillez contacter l\'administrateur.',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+    
+    // Retourner l'erreur avec le message détaillé
+    const errorMessage = error.message || 'Erreur serveur lors de la récupération des types de devis';
+    console.error('[GET /api/devis/types] Retour erreur 500:', errorMessage);
+    res.status(500).json({ 
+      error: errorMessage,
+      details: process.env.NODE_ENV === 'development' ? {
+        message: error.message,
+        number: error.number,
+        state: error.state,
+        code: error.code
+      } : undefined
+    });
+  }
+});
 
 // Récupérer un devis par ID
 app.get('/api/devis/:id', verifyToken, async (req, res) => {
@@ -4187,8 +4306,6 @@ app.get('/api/devis', verifyToken, async (req, res) => {
   }
 });
 
-});
-
 // Liste des articles
 app.get('/api/articles', async (req, res) => {
   try {
@@ -4455,36 +4572,6 @@ const startServer = async () => {
     console.log(`🚀 Serveur démarré sur le port ${PORT}`);
   });
 };
-
-startServer();
-
-// ============================================================================
-// DEVIS TYPES
-// ============================================================================
-
-// Récupérer tous les types de devis
-app.get('/api/devis/types', async (req, res) => {
-  try {
-    const result = await pool.request().query(`
-      SELECT 
-        IdTypeDevis, 
-        CodeTypeDevis, 
-        LibelleTypeDevis,
-        ValidationChefServiceTechnicoCommercialRequise,
-        ValidationChefCentreRequise,
-        ValidationChefAgenceRequise,
-        Actif,
-        DateCreation
-      FROM TypeDevis
-      WHERE Actif = 1
-      ORDER BY LibelleTypeDevis
-    `);
-    res.json(result.recordset);
-  } catch (error) {
-    console.error('Erreur lors de la récupération des types de devis:', error);
-    res.status(500).json({ error: 'Erreur serveur lors de la récupération des types de devis' });
-  }
-});
 
 // Création d'un type de devis (CodeTypeDevis auto TDV-XXXX)
 app.post('/api/devis/types', verifyToken, async (req, res) => {
@@ -5033,3 +5120,29 @@ app.delete('/api/articles/prix-historique/:id', verifyToken, async (req, res) =>
     res.status(500).json({ error: error.message || 'Erreur serveur' });
   }
 });
+
+// Error handler middleware (doit être après toutes les routes)
+app.use((err, req, res, next) => {
+  console.error('[ERROR HANDLER] Erreur non gérée:', err);
+  console.error('[ERROR HANDLER] URL:', req.url);
+  console.error('[ERROR HANDLER] Method:', req.method);
+  console.error('[ERROR HANDLER] Stack:', err.stack);
+  
+  if (res.headersSent) {
+    return next(err);
+  }
+  
+  res.status(err.status || 500).json({
+    error: err.message || 'Erreur serveur',
+    details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
+});
+
+// 404 handler (doit être après toutes les routes)
+app.use((req, res) => {
+  console.error('[404] Route non trouvée:', req.method, req.url);
+  res.status(404).json({ error: 'Route non trouvée' });
+});
+
+// Start server after all routes are defined
+startServer();

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { getTravauxHistorique } from '../services/api';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale/fr';
@@ -7,11 +7,7 @@ const TravauxDetail = ({ travail, onBack }) => {
   const [historique, setHistorique] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadHistorique();
-  }, [travail.IdOrdre]);
-
-  const loadHistorique = async () => {
+  const loadHistorique = useCallback(async () => {
     try {
       setLoading(true);
       const data = await getTravauxHistorique(travail.IdOrdre);
@@ -21,7 +17,11 @@ const TravauxDetail = ({ travail, onBack }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [travail.IdOrdre]);
+
+  useEffect(() => {
+    loadHistorique();
+  }, [loadHistorique]);
 
   const formatDate = (date) => {
     if (!date) return 'N/A';

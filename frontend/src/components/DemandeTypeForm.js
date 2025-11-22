@@ -79,15 +79,6 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
     return mapping[codeRole?.toUpperCase()];
   };
 
-  // Vérifier si un rôle peut valider une demande
-  const canRoleValidateDemande = (codeRole) => {
-    return ['CHEF_SECTION_RELATIONS_CLIENTELE', 'CHEF_SERVICE_JURIDIQUE', 'CHEF_AGENCE_COMMERCIALE', 'CHEF_CENTRE'].includes(codeRole?.toUpperCase());
-  };
-
-  // Vérifier si un rôle peut valider un ordre d'exécution
-  const canRoleValidateOE = (codeRole) => {
-    return ['CHEF_SECTION_RELATIONS_CLIENTELE', 'CHEF_AGENCE_COMMERCIALE', 'CHEF_CENTRE'].includes(codeRole?.toUpperCase());
-  };
 
   // Handler pour les validations de demande par rôle
   const handleValidationDemandeChange = (codeRole, checked) => {
@@ -747,7 +738,6 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
                 </p>
                 {(() => {
                   const rolesWithoutAdmin = getRolesWithoutAdmin();
-                  const colors = ['cyan', 'blue', 'purple', 'green', 'orange', 'pink', 'indigo', 'teal'];
                   
                   // Mapping des couleurs par code de rôle
                   const getColorClasses = (codeRole, isChecked, index) => {
@@ -865,7 +855,6 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
                 </p>
                 {(() => {
                   const rolesWithoutAdmin = getRolesWithoutAdmin();
-                  const colors = ['cyan', 'blue', 'purple', 'green', 'orange', 'pink', 'indigo', 'teal'];
                   
                   // Mapping des couleurs par code de rôle pour OE
                   const getColorClassesOE = (codeRole, isChecked, index) => {

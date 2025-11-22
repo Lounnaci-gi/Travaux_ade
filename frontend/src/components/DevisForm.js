@@ -168,6 +168,11 @@ const DevisForm = ({ user }) => {
       ...prev,
       articles: updatedArticles
     }));
+    
+    // Clear the search text when manually changing the designation
+    if (field === 'designation') {
+      setArticleSearch(prev => ({ ...prev, [index]: '' }));
+    }
   };
 
   const handleArticleSelect = (index, articleId) => {
@@ -202,6 +207,9 @@ const DevisForm = ({ user }) => {
         ...prev,
         articles: updatedArticles
       }));
+      
+      // Update the search text to show the selected article's designation
+      setArticleSearch(prev => ({ ...prev, [index]: selectedArticle.Designation }));
     }
   };
 
@@ -221,6 +229,11 @@ const DevisForm = ({ user }) => {
         }
       ]
     }));
+    
+    // Initialize the article search state for the new index
+    const newIndex = formData.articles.length;
+    setArticleSearch(prev => ({ ...prev, [newIndex]: '' }));
+    setShowArticleDropdown(prev => ({ ...prev, [newIndex]: false }));
   };
 
   const removeArticle = (index) => {
@@ -231,6 +244,20 @@ const DevisForm = ({ user }) => {
         ...prev,
         articles: updatedArticles
       }));
+      
+      // Also remove the article search state for this index
+      setArticleSearch(prev => {
+        const newState = { ...prev };
+        delete newState[index];
+        return newState;
+      });
+      
+      // Also remove the dropdown state for this index
+      setShowArticleDropdown(prev => {
+        const newState = { ...prev };
+        delete newState[index];
+        return newState;
+      });
     }
   };
 
@@ -325,24 +352,7 @@ const DevisForm = ({ user }) => {
       alertSuccess('Succès', 'Devis créé avec succès');
       
       // Reset form
-      setFormData({
-        idDemande: '',
-        idTypeDevis: formData.idTypeDevis, // Keep the same type
-        commentaire: '',
-        articles: [
-          {
-            idArticle: '',
-            designation: '',
-            quantite: '',
-            prixUnitaireHT: '',
-            tauxTVAApplique: '',
-            unite: '',
-            typePrix: 'FOURNITURE' // Add this field - default to Fourniture
-          }
-        ]
-      });
-      setDemande(null);
-      setDemandeSearch('');
+      resetForm();
     } catch (err) {
       console.error('Erreur lors de la création du devis:', err);
       setError(err.response?.data?.message || 'Erreur lors de la création du devis');
@@ -350,6 +360,29 @@ const DevisForm = ({ user }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      idDemande: '',
+      idTypeDevis: formData.idTypeDevis, // Keep the same type
+      commentaire: '',
+      articles: [
+        {
+          idArticle: '',
+          designation: '',
+          quantite: '',
+          prixUnitaireHT: '',
+          tauxTVAApplique: '',
+          unite: '',
+          typePrix: 'FOURNITURE' // Add this field - default to Fourniture
+        }
+      ]
+    });
+    setDemande(null);
+    setDemandeSearch('');
+    setArticleSearch({});
+    setShowArticleDropdown({});
   };
 
   const [articleSearch, setArticleSearch] = useState({});
@@ -589,9 +622,9 @@ const DevisForm = ({ user }) => {
                               {/* Searchable input for articles */}
                               <input
                                 type="text"
-                                value={article.designation || (article.idArticle ? availableArticles.find(a => a.IdArticle === article.idArticle)?.Designation || '' : '')}
+                                value={articleSearch[index] || ''}
                                 onChange={(e) => {
-                                  handleArticleChange(index, 'designation', e.target.value);
+                                  setArticleSearch(prev => ({ ...prev, [index]: e.target.value }));
                                   setShowArticleDropdown(prev => ({ ...prev, [index]: true }));
                                 }}
                                 onFocus={() => setShowArticleDropdown(prev => ({ ...prev, [index]: true }))}
@@ -600,71 +633,43 @@ const DevisForm = ({ user }) => {
                               />
                               
                               {showArticleDropdown[index] && (
-                                <div className="fixed mt-1 w-[500px] bg-white dark:bg-gray-800 shadow-lg rounded-md overflow-hidden border border-gray-200 dark:border-gray-700" style={{ zIndex: 9999, position: 'fixed' }}>
-                                  <ul className="max-h-96 overflow-y-auto">
+                                <div className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 shadow-lg rounded-md overflow-hidden border border-gray-200 dark:border-gray-700" style={{ zIndex: 9999 }}>
+                                  <ul className="max-h-60 overflow-y-auto">
                                     {availableArticles
                                       .filter(art => 
-                                        !article.designation || 
-                                        art.Designation.toLowerCase().includes(article.designation.toLowerCase()) ||
-                                        art.CodeArticle.toLowerCase().includes(article.designation.toLowerCase())
+                                        !articleSearch[index] || 
+                                        art.Designation.toLowerCase().includes(articleSearch[index].toLowerCase()) ||
+                                        art.CodeArticle.toLowerCase().includes(articleSearch[index].toLowerCase())
                                       )
                                       .map((art) => (
                                         <li
                                           key={art.IdArticle}
-                                          className="px-4 py-3 hover:bg-primary-100 dark:hover:bg-primary-900 cursor-pointer text-gray-900 dark:text-white"
+                                          className="px-4 py-2 hover:bg-primary-100 dark:hover:bg-primary-900 cursor-pointer text-gray-900 dark:text-white"
                                           onClick={() => {
                                             handleArticleSelect(index, art.IdArticle);
                                             setShowArticleDropdown(prev => ({ ...prev, [index]: false }));
+                                            setArticleSearch(prev => ({ ...prev, [index]: '' }));
                                           }}
                                         >
-                                          <div className="font-medium text-base">{art.Designation}</div>
-                                          <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
-                                            <div className="flex justify-between">
-                                              <span className="text-gray-500 dark:text-gray-400">Code:</span>
-                                              <span className="font-medium">{art.CodeArticle}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                              <span className="text-gray-500 dark:text-gray-400">Unité:</span>
-                                              <span className="font-medium">{art.Unite}</span>
-                                            </div>
-                                            {art.Diametre && (
-                                              <div className="flex justify-between">
-                                                <span className="text-gray-500 dark:text-gray-400">Diamètre:</span>
-                                                <span className="font-medium">{art.Diametre}</span>
-                                              </div>
-                                            )}
-                                            {art.Pression && (
-                                              <div className="flex justify-between">
-                                                <span className="text-gray-500 dark:text-gray-400">Pression:</span>
-                                                <span className="font-medium">{art.Pression}</span>
-                                              </div>
-                                            )}
-                                            <div className="flex justify-between">
-                                              <span className="text-gray-500 dark:text-gray-400">Fourniture:</span>
-                                              <span className="font-medium">{art.PrixFournitureHT ? `${parseFloat(art.PrixFournitureHT).toFixed(2)} DZD` : 'N/A'}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                              <span className="text-gray-500 dark:text-gray-400">Pose:</span>
-                                              <span className="font-medium">{art.PrixPoseHT ? `${parseFloat(art.PrixPoseHT).toFixed(2)} DZD` : 'N/A'}</span>
-                                            </div>
-                                            {art.TauxTVA !== undefined && (
-                                              <div className="flex justify-between">
-                                                <span className="text-gray-500 dark:text-gray-400">TVA:</span>
-                                                <span className="font-medium">{art.TauxTVA?.toFixed(2)}%</span>
-                                              </div>
-                                            )}
+                                          <div className="font-medium">{art.Designation}</div>
+                                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                                            Code: {art.CodeArticle} | Unité: {art.Unite}
+                                          </div>
+                                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                                            Fourniture: {art.PrixFournitureHT ? `${parseFloat(art.PrixFournitureHT).toFixed(2)} DZD` : 'N/A'} | 
+                                            Pose: {art.PrixPoseHT ? `${parseFloat(art.PrixPoseHT).toFixed(2)} DZD` : 'N/A'}
                                           </div>
                                         </li>
                                       ))
                                     }
                                     {availableArticles
                                       .filter(art => 
-                                        !article.designation || 
-                                        art.Designation.toLowerCase().includes(article.designation.toLowerCase()) ||
-                                        art.CodeArticle.toLowerCase().includes(article.designation.toLowerCase())
+                                        !articleSearch[index] || 
+                                        art.Designation.toLowerCase().includes(articleSearch[index].toLowerCase()) ||
+                                        art.CodeArticle.toLowerCase().includes(articleSearch[index].toLowerCase())
                                       )
                                       .length === 0 && (
-                                        <li className="px-4 py-3 text-gray-500 dark:text-gray-400">
+                                        <li className="px-4 py-2 text-gray-500 dark:text-gray-400">
                                           Aucun article trouvé
                                         </li>
                                       )

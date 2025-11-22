@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getDevisTypes, createDevisType, updateDevisType } from '../services/api';
+import { getDevisTypes, createDevisType, updateDevisType, deleteDevisType } from '../services/api';
 
 const DevisTypeForm = ({ user, onUnauthorized }) => {
   const [devisTypes, setDevisTypes] = useState([]);
@@ -101,13 +101,17 @@ const DevisTypeForm = ({ user, onUnauthorized }) => {
   const handleDelete = async (id) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce type de devis?')) {
       try {
-        // TODO: Implement delete API call
-        console.log('Delete devis type with ID:', id);
+        setLoading(true);
+        setError('');
+        setSuccess('');
+        await deleteDevisType(id);
         setSuccess('Type de devis supprimé avec succès!');
         loadDevisTypes();
       } catch (err) {
         console.error('Erreur lors de la suppression du type de devis:', err);
-        setError('Erreur lors de la suppression du type de devis');
+        setError(err.response?.data?.error || err.message || 'Erreur lors de la suppression du type de devis');
+      } finally {
+        setLoading(false);
       }
     }
   };

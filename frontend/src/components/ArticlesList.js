@@ -476,7 +476,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
         { field: 'Caracteristiques', value: form.Caracteristiques, max: 500, label: 'Caractéristiques' },
       ];
 
-      for (const { field, value, max, label } of lengthConstraints) {
+      for (const { value, max, label } of lengthConstraints) {
         if (value && typeof value === 'string' && value.trim().length > max) {
           const message = `Le champ ${label} ne doit pas dépasser ${max} caractères.`;
           setError(message);

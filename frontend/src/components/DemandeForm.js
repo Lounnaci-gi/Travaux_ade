@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { alertSuccess, alertError, confirmDialog } from '../ui/alerts';
-import { getClients, getClientById, getClientTypes, getAgences, getDemandeTypes, createClient, createDemande } from '../services/api';
+import { getClients, getClientById, getClientTypes, getAgences, getDemandeTypes, createDemande } from '../services/api';
 import { isAdmin } from '../utils/auth';
-import { canUserCreateDemandeType, normalizeRole } from '../utils/roleUtils';
+import { canUserCreateDemandeType } from '../utils/roleUtils';
 
 // Add print styles
 const printStyles = `
@@ -173,12 +173,12 @@ const DemandeForm = ({ user, onCreated }) => {
   // Handle print with custom header only
   const handlePrint = () => {
     const { agencyName, unitName } = getPrintHeaderInfo();
-    const clientName = getPrintClientName();
-    const clientFirstName = getPrintClientFirstName();
-    const clientAddress = getPrintClientAddress();
-    const clientCommune = getPrintClientCommune();
-    const clientTelephones = getPrintClientTelephones();
-    const clientStatus = getPrintClientStatus();
+    getPrintClientName();
+    getPrintClientFirstName();
+    getPrintClientAddress();
+    getPrintClientCommune();
+    getPrintClientTelephones();
+    getPrintClientStatus();
     
     // Get current date for "Fait à" section
     const currentDate = new Date();
@@ -504,37 +504,18 @@ const DemandeForm = ({ user, onCreated }) => {
     setShowDiametreDropdown(false);
   };
 
-  // Fonction pour parser la Description et extraire les rôles autorisés
-  const parseDescription = (desc) => {
-    if (!desc) return { description: '', roles: [] };
-    try {
-      const parsed = JSON.parse(desc);
-      return {
-        description: parsed.d || parsed.description || '',
-        roles: parsed.r || parsed.roles || []
-      };
-    } catch {
-      // Si ce n'est pas du JSON, c'est une description simple (tous les rôles autorisés)
-      return { description: desc, roles: [] };
-    }
-  };
-
   // Fonction pour vérifier si l'utilisateur peut créer un type de demande
   // Utilise la fonction utilitaire centralisée
-  const canUserCreateType = (type) => {
+  const canUserCreateType = React.useCallback((type) => {
     const canCreate = canUserCreateDemandeType(user, type);
     
     // Logs de débogage uniquement si nécessaire
     if (!canCreate && user) {
-      const userRoleRaw = user.role || user.codeRole || user.Role || user.CodeRole;
-      const parsed = parseDescription(type.Description);
-      const rolesAutorises = parsed.roles || [];
-      
       // Debug logging for access denied - can be removed in production
     }
     
     return canCreate;
-  };
+  }, [user]);
 
   useEffect(() => {
     const load = async () => {
@@ -643,7 +624,7 @@ const DemandeForm = ({ user, onCreated }) => {
       }
     };
     load();
-  }, [user]);
+  }, [user, canUserCreateType]);
 
   // Vérifier si le type de demande sélectionné contient "Branchement"
   const isBranchementType = () => {

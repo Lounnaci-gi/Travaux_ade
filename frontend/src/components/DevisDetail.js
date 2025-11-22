@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { getDevis } from '../services/api';
 
 const DevisDetail = ({ devisId, onBack }) => {
@@ -6,11 +6,7 @@ const DevisDetail = ({ devisId, onBack }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    loadDevis();
-  }, [devisId]);
-
-  const loadDevis = async () => {
+  const loadDevis = useCallback(async () => {
     try {
       setLoading(true);
       const data = await getDevis(devisId);
@@ -21,7 +17,11 @@ const DevisDetail = ({ devisId, onBack }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [devisId]);
+
+  useEffect(() => {
+    loadDevis();
+  }, [loadDevis]);
 
   if (loading) {
     return (

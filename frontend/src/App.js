@@ -33,8 +33,20 @@ function App() {
   const IDLE_TIMEOUT = 10 * 60 * 1000; // 10 minutes in milliseconds
   const WARNING_TIME = 60 * 1000; // 1 minute warning before logout
 
+  const handleLogout = React.useCallback(() => {
+    if (idleTimer.current) clearTimeout(idleTimer.current);
+    if (idleWarningTimer.current) clearTimeout(idleWarningTimer.current);
+    
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    setIsAuthenticated(false);
+    setCurrentView('dashboard');
+    setShowIdleWarning(false);
+  }, []);
+
   // Reset idle timers on user activity
-  const resetIdleTimer = () => {
+  const resetIdleTimer = React.useCallback(() => {
     if (idleTimer.current) clearTimeout(idleTimer.current);
     if (idleWarningTimer.current) clearTimeout(idleWarningTimer.current);
     
@@ -45,7 +57,7 @@ function App() {
       }, WARNING_TIME);
       setShowIdleWarning(true);
     }, IDLE_TIMEOUT);
-  };
+  }, [handleLogout, IDLE_TIMEOUT, WARNING_TIME]);
 
   // Set up event listeners for user activity
   useEffect(() => {
@@ -61,7 +73,7 @@ function App() {
       if (idleTimer.current) clearTimeout(idleTimer.current);
       if (idleWarningTimer.current) clearTimeout(idleWarningTimer.current);
     };
-  }, []);
+  }, [resetIdleTimer]);
 
   // Check for existing authentication on app load
   useEffect(() => {
@@ -89,18 +101,6 @@ function App() {
     setIsAuthenticated(true);
     setShowIdleWarning(false);
     resetIdleTimer();
-  };
-
-  const handleLogout = () => {
-    if (idleTimer.current) clearTimeout(idleTimer.current);
-    if (idleWarningTimer.current) clearTimeout(idleWarningTimer.current);
-    
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
-    setIsAuthenticated(false);
-    setCurrentView('dashboard');
-    setShowIdleWarning(false);
   };
 
   if (loading) {
