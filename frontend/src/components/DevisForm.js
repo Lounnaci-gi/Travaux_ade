@@ -395,7 +395,11 @@ const DevisForm = ({ user }) => {
       Object.entries(articleDropdownRefs.current).forEach(([index, ref]) => {
         if (ref && !ref.contains(event.target)) {
           setShowArticleDropdown(prev => ({ ...prev, [index]: false }));
-          setArticleSearch(prev => ({ ...prev, [index]: '' }));
+          // Only clear the search text if no article is selected for this index
+          const articleId = formData.articles[parseInt(index)]?.idArticle;
+          if (!articleId) {
+            setArticleSearch(prev => ({ ...prev, [index]: '' }));
+          }
         }
       });
     };
@@ -404,7 +408,7 @@ const DevisForm = ({ user }) => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [formData.articles]);
 
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -620,63 +624,69 @@ const DevisForm = ({ user }) => {
                           <td className="px-4 py-2 whitespace-nowrap">
                             <div className="relative" ref={el => articleDropdownRefs.current[index] = el}>
                               {/* Searchable input for articles */}
-                              <input
-                                type="text"
-                                value={articleSearch[index] || ''}
-                                onChange={(e) => {
-                                  setArticleSearch(prev => ({ ...prev, [index]: e.target.value }));
-                                  setShowArticleDropdown(prev => ({ ...prev, [index]: true }));
-                                }}
-                                onFocus={() => setShowArticleDropdown(prev => ({ ...prev, [index]: true }))}
-                                placeholder="Rechercher un article..."
-                                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                              />
-                              
-                              {showArticleDropdown[index] && (
-                                <div className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 shadow-lg rounded-md overflow-hidden border border-gray-200 dark:border-gray-700" style={{ zIndex: 9999 }}>
-                                  <ul className="max-h-60 overflow-y-auto">
-                                    {availableArticles
-                                      .filter(art => 
-                                        !articleSearch[index] || 
-                                        art.Designation.toLowerCase().includes(articleSearch[index].toLowerCase()) ||
-                                        art.CodeArticle.toLowerCase().includes(articleSearch[index].toLowerCase())
-                                      )
-                                      .map((art) => (
-                                        <li
-                                          key={art.IdArticle}
-                                          className="px-4 py-2 hover:bg-primary-100 dark:hover:bg-primary-900 cursor-pointer text-gray-900 dark:text-white"
-                                          onClick={() => {
-                                            handleArticleSelect(index, art.IdArticle);
-                                            setShowArticleDropdown(prev => ({ ...prev, [index]: false }));
-                                            setArticleSearch(prev => ({ ...prev, [index]: '' }));
-                                          }}
-                                        >
-                                          <div className="font-medium">{art.Designation}</div>
-                                          <div className="text-sm text-gray-500 dark:text-gray-400">
-                                            Code: {art.CodeArticle} | Unité: {art.Unite}
+                              <div className="relative">
+                                <input
+                                  type="text"
+                                  value={articleSearch[index] || ''}
+                                  onChange={(e) => {
+                                    setArticleSearch(prev => ({ ...prev, [index]: e.target.value }));
+                                    setShowArticleDropdown(prev => ({ ...prev, [index]: true }));
+                                  }}
+                                  onFocus={() => setShowArticleDropdown(prev => ({ ...prev, [index]: true }))}
+                                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                                  placeholder="Rechercher un article..."
+                                  autoComplete="off"
+                                />
+                                <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                
+                                {showArticleDropdown[index] && (
+                                  <div className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 shadow-lg rounded-md overflow-hidden border border-gray-200 dark:border-gray-700" style={{ zIndex: 9999 }}>
+                                    <ul className="max-h-60 overflow-y-auto">
+                                      {availableArticles
+                                        .filter(art => 
+                                          !articleSearch[index] || 
+                                          art.Designation.toLowerCase().includes(articleSearch[index].toLowerCase()) ||
+                                          art.CodeArticle.toLowerCase().includes(articleSearch[index].toLowerCase())
+                                        )
+                                        .map((art) => (
+                                          <li
+                                            key={art.IdArticle}
+                                            className="px-4 py-2 hover:bg-primary-100 dark:hover:bg-primary-900 cursor-pointer text-gray-900 dark:text-white"
+                                            onClick={() => {
+                                              handleArticleSelect(index, art.IdArticle);
+                                              setShowArticleDropdown(prev => ({ ...prev, [index]: false }));
+                                              // Don't clear the search text here, it's already set in handleArticleSelect
+                                            }}
+                                          >
+                                            <div className="font-medium">{art.Designation}</div>
+                                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                                              Code: {art.CodeArticle} | Unité: {art.Unite}
+                                            </div>
+                                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                                              Fourniture: {art.PrixFournitureHT ? `${parseFloat(art.PrixFournitureHT).toFixed(2)} DZD` : 'N/A'} | 
+                                              Pose: {art.PrixPoseHT ? `${parseFloat(art.PrixPoseHT).toFixed(2)} DZD` : 'N/A'}
+                                            </div>
+                                          </li>
+                                        ))
+                                      }
+                                      {availableArticles
+                                        .filter(art => 
+                                          !articleSearch[index] || 
+                                          art.Designation.toLowerCase().includes(articleSearch[index].toLowerCase()) ||
+                                          art.CodeArticle.toLowerCase().includes(articleSearch[index].toLowerCase())
+                                        )
+                                        .length === 0 && (
+                                          <div className="px-4 py-2 text-gray-500 dark:text-gray-400">
+                                            Aucun article trouvé
                                           </div>
-                                          <div className="text-sm text-gray-500 dark:text-gray-400">
-                                            Fourniture: {art.PrixFournitureHT ? `${parseFloat(art.PrixFournitureHT).toFixed(2)} DZD` : 'N/A'} | 
-                                            Pose: {art.PrixPoseHT ? `${parseFloat(art.PrixPoseHT).toFixed(2)} DZD` : 'N/A'}
-                                          </div>
-                                        </li>
-                                      ))
-                                    }
-                                    {availableArticles
-                                      .filter(art => 
-                                        !articleSearch[index] || 
-                                        art.Designation.toLowerCase().includes(articleSearch[index].toLowerCase()) ||
-                                        art.CodeArticle.toLowerCase().includes(articleSearch[index].toLowerCase())
-                                      )
-                                      .length === 0 && (
-                                        <li className="px-4 py-2 text-gray-500 dark:text-gray-400">
-                                          Aucun article trouvé
-                                        </li>
-                                      )
-                                    }
-                                  </ul>
-                                </div>
-                              )}
+                                        )
+                                      }
+                                    </ul>
+                                  </div>
+                                )}
+                              </div>
                               
                               {/* Hidden input to store the selected article ID */}
                               <input
