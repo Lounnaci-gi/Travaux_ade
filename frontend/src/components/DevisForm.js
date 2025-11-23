@@ -794,9 +794,9 @@ const DevisForm = ({ user }) => {
                       
                       {/* Article Details - Takes remaining space */}
                       <div className="lg:col-span-7">
-                        <div className="grid grid-cols-12 gap-1">
-                          {/* Type de Prix - Kept width */}
-                          <div className="col-span-2">
+                        <div className="flex flex-wrap gap-1">
+                          {/* Type de Prix */}
+                          <div className="flex-1 min-w-[80px]">
                             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                               Type
                             </label>
@@ -811,8 +811,8 @@ const DevisForm = ({ user }) => {
                             </select>
                           </div>
                           
-                          {/* Quantité - Kept width */}
-                          <div className="col-span-2">
+                          {/* Quantité */}
+                          <div className="flex-1 min-w-[80px]">
                             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                               Qté
                             </label>
@@ -833,8 +833,8 @@ const DevisForm = ({ user }) => {
                             </div>
                           </div>
                           
-                          {/* Prix Unitaire - Kept width */}
-                          <div className="col-span-2">
+                          {/* Prix Unitaire */}
+                          <div className="flex-1 min-w-[80px]">
                             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                               Prix HT
                             </label>
@@ -853,8 +853,8 @@ const DevisForm = ({ user }) => {
                             </div>
                           </div>
                           
-                          {/* TVA - Kept width */}
-                          <div className="col-span-2">
+                          {/* TVA */}
+                          <div className="flex-1 min-w-[80px]">
                             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                               TVA
                             </label>
@@ -874,20 +874,20 @@ const DevisForm = ({ user }) => {
                             </div>
                           </div>
                           
-                          {/* HT Total - Kept width */}
-                          <div className="col-span-2 bg-gray-50 dark:bg-gray-700 p-1 rounded text-center">
+                          {/* HT Total */}
+                          <div className="flex-1 min-w-[80px] bg-gray-50 dark:bg-gray-700 p-1 rounded text-center">
                             <div className="text-xs text-gray-500 dark:text-gray-400">HT</div>
                             <div className="text-xs font-semibold text-gray-900 dark:text-white">{articleTotals.montantHT}</div>
                           </div>
                           
-                          {/* TVA Total - Kept width */}
-                          <div className="col-span-2 bg-gray-50 dark:bg-gray-700 p-1 rounded text-center">
+                          {/* TVA Total */}
+                          <div className="flex-1 min-w-[80px] bg-gray-50 dark:bg-gray-700 p-1 rounded text-center">
                             <div className="text-xs text-gray-500 dark:text-gray-400">TVA</div>
                             <div className="text-xs font-semibold text-gray-900 dark:text-white">{articleTotals.montantTVA}</div>
                           </div>
                           
-                          {/* TTC Total - Same level as Type and Qté, reduced margins */}
-                          <div className="col-span-2 border border-primary-500 p-1 rounded text-center">
+                          {/* TTC */}
+                          <div className="flex-1 min-w-[80px] border border-primary-500 p-1 rounded text-center">
                             <div className="text-xs text-primary-500">TTC</div>
                             <div className="text-xs font-bold text-gray-900 dark:text-white">{articleTotals.montantTTC}</div>
                           </div>
