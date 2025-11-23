@@ -200,6 +200,7 @@ const DevisForm = ({ user }) => {
   };
 
   // New function to handle quick article addition
+  // eslint-disable-next-line no-unused-vars
   const handleQuickAddArticle = (index, articleCode) => {
     // Find article by code
     const selectedArticle = availableArticles.find(a => a.CodeArticle === articleCode);
@@ -293,6 +294,7 @@ const DevisForm = ({ user }) => {
 
   
   // New function to add multiple articles at once
+  // eslint-disable-next-line no-unused-vars
   const addMultipleArticles = (count) => {
     const newArticles = Array(count).fill().map(() => ({
       idArticle: '',

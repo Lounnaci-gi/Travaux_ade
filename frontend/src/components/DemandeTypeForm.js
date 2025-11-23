@@ -41,6 +41,7 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
   // État pour l'autocomplétion du libellé
   const [libelleSuggestions, setLibelleSuggestions] = useState([]);
   const [showLibelleSuggestions, setShowLibelleSuggestions] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [libelleSearchTerm, setLibelleSearchTerm] = useState('');
 
   const toggleSection = (section) => {

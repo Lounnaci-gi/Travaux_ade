@@ -59,6 +59,7 @@ const DemandeForm = ({ user, onCreated }) => {
   const [clientTypes, setClientTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [selectedClient, setSelectedClient] = useState(null);
@@ -565,8 +566,6 @@ const DemandeForm = ({ user, onCreated }) => {
                 const isActive = t.Actif === true || t.Actif === 1 || t.Actif === '1' || (typeof t.Actif === 'boolean' && t.Actif);
                 return isActive;
               });
-              const activeCount = activeTypes.length;
-              const inactiveCount = typesData.length - activeCount;
               const userRoleDisplay = user?.role || user?.codeRole || user?.Role || user?.CodeRole || 'non défini';
               
               // Utiliser SweetAlert2 pour afficher un message simple et compréhensible

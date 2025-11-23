@@ -453,34 +453,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                   <h3 className="text-lg font-semibold dark:text-white text-gray-900">Informations personnelles</h3>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="md:col-span-3">
-                    <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
-                      Rôle <span className="text-red-400">*</span>
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg className="w-5 h-5 dark:text-gray-400 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                      </div>
-                      <select
-                        name="Role"
-                        value={form.Role}
-                        onChange={handleChange}
-                        className="select-field w-full pl-10 pr-4 py-3"
-                        required
-                      >
-                        <option value="">Sélectionner un rôle</option>
-                        {roles.map((r) => (
-                          <option key={r.CodeRole} value={r.CodeRole} className="dark:bg-slate-800 bg-white">
-                            {r.LibelleRole}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
                       Nom <span className="text-red-400">*</span>
@@ -507,19 +480,6 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                       required
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
-                      Téléphone
-                    </label>
-                    <input
-                      name="Telephone"
-                      value={form.Telephone}
-                      onChange={handleChange}
-                      placeholder="0123456789"
-                      maxLength={10}
-                      className="w-full px-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                    />
-                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -544,78 +504,65 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                       />
                     </div>
                   </div>
-                </div>
-              </div>
-
-              {/* Sécurité */}
-              <div className="space-y-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-purple-500/10">
-                    <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m4 0a6 6 0 11-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-semibold dark:text-white text-gray-900">Sécurité</h3>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
-                      Mot de passe <span className="text-red-400">*</span>
+                      Téléphone
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <svg className="w-5 h-5 dark:text-gray-400 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                         </svg>
                       </div>
                       <input
-                        type="password"
-                        name="MotDePasse"
-                        value={form.MotDePasse}
+                        name="Telephone"
+                        value={form.Telephone}
                         onChange={handleChange}
-                        placeholder="••••••••"
+                        placeholder="0123456789"
+                        maxLength={10}
                         className="w-full pl-10 pr-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                        required
-                        minLength={6}
-                      />
-                    </div>
-                    <p className="mt-1 text-xs dark:text-gray-400 text-gray-600">Minimum 6 caractères</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
-                      Confirmation <span className="text-red-400">*</span>
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg className="w-5 h-5 dark:text-gray-400 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <input
-                        type="password"
-                        name="ConfirmationMotDePasse"
-                        value={form.ConfirmationMotDePasse}
-                        onChange={handleChange}
-                        placeholder="••••••••"
-                        className="w-full pl-10 pr-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                        required
-                        minLength={6}
                       />
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Affectation hiérarchique */}
+              {/* Rôle et Affectation */}
               <div className="space-y-6">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-green-500/10">
                     <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-semibold dark:text-white text-gray-900">Affectation hiérarchique</h3>
+                  <h3 className="text-lg font-semibold dark:text-white text-gray-900">Rôle et affectation</h3>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
+                    Rôle <span className="text-red-400">*</span>
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="w-5 h-5 dark:text-gray-400 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <select
+                      name="Role"
+                      value={form.Role}
+                      onChange={handleChange}
+                      className="select-field w-full pl-10 pr-4 py-3"
+                      required
+                    >
+                      <option value="">Sélectionner un rôle</option>
+                      {roles.map((r) => (
+                        <option key={r.CodeRole} value={r.CodeRole} className="dark:bg-slate-800 bg-white">
+                          {r.LibelleRole}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -684,6 +631,66 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                         </option>
                       ))}
                     </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sécurité */}
+              <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-purple-500/10">
+                    <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m4 0a6 6 0 11-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold dark:text-white text-gray-900">Sécurité</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
+                      Mot de passe <span className="text-red-400">*</span>
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg className="w-5 h-5 dark:text-gray-400 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                        </svg>
+                      </div>
+                      <input
+                        type="password"
+                        name="MotDePasse"
+                        value={form.MotDePasse}
+                        onChange={handleChange}
+                        placeholder="••••••••"
+                        className="w-full pl-10 pr-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                        required
+                        minLength={6}
+                      />
+                    </div>
+                    <p className="mt-1 text-xs dark:text-gray-400 text-gray-600">Minimum 6 caractères</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
+                      Confirmation <span className="text-red-400">*</span>
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg className="w-5 h-5 dark:text-gray-400 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <input
+                        type="password"
+                        name="ConfirmationMotDePasse"
+                        value={form.ConfirmationMotDePasse}
+                        onChange={handleChange}
+                        placeholder="••••••••"
+                        className="w-full pl-10 pr-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                        required
+                        minLength={6}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
