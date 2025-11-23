@@ -1429,6 +1429,28 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     <span className="dark:text-gray-400 text-gray-600">{hoveredArticleDetails.Unite}</span>
                   </div>
                   
+                  {/* Display prices */}
+                  <div className="flex items-start gap-2">
+                    <span className="font-medium dark:text-gray-300 text-gray-700 min-w-[100px]">Prix:</span>
+                    <div className="space-y-1">
+                      {hoveredArticleDetails.PrixFournitureHT != null && (
+                        <div className="flex items-center">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">F:</span>
+                          <span className="font-semibold">{parseFloat(hoveredArticleDetails.PrixFournitureHT).toFixed(2)} DZD</span>
+                        </div>
+                      )}
+                      {hoveredArticleDetails.PrixPoseHT != null && (
+                        <div className="flex items-center">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">P:</span>
+                          <span className="font-semibold">{parseFloat(hoveredArticleDetails.PrixPoseHT).toFixed(2)} DZD</span>
+                        </div>
+                      )}
+                      {hoveredArticleDetails.PrixFournitureHT == null && hoveredArticleDetails.PrixPoseHT == null && (
+                        <span className="text-gray-400">—</span>
+                      )}
+                    </div>
+                  </div>
+                  
                   {hoveredArticleDetails.Description && (
                     <div className="flex items-start gap-2">
                       <span className="font-medium dark:text-gray-300 text-gray-700 min-w-[100px]">Description:</span>
@@ -1498,6 +1520,28 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                   <div className="flex items-start gap-2">
                     <span className="font-medium dark:text-gray-300 text-gray-700 min-w-[100px]">Unité:</span>
                     <span className="dark:text-gray-400 text-gray-600">{hoveredArticle.Unite}</span>
+                  </div>
+                  
+                  {/* Display prices */}
+                  <div className="flex items-start gap-2">
+                    <span className="font-medium dark:text-gray-300 text-gray-700 min-w-[100px]">Prix:</span>
+                    <div className="space-y-1">
+                      {hoveredArticle.PrixFournitureHT != null && (
+                        <div className="flex items-center">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">F:</span>
+                          <span className="font-semibold">{parseFloat(hoveredArticle.PrixFournitureHT).toFixed(2)} DZD</span>
+                        </div>
+                      )}
+                      {hoveredArticle.PrixPoseHT != null && (
+                        <div className="flex items-center">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">P:</span>
+                          <span className="font-semibold">{parseFloat(hoveredArticle.PrixPoseHT).toFixed(2)} DZD</span>
+                        </div>
+                      )}
+                      {hoveredArticle.PrixFournitureHT == null && hoveredArticle.PrixPoseHT == null && (
+                        <span className="text-gray-400">—</span>
+                      )}
+                    </div>
                   </div>
                   
                   {hoveredArticle.Description && (

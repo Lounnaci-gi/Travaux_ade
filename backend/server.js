@@ -3968,9 +3968,43 @@ app.get('/api/articles/:id', verifyToken, async (req, res) => {
           a.Description, a.Unite, a.Actif, a.DateCreation, a.DateModification,
           a.Diametre, a.Matiere, a.Classe, a.Pression, 
           a.Longueur, a.Largeur, a.Epaisseur, a.Couleur, a.Caracteristiques,
-          f.LibelleFamille
+          f.LibelleFamille,
+          pf.PrixHT AS PrixFournitureHT,
+          pf.TauxTVA AS TauxTVAFourniture,
+          pf.DateDebutApplication AS DateDebutFourniture,
+          pp.PrixHT AS PrixPoseHT,
+          pp.TauxTVA AS TauxTVAPose,
+          pp.DateDebutApplication AS DateDebutPose
         FROM Article a
         LEFT JOIN ArticleFamille f ON a.IdFamille = f.IdFamille
+        LEFT JOIN (
+          SELECT 
+            IdArticle, 
+            PrixHT, 
+            TauxTVA, 
+            DateDebutApplication,
+            ROW_NUMBER() OVER (PARTITION BY IdArticle ORDER BY DateDebutApplication DESC) as rn
+          FROM ArticlePrixHistorique 
+          WHERE TypePrix = 'FOURNITURE' 
+            AND EstActif = 1
+            AND DateDebutApplication <= GETDATE()
+            AND (DateFinApplication IS NULL OR DateFinApplication >= GETDATE())
+            AND IdArticle = @id
+        ) pf ON a.IdArticle = pf.IdArticle AND pf.rn = 1
+        LEFT JOIN (
+          SELECT 
+            IdArticle, 
+            PrixHT, 
+            TauxTVA, 
+            DateDebutApplication,
+            ROW_NUMBER() OVER (PARTITION BY IdArticle ORDER BY DateDebutApplication DESC) as rn
+          FROM ArticlePrixHistorique 
+          WHERE TypePrix = 'POSE' 
+            AND EstActif = 1
+            AND DateDebutApplication <= GETDATE()
+            AND (DateFinApplication IS NULL OR DateFinApplication >= GETDATE())
+            AND IdArticle = @id
+        ) pp ON a.IdArticle = pp.IdArticle AND pp.rn = 1
         WHERE a.IdArticle = @id
       `);
     
