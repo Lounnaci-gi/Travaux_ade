@@ -329,6 +329,63 @@ const DevisForm = ({ user }) => {
     setShowArticleDropdown(newDropdownState);
   };
 
+  const clearAndRemoveArticle = (index) => {
+    if (formData.articles.length > 1) {
+      // First clear the article content
+      const updatedArticles = [...formData.articles];
+      updatedArticles[index] = {
+        idArticle: '',
+        designation: '',
+        quantite: '',
+        prixUnitaireHT: '',
+        tauxTVAApplique: globalTVA,
+        unite: '',
+        typePrix: 'FOURNITURE'
+      };
+      
+      setFormData(prev => ({
+        ...prev,
+        articles: updatedArticles
+      }));
+      
+      // Also clear the article search state for this index
+      setArticleSearch(prev => ({
+        ...prev,
+        [index]: ''
+      }));
+      
+      // Also close the dropdown for this index
+      setShowArticleDropdown(prev => ({
+        ...prev,
+        [index]: false
+      }));
+      
+      // Then remove the article after a short delay to allow UI to update
+      setTimeout(() => {
+        const finalArticles = [...formData.articles];
+        finalArticles.splice(index, 1);
+        setFormData(prev => ({
+          ...prev,
+          articles: finalArticles
+        }));
+        
+        // Also remove the article search state for this index
+        setArticleSearch(prev => {
+          const newState = { ...prev };
+          delete newState[index];
+          return newState;
+        });
+        
+        // Also remove the dropdown state for this index
+        setShowArticleDropdown(prev => {
+          const newState = { ...prev };
+          delete newState[index];
+          return newState;
+        });
+      }, 100);
+    }
+  };
+  
   const removeArticle = (index) => {
     if (formData.articles.length > 1) {
       const updatedArticles = [...formData.articles];
@@ -864,17 +921,7 @@ const DevisForm = ({ user }) => {
                           <div className="flex gap-1">
                             <button
                               type="button"
-                              onClick={() => duplicateArticle(index)}
-                              className="px-2 py-1.5 bg-gray-100 dark:bg-gray-600 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-500 text-xs rounded"
-                              title="Dupliquer"
-                            >
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                              </svg>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => removeArticle(index)}
+                              onClick={() => clearAndRemoveArticle(index)}
                               className="px-2 py-1.5 bg-red-100 dark:bg-red-900/50 border border-gray-300 dark:border-gray-600 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 text-xs rounded"
                               title="Supprimer"
                             >
