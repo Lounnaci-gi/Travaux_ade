@@ -51,6 +51,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
   const [loadingHoverDetails, setLoadingHoverDetails] = useState(false);
   const [showHoverCard, setShowHoverCard] = useState(false);
   const [hideTimeout, setHideTimeout] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Liste des unités de mesure prédéfinies
   const unitesMesure = [
@@ -252,6 +253,18 @@ const ArticlesList = ({ user, onUnauthorized }) => {
     setShowUniteDropdown(false);
   };
 
+  // Filtrer les articles selon la recherche
+  const filteredArticles = articles.filter(article => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      article.CodeArticle?.toLowerCase().includes(searchLower) ||
+      article.Designation?.toLowerCase().includes(searchLower) ||
+      article.LibelleFamille?.toLowerCase().includes(searchLower) ||
+      article.Unite?.toLowerCase().includes(searchLower) ||
+      (article.Description && article.Description.toLowerCase().includes(searchLower))
+    );
+  });
+
   // Gérer la sélection d'une famille
   const handleFamilleSelect = (familleId, libelleFamille) => {
     setForm((prev) => ({ ...prev, IdFamille: familleId }));
@@ -344,28 +357,29 @@ const ArticlesList = ({ user, onUnauthorized }) => {
             prixPoseHT = prixPoseActif.PrixHT != null ? String(prixPoseActif.PrixHT) : '';
           }
           
-          // Utiliser la date de début la plus récente si disponible
-          if (prixFournitureActif && prixFournitureActif.DateDebutApplication) {
-            dateDebutApplication = new Date(prixFournitureActif.DateDebutApplication).toISOString().split('T')[0];
-          } else if (prixPoseActif && prixPoseActif.DateDebutApplication) {
-            dateDebutApplication = new Date(prixPoseActif.DateDebutApplication).toISOString().split('T')[0];
+          // Utiliser la date de début la plus récente
+          const dates = [prixFournitureActif?.DateDebutApplication, prixPoseActif?.DateDebutApplication]
+            .filter(Boolean)
+            .map(d => new Date(d));
+          if (dates.length > 0) {
+            dateDebutApplication = new Date(Math.max(...dates)).toISOString().split('T')[0];
           }
         }
-      } catch (prixError) {
-        // Continue avec les valeurs par défaut
+      } catch (priceError) {
+        // Error loading price history
       }
       
       // Trouver le libellé de la famille
       const famille = familles.find(f => f.IdFamille === article.IdFamille);
       const libelleFamille = famille ? famille.LibelleFamille : '';
-          
+      
       setForm({
         IdFamille: article.IdFamille ? String(article.IdFamille) : '',
         Designation: article.Designation || '',
         Description: article.Description || '',
-        Unite: unite,
+        Unite: article.Unite || '',
         Diametre: article.Diametre || '',
-        Matiere: matiere,
+        Matiere: article.Matiere || '',
         Classe: article.Classe || '',
         Pression: article.Pression || '',
         Longueur: article.Longueur != null ? String(article.Longueur) : '',
@@ -389,8 +403,8 @@ const ArticlesList = ({ user, onUnauthorized }) => {
       setError('');
       setSuccess('');
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      } catch (e) {
-        alertError('Erreur', 'Impossible de charger l\'article.');
+    } catch (e) {
+      alertError('Erreur', 'Impossible de charger l\'article.');
     } finally {
       setLoading(false);
     }
@@ -1159,9 +1173,25 @@ const ArticlesList = ({ user, onUnauthorized }) => {
 
         {/* Liste des articles */}
         <div className="glass-card p-6">
-          <h2 className="text-xl font-semibold mb-4 dark:text-white text-gray-900">
-            Liste des Articles
-          </h2>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+            <h2 className="text-xl font-semibold mb-4 md:mb-0 dark:text-white text-gray-900">
+              Liste des Articles
+            </h2>
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Rechercher un article..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 pr-4 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all text-sm w-64"
+                />
+                <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+            </div>
+          </div>
 
           {loading ? (
             <div className="flex justify-center items-center h-64">
@@ -1171,132 +1201,162 @@ const ArticlesList = ({ user, onUnauthorized }) => {
             <div className="overflow-x-auto relative">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b dark:border-white/10 border-gray-200">
-                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Code</th>
+                  <tr className="border-b dark:border-white/10 border-gray-200 bg-gray-50 dark:bg-gray-800/50">
+                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900 rounded-tl-lg">Code</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Désignation</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Famille</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Unité</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Prix HT Fourniture</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Prix HT Pose</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Date Début Application</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Description</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Actions</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Prix HT</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Date Application</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900 rounded-tr-lg">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {articles.length === 0 ? (
+                  {filteredArticles.length === 0 ? (
                     <tr>
-                      <td colSpan="10" className="py-8 text-center text-gray-400">
-                        Aucun article trouvé
+                      <td colSpan="7" className="py-8 text-center text-gray-400">
+                        <div className="flex flex-col items-center justify-center">
+                          <svg className="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                          </svg>
+                          <p className="text-lg font-medium">Aucun article trouvé</p>
+                          <p className="text-sm mt-1">Aucun article ne correspond à votre recherche</p>
+                        </div>
                       </td>
                     </tr>
                   ) : (
-                    articles.map((article) => (
+                    filteredArticles.map((article) => (
                       <tr
                         key={article.IdArticle}
-                        className="border-b dark:border-white/5 border-gray-100 hover:dark:bg-white/5 hover:bg-gray-50 relative"
+                        className="hover:bg-gray-50 dark:hover:bg-gray-700/50 border-b dark:border-white/10 border-gray-200 transition-colors"
                         onMouseEnter={(e) => {
+                          // Do nothing on hover - card should not appear
                           e.stopPropagation();
-                          
-                          // Annuler le timeout de fermeture si on revient
-                          if (hideTimeout) {
-                            clearTimeout(hideTimeout);
-                            setHideTimeout(null);
-                          }
-                          
-                          const articleToShow = article;
-                          setHoveredArticle(articleToShow);
-                          
-                          const rect = e.currentTarget.getBoundingClientRect();
-                          const viewportWidth = window.innerWidth;
-                          const viewportHeight = window.innerHeight;
-                          const cardWidth = 320;
-                          const cardHeight = 400;
-                          
-                          let x = rect.right + 10;
-                          let y = rect.top;
-                          
-                          if (x + cardWidth > viewportWidth - 10) {
-                            x = rect.left - cardWidth - 10;
-                            if (x < 10) {
-                              x = Math.max(10, viewportWidth - cardWidth - 10);
-                            }
-                          }
-                          
-                          if (y + cardHeight > viewportHeight - 10) {
-                            y = Math.max(10, viewportHeight - cardHeight - 10);
-                          }
-                          
-                          if (y < 10) {
-                            y = 10;
-                          }
-                          
-                          const finalX = Math.max(10, x);
-                          const finalY = Math.max(10, y);
-                          
-                          setHoverPosition({ x: finalX, y: finalY });
-                          setShowHoverCard(true);
-                          
-                          const loadDetails = async () => {
-                            try {
-                              setLoadingHoverDetails(true);
-                              const details = await getArticleById(articleToShow.IdArticle);
-                              setHoveredArticleDetails(details);
-                            } catch (error) {
-                              // Error loading article details
-                              setHoveredArticleDetails(null);
-                            } finally {
-                              setLoadingHoverDetails(false);
-                            }
-                          };
-                          loadDetails();
                         }}
                         onMouseLeave={() => {
-                          // Ne pas fermer immédiatement, laisser le temps de passer à la carte
-                          const timeout = setTimeout(() => {
-                            setShowHoverCard(false);
-                            setHoveredArticle(null);
-                            setHoveredArticleDetails(null);
-                          }, 300);
-                          setHideTimeout(timeout);
+                          // Do nothing on leave
                         }}
                       >
                         <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700 font-mono">
-                          {article.CodeArticle}
+                          <span className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs font-mono">
+                            {article.CodeArticle}
+                          </span>
                         </td>
-                        <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">
+                        <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700 font-medium">
                           {article.Designation}
                         </td>
                         <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">
-                          {article.LibelleFamille || '—'}
+                          <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full text-xs">
+                            {article.LibelleFamille || '—'}
+                          </span>
                         </td>
                         <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">
                           {article.Unite}
                         </td>
-                        <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700 font-semibold">
-                          {article.PrixFournitureHT != null ? `${parseFloat(article.PrixFournitureHT).toFixed(2)} DZD` : '—'}
-                        </td>
-                        <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700 font-semibold">
-                          {article.PrixPoseHT != null ? `${parseFloat(article.PrixPoseHT).toFixed(2)} DZD` : '—'}
+                        <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">
+                          <div className="space-y-1">
+                            {article.PrixFournitureHT != null && (
+                              <div className="flex items-center">
+                                <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">F:</span>
+                                <span className="font-semibold">{parseFloat(article.PrixFournitureHT).toFixed(2)} DZD</span>
+                              </div>
+                            )}
+                            {article.PrixPoseHT != null && (
+                              <div className="flex items-center">
+                                <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">P:</span>
+                                <span className="font-semibold">{parseFloat(article.PrixPoseHT).toFixed(2)} DZD</span>
+                              </div>
+                            )}
+                            {article.PrixFournitureHT == null && article.PrixPoseHT == null && (
+                              <span className="text-gray-400">—</span>
+                            )}
+                          </div>
                         </td>
                         <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">
                           {article.DateDebutFourniture || article.DateDebutPose 
                             ? new Date(article.DateDebutFourniture || article.DateDebutPose).toLocaleDateString('fr-FR') 
                             : '—'}
                         </td>
-                        <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">
-                          {article.Description || '—'}
-                        </td>
-                        <td className="py-3 px-4" onMouseEnter={() => setShowHoverCard(true)}>
-                          <button
-                            onClick={() => handleEdit(article.IdArticle)}
-                            className="text-primary-500 hover:text-primary-600 mr-3"
-                            title="Modifier"
-                          >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                          </button>
+                        <td className="py-3 px-4 actions-cell">
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => handleEdit(article.IdArticle)}
+                              className="text-primary-500 hover:text-primary-600 p-1.5 rounded-lg hover:bg-primary-500/10 transition-colors"
+                              title="Modifier"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                // Show the hover card when clicking the eye icon
+                                try {
+                                  // Get button position before async call
+                                  const buttonRect = e.currentTarget.getBoundingClientRect();
+                                  const viewportWidth = window.innerWidth;
+                                  const viewportHeight = window.innerHeight;
+                                  
+                                  console.log('Loading article details for ID:', article.IdArticle);
+                                  // Validate the article ID
+                                  if (!article.IdArticle) {
+                                    throw new Error('ID d\'article invalide');
+                                  }
+                                  
+                                  // Load article details
+                                  setLoadingHoverDetails(true);
+                                  const details = await getArticleById(article.IdArticle);
+                                  console.log('Article details loaded:', details);
+                                  setHoveredArticleDetails(details);
+                                  
+                                  // Position the card near the button
+                                  const cardWidth = 320;
+                                  const cardHeight = 400;
+                                  
+                                  let x = buttonRect.right + 10;
+                                  let y = buttonRect.top + window.scrollY;
+                                  
+                                  if (x + cardWidth > viewportWidth - 10) {
+                                    x = buttonRect.left - cardWidth - 10;
+                                    if (x < 10) {
+                                      x = Math.max(10, viewportWidth - cardWidth - 10);
+                                    }
+                                  }
+                                  
+                                  if (y + cardHeight > viewportHeight - 10) {
+                                    y = Math.max(10, viewportHeight - cardHeight - 10);
+                                  }
+                                  
+                                  if (y < 10) {
+                                    y = 10;
+                                  }
+                                  
+                                  const finalX = Math.max(10, x);
+                                  const finalY = Math.max(10, y);
+                                  
+                                  setHoverPosition({ x: finalX, y: finalY });
+                                  setHoveredArticle(article);
+                                  setShowHoverCard(true);
+                                } catch (error) {
+                                  // Error loading article details
+                                  setHoveredArticleDetails(null);
+                                  console.error('Error loading article details:', error);
+                                  const errorMessage = error.response?.data?.error || error.message || 'Impossible de charger les détails de l\'article.';
+                                  alertError('Erreur', errorMessage);
+                                } finally {
+                                  setLoadingHoverDetails(false);
+                                }
+                              }}
+                              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 p-1.5 rounded-lg hover:bg-gray-500/10 transition-colors view-details-btn"
+                              title="Voir détails"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              </svg>
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
