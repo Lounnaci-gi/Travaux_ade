@@ -673,50 +673,18 @@ const DevisForm = ({ user }) => {
                           Article *
                         </label>
                         <div className="relative">
-                          <div className="flex">
-                            <input
-                              type="text"
-                              value={articleSearch[index] || ''}
-                              onChange={(e) => {
-                                setArticleSearch(prev => ({ ...prev, [index]: e.target.value }));
-                                setShowArticleDropdown(prev => ({ ...prev, [index]: true }));
-                              }}
-                              onFocus={() => setShowArticleDropdown(prev => ({ ...prev, [index]: true }))}
-                              className="flex-1 px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-l shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-sm"
-                              placeholder="Rechercher un article..."
-                              autoComplete="off"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => duplicateArticle(index)}
-                              className="px-2 py-1.5 bg-gray-100 dark:bg-gray-600 border border-l-0 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-500 text-xs"
-                              title="Dupliquer"
-                            >
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                              </svg>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => removeArticle(index)}
-                              className="px-2 py-1.5 bg-red-100 dark:bg-red-900/50 border border-l-0 border-gray-300 dark:border-gray-600 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 rounded-r text-xs"
-                              title="Supprimer"
-                            >
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={addArticle}
-                              className="ml-1 px-2 py-1.5 bg-green-100 dark:bg-green-900/50 border border-gray-300 dark:border-gray-600 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800 rounded text-xs"
-                              title="Ajouter"
-                            >
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                              </svg>
-                            </button>
-                          </div>
+                          <input
+                            type="text"
+                            value={articleSearch[index] || ''}
+                            onChange={(e) => {
+                              setArticleSearch(prev => ({ ...prev, [index]: e.target.value }));
+                              setShowArticleDropdown(prev => ({ ...prev, [index]: true }));
+                            }}
+                            onFocus={() => setShowArticleDropdown(prev => ({ ...prev, [index]: true }))}
+                            className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-sm"
+                            placeholder="Rechercher un article..."
+                            autoComplete="off"
+                          />
                           
                           {/* Dropdown - Full width and no scrollbars */}
                           {showArticleDropdown[index] && (
@@ -794,9 +762,9 @@ const DevisForm = ({ user }) => {
                       
                       {/* Article Details - Takes remaining space */}
                       <div className="lg:col-span-7">
-                        <div className="flex flex-wrap gap-1">
+                        <div className="flex flex-wrap gap-1 items-start">
                           {/* Type de Prix */}
-                          <div className="flex-1 min-w-[80px]">
+                          <div className="flex-1 min-w-[70px]">
                             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                               Type
                             </label>
@@ -812,7 +780,7 @@ const DevisForm = ({ user }) => {
                           </div>
                           
                           {/* Quantité */}
-                          <div className="flex-1 min-w-[80px]">
+                          <div className="flex-1 min-w-[70px]">
                             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                               Qté
                             </label>
@@ -834,7 +802,7 @@ const DevisForm = ({ user }) => {
                           </div>
                           
                           {/* Prix Unitaire */}
-                          <div className="flex-1 min-w-[80px]">
+                          <div className="flex-1 min-w-[70px]">
                             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                               Prix HT
                             </label>
@@ -854,7 +822,7 @@ const DevisForm = ({ user }) => {
                           </div>
                           
                           {/* TVA */}
-                          <div className="flex-1 min-w-[80px]">
+                          <div className="flex-1 min-w-[70px]">
                             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                               TVA
                             </label>
@@ -875,21 +843,55 @@ const DevisForm = ({ user }) => {
                           </div>
                           
                           {/* HT Total */}
-                          <div className="flex-1 min-w-[80px] bg-gray-50 dark:bg-gray-700 p-1 rounded text-center">
+                          <div className="flex-1 min-w-[70px] bg-gray-50 dark:bg-gray-700 p-1 rounded text-center">
                             <div className="text-xs text-gray-500 dark:text-gray-400">HT</div>
                             <div className="text-xs font-semibold text-gray-900 dark:text-white">{articleTotals.montantHT}</div>
                           </div>
                           
                           {/* TVA Total */}
-                          <div className="flex-1 min-w-[80px] bg-gray-50 dark:bg-gray-700 p-1 rounded text-center">
+                          <div className="flex-1 min-w-[70px] bg-gray-50 dark:bg-gray-700 p-1 rounded text-center">
                             <div className="text-xs text-gray-500 dark:text-gray-400">TVA</div>
                             <div className="text-xs font-semibold text-gray-900 dark:text-white">{articleTotals.montantTVA}</div>
                           </div>
                           
                           {/* TTC */}
-                          <div className="flex-1 min-w-[80px] border border-primary-500 p-1 rounded text-center">
+                          <div className="flex-1 min-w-[70px] p-1 rounded text-center">
                             <div className="text-xs text-primary-500">TTC</div>
                             <div className="text-xs font-bold text-gray-900 dark:text-white">{articleTotals.montantTTC}</div>
+                          </div>
+                          
+                          {/* Action Buttons */}
+                          <div className="flex gap-1">
+                            <button
+                              type="button"
+                              onClick={() => duplicateArticle(index)}
+                              className="px-2 py-1.5 bg-gray-100 dark:bg-gray-600 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-500 text-xs rounded"
+                              title="Dupliquer"
+                            >
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => removeArticle(index)}
+                              className="px-2 py-1.5 bg-red-100 dark:bg-red-900/50 border border-gray-300 dark:border-gray-600 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 text-xs rounded"
+                              title="Supprimer"
+                            >
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={addArticle}
+                              className="px-2 py-1.5 bg-green-100 dark:bg-green-900/50 border border-gray-300 dark:border-gray-600 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800 text-xs rounded"
+                              title="Ajouter"
+                            >
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                              </svg>
+                            </button>
                           </div>
                         </div>
                       </div>
