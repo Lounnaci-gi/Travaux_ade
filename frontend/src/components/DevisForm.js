@@ -199,6 +199,35 @@ const DevisForm = ({ user }) => {
     }
   };
 
+  // New function to handle quick article addition
+  const handleQuickAddArticle = (index, articleCode) => {
+    // Find article by code
+    const selectedArticle = availableArticles.find(a => a.CodeArticle === articleCode);
+    if (selectedArticle) {
+      handleArticleSelect(index, selectedArticle.IdArticle);
+      setShowArticleDropdown(prev => ({ ...prev, [index]: false }));
+    }
+  };
+
+  // New function to duplicate an article
+  const duplicateArticle = (index) => {
+    const articleToDuplicate = formData.articles[index];
+    const duplicatedArticle = { ...articleToDuplicate };
+    
+    setFormData(prev => ({
+      ...prev,
+      articles: [
+        ...prev.articles,
+        duplicatedArticle
+      ]
+    }));
+    
+    // Initialize the article search state for the new index
+    const newIndex = formData.articles.length;
+    setArticleSearch(prev => ({ ...prev, [newIndex]: duplicatedArticle.designation }));
+    setShowArticleDropdown(prev => ({ ...prev, [newIndex]: false }));
+  };
+
   const handleArticleSelect = (index, articleId) => {
     const selectedArticle = availableArticles.find(a => a.IdArticle === articleId);
     if (selectedArticle) {
@@ -260,6 +289,42 @@ const DevisForm = ({ user }) => {
     const newIndex = formData.articles.length;
     setArticleSearch(prev => ({ ...prev, [newIndex]: '' }));
     setShowArticleDropdown(prev => ({ ...prev, [newIndex]: false }));
+  };
+
+  
+  // New function to add multiple articles at once
+  const addMultipleArticles = (count) => {
+    const newArticles = Array(count).fill().map(() => ({
+      idArticle: '',
+      designation: '',
+      quantite: '',
+      prixUnitaireHT: '',
+      tauxTVAApplique: globalTVA,
+      unite: '',
+      typePrix: 'FOURNITURE'
+    }));
+    
+    setFormData(prev => ({
+      ...prev,
+      articles: [
+        ...prev.articles,
+        ...newArticles
+      ]
+    }));
+    
+    // Initialize the article search state for the new indices
+    const startIndex = formData.articles.length;
+    const newSearchState = { ...articleSearch };
+    const newDropdownState = { ...showArticleDropdown };
+    
+    for (let i = 0; i < count; i++) {
+      const newIndex = startIndex + i;
+      newSearchState[newIndex] = '';
+      newDropdownState[newIndex] = false;
+    }
+    
+    setArticleSearch(newSearchState);
+    setShowArticleDropdown(newDropdownState);
   };
 
   const removeArticle = (index) => {
@@ -436,7 +501,7 @@ const DevisForm = ({ user }) => {
   }, [formData.articles]);
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div className="max-w-7xl mx-auto p-6 w-full">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Créer un Devis</h1>
         <p className="text-gray-600 dark:text-gray-400 mt-1">
@@ -589,229 +654,291 @@ const DevisForm = ({ user }) => {
           
           {/* Articles Section */}
           <div className="mt-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-md font-semibold text-gray-900 dark:text-white">Articles</h3>
-              <button
-                type="button"
-                onClick={addArticle}
-                className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-              >
-                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                Ajouter un article
-              </button>
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-base font-semibold text-gray-900 dark:text-white">Articles</h3>
             </div>
 
-            {formData.articles.length === 0 ? (
-              <div className="text-center py-4 text-gray-500 dark:text-gray-400">
-                <p>Aucun article ajouté. Cliquez sur "Ajouter un article" pour commencer.</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                  <thead className="bg-gray-50 dark:bg-gray-700">
-                    <tr>
-                      <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                        Article
-                      </th>
-                      <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                        Type
-                      </th>
-                      <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                        Quantité
-                      </th>
-                      <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                        Prix Unitaire HT
-                      </th>
-                      <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                        TVA (%)
-                      </th>
-                      <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                        Montant HT
-                      </th>
-                      <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                        Montant TVA
-                      </th>
-                      <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                        Montant TTC
-                      </th>
-                      <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                    {formData.articles.map((article, index) => {
-                      const articleTotals = calculateArticleTotals(article);
-                      return (
-                        <tr key={index}>
-                          <td className="px-4 py-2 whitespace-nowrap">
-                            <div className="relative" ref={el => articleDropdownRefs.current[index] = el} style={{ zIndex: 10000 - index }}>
-                              {/* Searchable input for articles */}
-                              <div className="relative" style={{ zIndex: 10000 - index }}>
-                                <input
-                                  type="text"
-                                  value={articleSearch[index] || ''}
-                                  onChange={(e) => {
-                                    setArticleSearch(prev => ({ ...prev, [index]: e.target.value }));
-                                    setShowArticleDropdown(prev => ({ ...prev, [index]: true }));
-                                  }}
-                                  onFocus={() => setShowArticleDropdown(prev => ({ ...prev, [index]: true }))}
-                                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                                  placeholder="Rechercher un article..."
-                                  autoComplete="off"
-                                />
-                                <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                                
-                                {showArticleDropdown[index] && (
-                                  <div className="absolute mt-1 w-full bg-white dark:bg-gray-800 shadow-lg rounded-md overflow-hidden border border-gray-200 dark:border-gray-700" style={{ zIndex: 10001 }}>
-                                    <ul className="max-h-60 overflow-y-auto">
-                                      {availableArticles
-                                        .filter(art => 
-                                          !articleSearch[index] || 
-                                          art.Designation.toLowerCase().includes(articleSearch[index].toLowerCase()) ||
-                                          art.CodeArticle.toLowerCase().includes(articleSearch[index].toLowerCase())
-                                        )
-                                        .map((art) => (
-                                          <li
-                                            key={art.IdArticle}
-                                            className="px-4 py-2 hover:bg-primary-100 dark:hover:bg-primary-900 cursor-pointer text-gray-900 dark:text-white"
-                                            onClick={() => {
-                                              handleArticleSelect(index, art.IdArticle);
-                                              setShowArticleDropdown(prev => ({ ...prev, [index]: false }));
-                                              // Don't clear the search text here, it's already set in handleArticleSelect
-                                            }}
-                                          >
-                                            <div className="font-medium">{art.Designation}</div>
-                                            <div className="text-sm text-gray-500 dark:text-gray-400">
-                                              Code: {art.CodeArticle} | Unité: {art.Unite}
-                                            </div>
-                                            <div className="text-sm text-gray-500 dark:text-gray-400">
-                                              Fourniture: {art.PrixFournitureHT ? `${parseFloat(art.PrixFournitureHT).toFixed(2)} DZD` : 'N/A'} | 
-                                              Pose: {art.PrixPoseHT ? `${parseFloat(art.PrixPoseHT).toFixed(2)} DZD` : 'N/A'}
-                                            </div>
-                                          </li>
-                                        ))
-                                      }
-                                      {availableArticles
-                                        .filter(art => 
-                                          !articleSearch[index] || 
-                                          art.Designation.toLowerCase().includes(articleSearch[index].toLowerCase()) ||
-                                          art.CodeArticle.toLowerCase().includes(articleSearch[index].toLowerCase())
-                                        )
-                                        .length === 0 && (
-                                          <div className="px-4 py-2 text-gray-500 dark:text-gray-400">
-                                            Aucun article trouvé
+            {/* Articles Container - Maximum width */}
+            <div className="space-y-3 w-full">
+              {formData.articles.map((article, index) => {
+                const articleTotals = calculateArticleTotals(article);
+                return (
+                  <div key={index} className="glass-card p-3 rounded-md w-full">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 w-full">
+                      {/* Article Search - Reduced width */}
+                      <div className="lg:col-span-5 relative" ref={el => articleDropdownRefs.current[index] = el}>
+                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Article *
+                        </label>
+                        <div className="relative">
+                          <div className="flex">
+                            <input
+                              type="text"
+                              value={articleSearch[index] || ''}
+                              onChange={(e) => {
+                                setArticleSearch(prev => ({ ...prev, [index]: e.target.value }));
+                                setShowArticleDropdown(prev => ({ ...prev, [index]: true }));
+                              }}
+                              onFocus={() => setShowArticleDropdown(prev => ({ ...prev, [index]: true }))}
+                              className="flex-1 px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-l shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-sm"
+                              placeholder="Rechercher un article..."
+                              autoComplete="off"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => duplicateArticle(index)}
+                              className="px-2 py-1.5 bg-gray-100 dark:bg-gray-600 border border-l-0 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-500 text-xs"
+                              title="Dupliquer"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => removeArticle(index)}
+                              className="px-2 py-1.5 bg-red-100 dark:bg-red-900/50 border border-l-0 border-gray-300 dark:border-gray-600 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 rounded-r text-xs"
+                              title="Supprimer"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={addArticle}
+                              className="ml-1 px-2 py-1.5 bg-green-100 dark:bg-green-900/50 border border-gray-300 dark:border-gray-600 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800 rounded text-xs"
+                              title="Ajouter"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                              </svg>
+                            </button>
+                          </div>
+                          
+                          {/* Dropdown - Full width and no scrollbars */}
+                          {showArticleDropdown[index] && (
+                            <div className="absolute mt-1 w-full bg-white dark:bg-gray-800 shadow rounded overflow-hidden border border-gray-200 dark:border-gray-700 z-50">
+                              <div className="max-h-48 overflow-y-auto">
+                                {availableArticles
+                                  .filter(art => 
+                                    !articleSearch[index] || 
+                                    art.Designation.toLowerCase().includes(articleSearch[index].toLowerCase()) ||
+                                    art.CodeArticle.toLowerCase().includes(articleSearch[index].toLowerCase())
+                                  )
+                                  .map((art) => (
+                                    <div
+                                      key={art.IdArticle}
+                                      className="p-2 hover:bg-primary-100 dark:hover:bg-primary-900 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-0 text-sm"
+                                      onClick={() => {
+                                        handleArticleSelect(index, art.IdArticle);
+                                        setShowArticleDropdown(prev => ({ ...prev, [index]: false }));
+                                      }}
+                                    >
+                                      <div className="flex justify-between items-start">
+                                        <div>
+                                          <div className="font-medium text-gray-900 dark:text-white text-sm">{art.Designation}</div>
+                                          <div className="flex items-center mt-0.5 space-x-2">
+                                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+                                              {art.CodeArticle}
+                                            </span>
+                                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                                              {art.Unite}
+                                            </span>
                                           </div>
-                                        )
-                                      }
-                                    </ul>
-                                  </div>
-                                )}
+                                        </div>
+                                        <div className="flex flex-col items-end space-y-0.5">
+                                          {art.PrixFournitureHT && (
+                                            <div className="text-green-600 dark:text-green-400 text-xs">
+                                              F: {parseFloat(art.PrixFournitureHT).toFixed(2)}
+                                            </div>
+                                          )}
+                                          {art.PrixPoseHT && (
+                                            <div className="text-purple-600 dark:text-purple-400 text-xs">
+                                              P: {parseFloat(art.PrixPoseHT).toFixed(2)}
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))
+                                }
+                                {availableArticles
+                                  .filter(art => 
+                                    !articleSearch[index] || 
+                                    art.Designation.toLowerCase().includes(articleSearch[index].toLowerCase()) ||
+                                    art.CodeArticle.toLowerCase().includes(articleSearch[index].toLowerCase())
+                                  )
+                                  .length === 0 && (
+                                    <div className="p-3 text-center text-gray-500 dark:text-gray-400">
+                                      <svg className="mx-auto h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                      </svg>
+                                      <h3 className="mt-1 text-xs font-medium">Aucun article trouvé</h3>
+                                    </div>
+                                  )
+                                }
                               </div>
-                              
-                              {/* Hidden input to store the selected article ID */}
-                              <input
-                                type="hidden"
-                                value={article.idArticle || ''}
-                              />
                             </div>
-                          </td>
-                          <td className="px-4 py-2 whitespace-nowrap">
+                          )}
+                        </div>
+                        
+                        {/* Hidden input to store the selected article ID */}
+                        <input
+                          type="hidden"
+                          value={article.idArticle || ''}
+                        />
+                      </div>
+                      
+                      {/* Article Details - Takes remaining space */}
+                      <div className="lg:col-span-7">
+                        <div className="grid grid-cols-12 gap-1">
+                          {/* Type de Prix - Kept width */}
+                          <div className="col-span-2">
+                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                              Type
+                            </label>
                             <select
                               value={article.typePrix || 'FOURNITURE'}
                               onChange={(e) => handleArticleChange(index, 'typePrix', e.target.value)}
-                              className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                              className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
                             >
-                              <option value="FOURNITURE">Fourniture</option>
-                              <option value="POSE">Pose</option>
-                              <option value="BOTH">Les deux</option>
+                              <option value="FOURNITURE">F</option>
+                              <option value="POSE">P</option>
+                              <option value="BOTH">F+P</option>
                             </select>
-                          </td>
-                          <td className="px-4 py-2 whitespace-nowrap">
-                            <div className="flex items-center space-x-2">
+                          </div>
+                          
+                          {/* Quantité - Kept width */}
+                          <div className="col-span-2">
+                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                              Qté
+                            </label>
+                            <div className="relative">
                               <input
                                 type="number"
                                 step="0.001"
                                 min="0"
                                 value={article.quantite}
                                 onChange={(e) => handleArticleChange(index, 'quantite', e.target.value)}
-                                className="w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                                className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
                               />
-                              <span className="text-sm text-gray-500 dark:text-gray-400">
-                                {article.unite}
-                              </span>
+                              {article.unite && (
+                                <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-gray-500 dark:text-gray-400 text-xs">
+                                  {article.unite}
+                                </div>
+                              )}
                             </div>
-                          </td>
-                          <td className="px-4 py-2 whitespace-nowrap">
-                            <input
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              value={article.prixUnitaireHT}
-                              onChange={(e) => handleArticleChange(index, 'prixUnitaireHT', e.target.value)}
-                              className="w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                            />
-                          </td>
-                          <td className="px-4 py-2 whitespace-nowrap">
-                            <input
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              max="100"
-                              value={article.tauxTVAApplique}
-                              onChange={(e) => handleArticleChange(index, 'tauxTVAApplique', e.target.value)}
-                              className="w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                            />
-                          </td>
-                          <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                            {articleTotals.montantHT}
-                          </td>
-                          <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                            {articleTotals.montantTVA}
-                          </td>
-                          <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                            {articleTotals.montantTTC}
-                          </td>
-                          <td className="px-4 py-2 whitespace-nowrap text-sm">
-                            <button
-                              type="button"
-                              onClick={() => removeArticle(index)}
-                              className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                            >
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                  <tfoot className="bg-gray-50 dark:bg-gray-700">
-                    <tr>
-                      <td colSpan="4" className="px-4 py-2 text-sm font-medium text-right text-gray-900 dark:text-white">
-                        Total
-                      </td>
-                      <td className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white">
-                        {totals.totalHT}
-                      </td>
-                      <td className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white">
-                        {totals.totalTVA}
-                      </td>
-                      <td className="px-4 py-2 text-sm font-bold text-gray-900 dark:text-white">
-                        {totals.totalTTC}
-                      </td>
-                      <td></td>
-                    </tr>
-                  </tfoot>
-                </table>
+                          </div>
+                          
+                          {/* Prix Unitaire - Kept width */}
+                          <div className="col-span-2">
+                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                              Prix HT
+                            </label>
+                            <div className="relative">
+                              <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={article.prixUnitaireHT}
+                                onChange={(e) => handleArticleChange(index, 'prixUnitaireHT', e.target.value)}
+                                className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                              />
+                              <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-gray-500 dark:text-gray-400 text-xs">
+                                DZD
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* TVA - Kept width */}
+                          <div className="col-span-2">
+                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                              TVA
+                            </label>
+                            <div className="relative">
+                              <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                max="100"
+                                value={article.tauxTVAApplique}
+                                onChange={(e) => handleArticleChange(index, 'tauxTVAApplique', e.target.value)}
+                                className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                              />
+                              <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-gray-500 dark:text-gray-400 text-xs">
+                                %
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* HT Total - Kept width */}
+                          <div className="col-span-2 bg-gray-50 dark:bg-gray-700 p-1 rounded text-center">
+                            <div className="text-xs text-gray-500 dark:text-gray-400">HT</div>
+                            <div className="text-xs font-semibold text-gray-900 dark:text-white">{articleTotals.montantHT}</div>
+                          </div>
+                          
+                          {/* TVA Total - Kept width */}
+                          <div className="col-span-2 bg-gray-50 dark:bg-gray-700 p-1 rounded text-center">
+                            <div className="text-xs text-gray-500 dark:text-gray-400">TVA</div>
+                            <div className="text-xs font-semibold text-gray-900 dark:text-white">{articleTotals.montantTVA}</div>
+                          </div>
+                          
+                          {/* TTC Total - Same level as Type and Qté, reduced margins */}
+                          <div className="col-span-2 border border-primary-500 p-1 rounded text-center">
+                            <div className="text-xs text-primary-500">TTC</div>
+                            <div className="text-xs font-bold text-gray-900 dark:text-white">{articleTotals.montantTTC}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            
+            {/* Empty State */}
+            {formData.articles.length === 0 && (
+              <div className="text-center py-6">
+                <svg className="mx-auto h-10 w-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">Aucun article</h3>
+                <div className="mt-3">
+                  <button
+                    type="button"
+                    onClick={addArticle}
+                    className="inline-flex items-center px-2.5 py-1 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary-500"
+                  >
+                    <svg className="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    Ajouter
+                  </button>
+                </div>
               </div>
             )}
           </div>
+          
+          {/* Form Summary */}
+          {formData.articles.length > 0 && (
+            <div className="mt-5 glass-card p-3 rounded-md">
+              <div className="grid grid-cols-3 gap-2">
+                <div className="bg-gray-50 dark:bg-gray-700 p-2 rounded">
+                  <div className="text-xs text-gray-500 dark:text-gray-400">Total HT</div>
+                  <div className="text-base font-bold text-gray-900 dark:text-white">{totals.totalHT} DZD</div>
+                </div>
+                <div className="bg-gray-50 dark:bg-gray-700 p-2 rounded">
+                  <div className="text-xs text-gray-500 dark:text-gray-400">Total TVA</div>
+                  <div className="text-base font-bold text-gray-900 dark:text-white">{totals.totalTVA} DZD</div>
+                </div>
+                <div className="bg-gradient-to-r from-primary-500 to-secondary-500 p-2 rounded">
+                  <div className="text-xs text-primary-100">Total TTC</div>
+                  <div className="text-base font-bold text-white">{totals.totalTTC} DZD</div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Form Actions */}
