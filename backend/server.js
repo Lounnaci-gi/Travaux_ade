@@ -1631,6 +1631,8 @@ app.put('/api/agences/:id', verifyToken, async (req, res) => {
 
 // Mise à jour d'un article
 app.put('/api/articles/:id', verifyToken, async (req, res) => {
+  const transaction = await pool.transaction();
+  
   try {
     // Vérifier que l'utilisateur est admin
     const actorRoleLower = (req.user?.role || '').toLowerCase();
@@ -1655,7 +1657,12 @@ app.put('/api/articles/:id', verifyToken, async (req, res) => {
       Largeur,
       Epaisseur,
       Couleur,
-      Caracteristiques
+      Caracteristiques,
+      // Prix fields for ArticlePrixHistorique
+      PrixFournitureHT,
+      PrixPoseHT,
+      DateDebutApplication,
+      DateFinApplication
     } = req.body;
 
     if (!IdFamille || !Designation || !Unite) {
@@ -1681,7 +1688,12 @@ app.put('/api/articles/:id', verifyToken, async (req, res) => {
       }
     }
 
-    const update = await pool.request()
+    // Begin transaction
+    await transaction.begin();
+    const request = transaction.request();
+
+    // Update article
+    const update = await request
       .input('id', sql.Int, id)
       .input('IdFamille', sql.Int, IdFamille)
       .input('Designation', sql.NVarChar(200), Designation.trim())
@@ -1717,11 +1729,188 @@ app.put('/api/articles/:id', verifyToken, async (req, res) => {
       `);
 
     if (update.recordset.length === 0) {
+      await transaction.rollback();
       return res.status(404).json({ error: 'Article introuvable' });
     }
 
+    // Handle Article Prix Historique if price fields are provided
+    if (PrixFournitureHT !== undefined || PrixPoseHT !== undefined) {
+      try {
+        // Get current active prices
+        const currentPrices = await transaction.request()
+          .input('id', sql.Int, id)
+          .query(`
+            SELECT IdPrixHistorique, TypePrix, PrixHT, TauxTVA, DateDebutApplication, EstActif
+            FROM ArticlePrixHistorique
+            WHERE IdArticle = @id AND EstActif = 1
+          `);
+
+        const currentDate = new Date();
+        const dateDebut = DateDebutApplication ? new Date(DateDebutApplication) : currentDate;
+        const dateFin = DateFinApplication ? new Date(DateFinApplication) : null;
+        
+        // Get default TVA rate from configuration or use 0
+        let defaultTVA = 0;
+        try {
+          const configResult = await transaction.request()
+            .query(`SELECT Valeur FROM Configuration WHERE Cle = 'TAUX_TVA_DEFAUT'`);
+          if (configResult.recordset.length > 0) {
+            defaultTVA = parseFloat(configResult.recordset[0].Valeur) || 0;
+          }
+        } catch (configError) {
+          // Use default TVA of 0 if config not found
+        }
+
+        // Process Fourniture price
+        if (PrixFournitureHT !== undefined) {
+          const fourniturePrice = parseFloat(PrixFournitureHT);
+          
+          // Check if we have an existing active fourniture price
+          const existingFourniture = currentPrices.recordset.find(p => p.TypePrix === 'FOURNITURE');
+          
+          if (existingFourniture) {
+            // If price has changed, deactivate the old one and create a new one
+            if (existingFourniture.PrixHT !== fourniturePrice) {
+              // Deactivate the old price
+              await transaction.request()
+                .input('id', sql.Int, existingFourniture.IdPrixHistorique)
+                .query(`
+                  UPDATE ArticlePrixHistorique 
+                  SET EstActif = 0
+                  WHERE IdPrixHistorique = @id
+                `);
+              
+              // Create new price if value is not null/empty
+              if (!isNaN(fourniturePrice) && fourniturePrice >= 0) {
+                await transaction.request()
+                  .input('IdArticle', sql.Int, id)
+                  .input('TypePrix', sql.NVarChar(20), 'FOURNITURE')
+                  .input('PrixHT', sql.Decimal(18, 2), fourniturePrice)
+                  .input('TauxTVA', sql.Decimal(5, 2), defaultTVA)
+                  .input('DateDebutApplication', sql.Date, dateDebut)
+                  .input('DateFinApplication', sql.Date, dateFin)
+                  .input('IdUtilisateurCreation', sql.Int, req.user?.id)
+                  .query(`
+                    INSERT INTO ArticlePrixHistorique (
+                      IdArticle, TypePrix, PrixHT, TauxTVA, DateDebutApplication, DateFinApplication,
+                      EstActif, DateCreation, IdUtilisateurCreation
+                    )
+                    VALUES (
+                      @IdArticle, @TypePrix, @PrixHT, @TauxTVA, @DateDebutApplication, @DateFinApplication,
+                      1, GETDATE(), @IdUtilisateurCreation
+                    )
+                  `);
+              }
+            }
+            // If price hasn't changed, we keep the existing one
+          } else {
+            // No existing fourniture price, create new one if value is provided
+            if (!isNaN(fourniturePrice) && fourniturePrice >= 0) {
+              await transaction.request()
+                .input('IdArticle', sql.Int, id)
+                .input('TypePrix', sql.NVarChar(20), 'FOURNITURE')
+                .input('PrixHT', sql.Decimal(18, 2), fourniturePrice)
+                .input('TauxTVA', sql.Decimal(5, 2), defaultTVA)
+                .input('DateDebutApplication', sql.Date, dateDebut)
+                .input('DateFinApplication', sql.Date, dateFin)
+                .input('IdUtilisateurCreation', sql.Int, req.user?.id)
+                .query(`
+                  INSERT INTO ArticlePrixHistorique (
+                    IdArticle, TypePrix, PrixHT, TauxTVA, DateDebutApplication, DateFinApplication,
+                    EstActif, DateCreation, IdUtilisateurCreation
+                  )
+                  VALUES (
+                    @IdArticle, @TypePrix, @PrixHT, @TauxTVA, @DateDebutApplication, @DateFinApplication,
+                    1, GETDATE(), @IdUtilisateurCreation
+                  )
+                `);
+            }
+          }
+        }
+
+        // Process Pose price
+        if (PrixPoseHT !== undefined) {
+          const posePrice = parseFloat(PrixPoseHT);
+          
+          // Check if we have an existing active pose price
+          const existingPose = currentPrices.recordset.find(p => p.TypePrix === 'POSE');
+          
+          if (existingPose) {
+            // If price has changed, deactivate the old one and create a new one
+            if (existingPose.PrixHT !== posePrice) {
+              // Deactivate the old price
+              await transaction.request()
+                .input('id', sql.Int, existingPose.IdPrixHistorique)
+                .query(`
+                  UPDATE ArticlePrixHistorique 
+                  SET EstActif = 0
+                  WHERE IdPrixHistorique = @id
+                `);
+              
+              // Create new price if value is not null/empty
+              if (!isNaN(posePrice) && posePrice >= 0) {
+                await transaction.request()
+                  .input('IdArticle', sql.Int, id)
+                  .input('TypePrix', sql.NVarChar(20), 'POSE')
+                  .input('PrixHT', sql.Decimal(18, 2), posePrice)
+                  .input('TauxTVA', sql.Decimal(5, 2), defaultTVA)
+                  .input('DateDebutApplication', sql.Date, dateDebut)
+                  .input('DateFinApplication', sql.Date, dateFin)
+                  .input('IdUtilisateurCreation', sql.Int, req.user?.id)
+                  .query(`
+                    INSERT INTO ArticlePrixHistorique (
+                      IdArticle, TypePrix, PrixHT, TauxTVA, DateDebutApplication, DateFinApplication,
+                      EstActif, DateCreation, IdUtilisateurCreation
+                    )
+                    VALUES (
+                      @IdArticle, @TypePrix, @PrixHT, @TauxTVA, @DateDebutApplication, @DateFinApplication,
+                      1, GETDATE(), @IdUtilisateurCreation
+                    )
+                  `);
+              }
+            }
+            // If price hasn't changed, we keep the existing one
+          } else {
+            // No existing pose price, create new one if value is provided
+            if (!isNaN(posePrice) && posePrice >= 0) {
+              await transaction.request()
+                .input('IdArticle', sql.Int, id)
+                .input('TypePrix', sql.NVarChar(20), 'POSE')
+                .input('PrixHT', sql.Decimal(18, 2), posePrice)
+                .input('TauxTVA', sql.Decimal(5, 2), defaultTVA)
+                .input('DateDebutApplication', sql.Date, dateDebut)
+                .input('DateFinApplication', sql.Date, dateFin)
+                .input('IdUtilisateurCreation', sql.Int, req.user?.id)
+                .query(`
+                  INSERT INTO ArticlePrixHistorique (
+                    IdArticle, TypePrix, PrixHT, TauxTVA, DateDebutApplication, DateFinApplication,
+                    EstActif, DateCreation, IdUtilisateurCreation
+                  )
+                  VALUES (
+                    @IdArticle, @TypePrix, @PrixHT, @TauxTVA, @DateDebutApplication, @DateFinApplication,
+                    1, GETDATE(), @IdUtilisateurCreation
+                  )
+                `);
+            }
+          }
+        }
+      } catch (priceError) {
+        await transaction.rollback();
+        return res.status(500).json({ error: 'Erreur lors de la mise à jour des prix: ' + priceError.message });
+      }
+    }
+
+    // Commit transaction
+    await transaction.commit();
     res.json(update.recordset[0]);
   } catch (error) {
+    // Rollback transaction in case of error
+    try {
+      await transaction.rollback();
+    } catch (rollbackError) {
+      // Ignore rollback errors
+    }
+    
     // Error updating article
     res.status(500).json({ error: error.message || 'Erreur serveur' });
   }

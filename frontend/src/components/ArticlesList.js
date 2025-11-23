@@ -498,6 +498,11 @@ const ArticlesList = ({ user, onUnauthorized }) => {
         Epaisseur: parseDecimal(form.Epaisseur),
         Couleur: trimValue(form.Couleur),
         Caracteristiques: trimValue(form.Caracteristiques),
+        // Include price fields for ArticlePrixHistorique handling in backend
+        PrixFournitureHT: form.PrixFournitureHT,
+        PrixPoseHT: form.PrixPoseHT,
+        DateDebutApplication: form.DateDebutApplication,
+        DateFinApplication: form.DateFinApplication,
       };
 
       let articleResult;
@@ -507,54 +512,53 @@ const ArticlesList = ({ user, onUnauthorized }) => {
       } else {
         articleResult = await createArticle(payload);
         alertSuccess('Succès', 'Article créé avec succès.');
-      }
+        
+        // Handle Article Prix Historique for fourniture if values are provided (only for new articles)
+        if (form.PrixFournitureHT || form.PrixPoseHT) {
+          try {
+            const prixPayload = {
+              TypePrix: 'FOURNITURE',
+              PrixHT: parseDecimal(form.PrixFournitureHT),
+              TauxTVA: parseDecimal(globalTVA) || 0,
+              DateDebutApplication: form.DateDebutApplication || new Date().toISOString().split('T')[0],
+              DateFinApplication: form.DateFinApplication || null,
+              EstActif: true,
+            };
 
-      // Handle Article Prix Historique for fourniture if values are provided
-      if (form.PrixFournitureHT || form.PrixPoseHT) {
-        try {
-          const prixPayload = {
-            TypePrix: 'FOURNITURE',
-            PrixHT: parseDecimal(form.PrixFournitureHT),
-            TauxTVA: parseDecimal(globalTVA) || 0,
-            DateDebutApplication: form.DateDebutApplication || new Date().toISOString().split('T')[0],
-            DateFinApplication: form.DateFinApplication || null,
-            EstActif: true,
-          };
-
-          // Only create price history if PrixHT is provided
-          if (prixPayload.PrixHT !== null) {
-            const articleId = editingId || articleResult.IdArticle;
-            await createArticlePrixHistorique(articleId, prixPayload);
+            // Only create price history if PrixHT is provided
+            if (prixPayload.PrixHT !== null) {
+              const articleId = articleResult.IdArticle;
+              await createArticlePrixHistorique(articleId, prixPayload);
+            }
+          } catch (priceError) {
+            // Error creating price history for fourniture
+            // We don't stop the main operation if price history fails
           }
-        } catch (priceError) {
-          // Error creating price history for fourniture
-          // We don't stop the main operation if price history fails
+        }
+
+        // Handle Article Prix Historique for pose if values are provided (only for new articles)
+        if (form.PrixFournitureHT || form.PrixPoseHT) {
+          try {
+            const prixPayload = {
+              TypePrix: 'POSE',
+              PrixHT: parseDecimal(form.PrixPoseHT),
+              TauxTVA: parseDecimal(globalTVA) || 0,
+              DateDebutApplication: form.DateDebutApplication || new Date().toISOString().split('T')[0],
+              DateFinApplication: form.DateFinApplication || null,
+              EstActif: true,
+            };
+
+            // Only create price history if PrixHT is provided
+            if (prixPayload.PrixHT !== null) {
+              const articleId = articleResult.IdArticle;
+              await createArticlePrixHistorique(articleId, prixPayload);
+            }
+          } catch (priceError) {
+            // Error creating price history for pose
+            // We don't stop the main operation if price history fails
+          }
         }
       }
-
-      // Handle Article Prix Historique for pose if values are provided
-      if (form.PrixFournitureHT || form.PrixPoseHT) {
-        try {
-          const prixPayload = {
-            TypePrix: 'POSE',
-            PrixHT: parseDecimal(form.PrixPoseHT),
-            TauxTVA: parseDecimal(globalTVA) || 0,
-            DateDebutApplication: form.DateDebutApplication || new Date().toISOString().split('T')[0],
-            DateFinApplication: form.DateFinApplication || null,
-            EstActif: true,
-          };
-
-          // Only create price history if PrixHT is provided
-          if (prixPayload.PrixHT !== null) {
-            const articleId = editingId || articleResult.IdArticle;
-            await createArticlePrixHistorique(articleId, prixPayload);
-          }
-        } catch (priceError) {
-          // Error creating price history for pose
-          // We don't stop the main operation if price history fails
-        }
-      }
-
       resetForm();
       const updatedArticles = await getArticles();
       setArticles(updatedArticles || []);
