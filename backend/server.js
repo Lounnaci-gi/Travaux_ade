@@ -4466,7 +4466,8 @@ app.get('/api/articles', async (req, res) => {
         pf.DateDebutApplication AS DateDebutFourniture,
         pp.PrixHT AS PrixPoseHT,
         pp.TauxTVA AS TauxTVAPose,
-        pp.DateDebutApplication AS DateDebutPose
+        pp.DateDebutApplication AS DateDebutPose,
+        COALESCE(pf.TauxTVA, pp.TauxTVA) AS TauxTVA
       FROM Article a
       LEFT JOIN ArticleFamille f ON a.IdFamille = f.IdFamille
       LEFT JOIN (
@@ -4495,6 +4496,7 @@ app.get('/api/articles', async (req, res) => {
           AND DateDebutApplication <= GETDATE()
           AND (DateFinApplication IS NULL OR DateFinApplication >= GETDATE())
       ) pp ON a.IdArticle = pp.IdArticle AND pp.rn = 1
+      WHERE a.Actif = 1
       ORDER BY f.LibelleFamille, a.Designation
     `);
     res.json(result.recordset);

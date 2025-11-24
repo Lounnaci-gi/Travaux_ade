@@ -165,31 +165,39 @@ const DevisForm = ({ user }) => {
         // Set default price based on typePrix selection
         if (updatedArticles[index].typePrix === 'FOURNITURE' && selectedArticle.PrixFournitureHT) {
           updatedArticles[index].prixUnitaireHT = selectedArticle.PrixFournitureHT;
+          updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVAFourniture || globalTVA;
         } else if (updatedArticles[index].typePrix === 'POSE' && selectedArticle.PrixPoseHT) {
           updatedArticles[index].prixUnitaireHT = selectedArticle.PrixPoseHT;
+          updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVAPose || globalTVA;
         } else if (updatedArticles[index].typePrix === 'BOTH') {
           // For BOTH, we'll use fourniture price as default
           updatedArticles[index].prixUnitaireHT = selectedArticle.PrixFournitureHT || selectedArticle.PrixPoseHT || '';
+          updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVAFourniture || selectedArticle.TauxTVAPose || globalTVA;
+        } else {
+          updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVA || globalTVA;
         }
-        updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVA || globalTVA;
       }
     }
     
-    // If we're changing the typePrix, update the price
+    // If we're changing the typePrix, update the price and TVA
     if (field === 'typePrix') {
       const selectedArticle = availableArticles.find(a => a.IdArticle === updatedArticles[index].idArticle);
       if (selectedArticle) {
         if (value === 'FOURNITURE' && selectedArticle.PrixFournitureHT) {
           updatedArticles[index].prixUnitaireHT = selectedArticle.PrixFournitureHT;
+          updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVAFourniture || globalTVA;
         } else if (value === 'POSE' && selectedArticle.PrixPoseHT) {
           updatedArticles[index].prixUnitaireHT = selectedArticle.PrixPoseHT;
+          updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVAPose || globalTVA;
         } else if (value === 'BOTH') {
           // For BOTH, we'll sum the prices
           const fourniturePrice = parseFloat(selectedArticle.PrixFournitureHT) || 0;
           const posePrice = parseFloat(selectedArticle.PrixPoseHT) || 0;
           updatedArticles[index].prixUnitaireHT = (fourniturePrice + posePrice).toString();
+          updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVAFourniture || selectedArticle.TauxTVAPose || globalTVA;
         } else {
           updatedArticles[index].prixUnitaireHT = '';
+          updatedArticles[index].tauxTVAApplique = globalTVA;
         }
       }
     }
@@ -249,20 +257,19 @@ const DevisForm = ({ user }) => {
       // Set price based on current typePrix selection
       if (updatedArticles[index].typePrix === 'FOURNITURE' && selectedArticle.PrixFournitureHT) {
         updatedArticles[index].prixUnitaireHT = selectedArticle.PrixFournitureHT;
+        updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVAFourniture || globalTVA;
       } else if (updatedArticles[index].typePrix === 'POSE' && selectedArticle.PrixPoseHT) {
         updatedArticles[index].prixUnitaireHT = selectedArticle.PrixPoseHT;
+        updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVAPose || globalTVA;
       } else if (updatedArticles[index].typePrix === 'BOTH') {
         // For BOTH, we'll sum the prices
         const fourniturePrice = parseFloat(selectedArticle.PrixFournitureHT) || 0;
         const posePrice = parseFloat(selectedArticle.PrixPoseHT) || 0;
         updatedArticles[index].prixUnitaireHT = (fourniturePrice + posePrice).toString();
-      }
-      
-      // Set TVA if available, otherwise use global TVA
-      if (selectedArticle.TauxTVA) {
-        updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVA.toString();
+        updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVAFourniture || selectedArticle.TauxTVAPose || globalTVA;
       } else {
-        updatedArticles[index].tauxTVAApplique = globalTVA;
+        // Set TVA if available, otherwise use global TVA
+        updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVA || globalTVA;
       }
       
       setFormData(prev => ({
@@ -1039,21 +1046,23 @@ const DevisForm = ({ user }) => {
             )}
           </div>
           
-          {/* Form Summary */}
+          {/* Totaux en bas à droite */}
           {formData.articles.length > 0 && (
-            <div className="mt-5 glass-card p-3 rounded-md">
-              <div className="grid grid-cols-3 gap-2">
-                <div className="bg-gray-50 dark:bg-gray-700 p-2 rounded">
-                  <div className="text-xs text-gray-500 dark:text-gray-400">Total HT</div>
-                  <div className="text-base font-bold text-gray-900 dark:text-white">{totals.totalHT} DZD</div>
-                </div>
-                <div className="bg-gray-50 dark:bg-gray-700 p-2 rounded">
-                  <div className="text-xs text-gray-500 dark:text-gray-400">Total TVA</div>
-                  <div className="text-base font-bold text-gray-900 dark:text-white">{totals.totalTVA} DZD</div>
-                </div>
-                <div className="bg-gradient-to-r from-primary-500 to-secondary-500 p-2 rounded">
-                  <div className="text-xs text-primary-100">Total TTC</div>
-                  <div className="text-base font-bold text-white">{totals.totalTTC} DZD</div>
+            <div className="mt-5 flex justify-end">
+              <div className="w-80 border-2 border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-white dark:bg-gray-800 shadow-md">
+                <div className="space-y-2">
+                  <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-md flex justify-between items-center">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Total HT</span>
+                    <span className="text-base font-bold text-gray-900 dark:text-white">{totals.totalHT} DZD</span>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-md flex justify-between items-center">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Total TVA</span>
+                    <span className="text-base font-bold text-gray-900 dark:text-white">{totals.totalTVA} DZD</span>
+                  </div>
+                  <div className="bg-gradient-to-r from-primary-500 to-secondary-500 p-3 rounded-md flex justify-between items-center">
+                    <span className="text-sm font-medium text-white">Total TTC</span>
+                    <span className="text-lg font-bold text-white">{totals.totalTTC} DZD</span>
+                  </div>
                 </div>
               </div>
             </div>
