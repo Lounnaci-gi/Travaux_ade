@@ -796,12 +796,28 @@ const DevisForm = ({ user }) => {
                             <div className="absolute mt-1 w-full bg-white dark:bg-gray-800 shadow rounded overflow-hidden border border-gray-200 dark:border-gray-700 z-50">
                               <div className="max-h-48 overflow-y-auto">
                                 {(() => {
-                                  const filteredArts = availableArticles.filter(art => 
-                                    !articleSearch[index] || 
-                                    art.Designation.toLowerCase().includes(articleSearch[index].toLowerCase()) ||
-                                    art.CodeArticle.toLowerCase().includes(articleSearch[index].toLowerCase()) ||
-                                    (art.LibelleFamille && art.LibelleFamille.toLowerCase().includes(articleSearch[index].toLowerCase()))
-                                  );
+                                  const filteredArts = availableArticles.filter(art => {
+                                    if (!articleSearch[index]) return true;
+                                    
+                                    // Split search query into keywords (words separated by spaces)
+                                    const keywords = articleSearch[index].toLowerCase().trim().split(/\s+/).filter(k => k.length > 0);
+                                    
+                                    // If no keywords, show all articles
+                                    if (keywords.length === 0) return true;
+                                    
+                                    // Create a search string with all relevant article fields
+                                    const searchString = [
+                                      art.Designation || '',
+                                      art.CodeArticle || '',
+                                      art.LibelleFamille || '',
+                                      art.Unite || ''
+                                    ].join(' ').toLowerCase();
+                                    
+                                    // Check if all keywords are present in the search string (order doesn't matter)
+                                    return keywords.every(keyword => 
+                                      searchString.includes(keyword)
+                                    );
+                                  });
                                   
                                   // Group articles by family
                                   const groupedByFamily = filteredArts.reduce((acc, art) => {
