@@ -4458,6 +4458,8 @@ app.get('/api/articles', async (req, res) => {
         a.Epaisseur,
         a.Couleur,
         a.Caracteristiques,
+        a.IdFamille,
+        f.CodeFamille,
         f.LibelleFamille,
         pf.PrixHT AS PrixFournitureHT,
         pf.TauxTVA AS TauxTVAFourniture,
@@ -4493,11 +4495,33 @@ app.get('/api/articles', async (req, res) => {
           AND DateDebutApplication <= GETDATE()
           AND (DateFinApplication IS NULL OR DateFinApplication >= GETDATE())
       ) pp ON a.IdArticle = pp.IdArticle AND pp.rn = 1
-      ORDER BY a.Designation
+      ORDER BY f.LibelleFamille, a.Designation
     `);
     res.json(result.recordset);
   } catch (error) {
     // Error retrieving articles
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Get all article families
+app.get('/api/familles', async (req, res) => {
+  try {
+    const result = await pool.request().query(`
+      SELECT 
+        IdFamille,
+        CodeFamille,
+        LibelleFamille,
+        Description,
+        Actif,
+        DateCreation
+      FROM ArticleFamille
+      WHERE Actif = 1
+      ORDER BY LibelleFamille
+    `);
+    res.json(result.recordset);
+  } catch (error) {
+    // Error retrieving families
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });

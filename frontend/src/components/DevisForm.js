@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getDemandes, getDevisTypes, getArticles, createDevis, getConfigurationByKey } from '../services/api';
+import { getDemandes, getDevisTypes, getArticles, getFamilles, createDevis, getConfigurationByKey } from '../services/api';
 import { alertSuccess, alertError } from '../ui/alerts';
 
 const DevisForm = ({ user }) => {
   const [globalTVA, setGlobalTVA] = useState('19.00');
   
+  // Nouvelle structure : grouper par famille
   const [formData, setFormData] = useState({
     idDemande: '',
     idTypeDevis: '',
@@ -17,7 +18,7 @@ const DevisForm = ({ user }) => {
         prixUnitaireHT: '',
         tauxTVAApplique: '19.00',
         unite: '',
-        typePrix: 'FOURNITURE' // Add this field - default to Fourniture
+        typePrix: 'FOURNITURE'
       }
     ]
   });
@@ -25,6 +26,7 @@ const DevisForm = ({ user }) => {
   const [demandes, setDemandes] = useState([]);
   const [devisTypes, setDevisTypes] = useState([]);
   const [availableArticles, setAvailableArticles] = useState([]);
+  const [familles, setFamilles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -61,14 +63,16 @@ const DevisForm = ({ user }) => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [demandesList, typesList, articlesList] = await Promise.all([
+        const [demandesList, typesList, articlesList, famillesList] = await Promise.all([
           getDemandes(),
           getDevisTypes(),
-          getArticles()
+          getArticles(),
+          getFamilles()
         ]);
         setDemandes(demandesList || []);
         setDevisTypes(typesList || []);
         setAvailableArticles(articlesList || []);
+        setFamilles(famillesList || []);
         
         // Set default type if only one available
         if (typesList && typesList.length === 1) {
@@ -747,64 +751,91 @@ const DevisForm = ({ user }) => {
                           {showArticleDropdown[index] && (
                             <div className="absolute mt-1 w-full bg-white dark:bg-gray-800 shadow rounded overflow-hidden border border-gray-200 dark:border-gray-700 z-50">
                               <div className="max-h-48 overflow-y-auto">
-                                {availableArticles
-                                  .filter(art => 
+                                {(() => {
+                                  const filteredArts = availableArticles.filter(art => 
                                     !articleSearch[index] || 
                                     art.Designation.toLowerCase().includes(articleSearch[index].toLowerCase()) ||
-                                    art.CodeArticle.toLowerCase().includes(articleSearch[index].toLowerCase())
-                                  )
-                                  .map((art) => (
-                                    <div
-                                      key={art.IdArticle}
-                                      className="p-2 hover:bg-primary-100 dark:hover:bg-primary-900 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-0 text-sm"
-                                      onClick={() => {
-                                        handleArticleSelect(index, art.IdArticle);
-                                        setShowArticleDropdown(prev => ({ ...prev, [index]: false }));
-                                      }}
-                                    >
-                                      <div className="flex justify-between items-start">
-                                        <div>
-                                          <div className="font-medium text-gray-900 dark:text-white text-sm">{art.Designation}</div>
-                                          <div className="flex items-center mt-0.5 space-x-2">
-                                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
-                                              {art.CodeArticle}
-                                            </span>
-                                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                                              {art.Unite}
-                                            </span>
+                                    art.CodeArticle.toLowerCase().includes(articleSearch[index].toLowerCase()) ||
+                                    (art.LibelleFamille && art.LibelleFamille.toLowerCase().includes(articleSearch[index].toLowerCase()))
+                                  );
+                                  
+                                  // Group articles by family
+                                  const groupedByFamily = filteredArts.reduce((acc, art) => {
+                                    const familleKey = art.LibelleFamille || 'Sans famille';
+                                    if (!acc[familleKey]) {
+                                      acc[familleKey] = [];
+                                    }
+                                    acc[familleKey].push(art);
+                                    return acc;
+                                  }, {});
+                                  
+                                  const familyKeys = Object.keys(groupedByFamily).sort();
+                                  
+                                  if (familyKeys.length === 0) {
+                                    return (
+                                      <div className="p-3 text-center text-gray-500 dark:text-gray-400">
+                                        <svg className="mx-auto h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <h3 className="mt-1 text-xs font-medium">Aucun article trouvé</h3>
+                                      </div>
+                                    );
+                                  }
+                                  
+                                  return familyKeys.map(familleKey => (
+                                    <div key={familleKey}>
+                                      {/* Family Header */}
+                                      <div className="sticky top-0 bg-gradient-to-r from-primary-600 to-primary-700 dark:from-primary-700 dark:to-primary-800 px-3 py-1.5 border-b border-primary-500 dark:border-primary-600">
+                                        <h4 className="text-xs font-semibold text-white flex items-center">
+                                          <svg className="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                          </svg>
+                                          {familleKey}
+                                          <span className="ml-2 px-1.5 py-0.5 rounded-full text-xs bg-white/20 text-white">
+                                            {groupedByFamily[familleKey].length}
+                                          </span>
+                                        </h4>
+                                      </div>
+                                      {/* Family Articles */}
+                                      {groupedByFamily[familleKey].map((art) => (
+                                        <div
+                                          key={art.IdArticle}
+                                          className="p-2 hover:bg-primary-100 dark:hover:bg-primary-900 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-0 text-sm"
+                                          onClick={() => {
+                                            handleArticleSelect(index, art.IdArticle);
+                                            setShowArticleDropdown(prev => ({ ...prev, [index]: false }));
+                                          }}
+                                        >
+                                          <div className="flex justify-between items-start">
+                                            <div>
+                                              <div className="font-medium text-gray-900 dark:text-white text-sm">{art.Designation}</div>
+                                              <div className="flex items-center mt-0.5 space-x-2">
+                                                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+                                                  {art.CodeArticle}
+                                                </span>
+                                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                                  {art.Unite}
+                                                </span>
+                                              </div>
+                                            </div>
+                                            <div className="flex flex-col items-end space-y-0.5">
+                                              {art.PrixFournitureHT && (
+                                                <div className="text-green-600 dark:text-green-400 text-xs">
+                                                  F: {parseFloat(art.PrixFournitureHT).toFixed(2)}
+                                                </div>
+                                              )}
+                                              {art.PrixPoseHT && (
+                                                <div className="text-purple-600 dark:text-purple-400 text-xs">
+                                                  P: {parseFloat(art.PrixPoseHT).toFixed(2)}
+                                                </div>
+                                              )}
+                                            </div>
                                           </div>
                                         </div>
-                                        <div className="flex flex-col items-end space-y-0.5">
-                                          {art.PrixFournitureHT && (
-                                            <div className="text-green-600 dark:text-green-400 text-xs">
-                                              F: {parseFloat(art.PrixFournitureHT).toFixed(2)}
-                                            </div>
-                                          )}
-                                          {art.PrixPoseHT && (
-                                            <div className="text-purple-600 dark:text-purple-400 text-xs">
-                                              P: {parseFloat(art.PrixPoseHT).toFixed(2)}
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
+                                      ))}
                                     </div>
-                                  ))
-                                }
-                                {availableArticles
-                                  .filter(art => 
-                                    !articleSearch[index] || 
-                                    art.Designation.toLowerCase().includes(articleSearch[index].toLowerCase()) ||
-                                    art.CodeArticle.toLowerCase().includes(articleSearch[index].toLowerCase())
-                                  )
-                                  .length === 0 && (
-                                    <div className="p-3 text-center text-gray-500 dark:text-gray-400">
-                                      <svg className="mx-auto h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                      </svg>
-                                      <h3 className="mt-1 text-xs font-medium">Aucun article trouvé</h3>
-                                    </div>
-                                  )
-                                }
+                                  ));
+                                })()}
                               </div>
                             </div>
                           )}

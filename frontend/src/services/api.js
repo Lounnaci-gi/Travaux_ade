@@ -348,6 +348,11 @@ export const getArticles = async () => {
   return response.data;
 };
 
+export const getFamilles = async () => {
+  const response = await api.get('/familles');
+  return response.data;
+};
+
 export const getArticleById = async (id) => {
   const response = await api.get(`/articles/${id}`);
   return response.data;
