@@ -4653,6 +4653,7 @@ app.get('/api/configurations', verifyToken, async (req, res) => {
 });
 
 // Get a specific global configuration by key
+// Get a specific global configuration (Admin only)
 app.get('/api/configurations/:key', verifyToken, async (req, res) => {
   try {
     // Only admin users can access global configurations
@@ -4688,6 +4689,31 @@ app.get('/api/configurations/:key', verifyToken, async (req, res) => {
   } catch (error) {
     // Error retrieving configuration
     res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Get TVA default rate (public for all authenticated users)
+app.get('/api/configurations/public/tva', verifyToken, async (req, res) => {
+  try {
+    const result = await pool.request()
+      .input('key', sql.NVarChar, 'TAUX_TVA_DEFAUT')
+      .query(`
+        SELECT 
+          Cle,
+          Valeur
+        FROM ConfigurationGlobale
+        WHERE Cle = @key
+      `);
+    
+    if (result.recordset.length === 0) {
+      // Return default TVA if not found in database
+      return res.json({ Cle: 'TAUX_TVA_DEFAUT', Valeur: '19.00' });
+    }
+    
+    res.json(result.recordset[0]);
+  } catch (error) {
+    // Error retrieving TVA, return default
+    res.json({ Cle: 'TAUX_TVA_DEFAUT', Valeur: '19.00' });
   }
 });
 

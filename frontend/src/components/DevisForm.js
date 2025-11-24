@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getDemandes, getDevisTypes, getArticles, getFamilles, createDevis, getConfigurationByKey } from '../services/api';
+import { getDemandes, getDevisTypes, getArticles, getFamilles, createDevis, getTVADefault } from '../services/api';
 import { alertSuccess, alertError } from '../ui/alerts';
 
 const DevisForm = ({ user }) => {
-  const [globalTVA, setGlobalTVA] = useState('19.00');
+  const [globalTVA, setGlobalTVA] = useState('00');
   
   // Nouvelle structure : grouper par famille
   const [formData, setFormData] = useState({
@@ -16,7 +16,7 @@ const DevisForm = ({ user }) => {
         designation: '',
         quantite: '',
         prixUnitaireHT: '',
-        tauxTVAApplique: '19.00',
+        tauxTVAApplique: '00',
         unite: '',
         typePrix: 'FOURNITURE'
       }
@@ -40,7 +40,7 @@ const DevisForm = ({ user }) => {
   useEffect(() => {
     const loadGlobalTVA = async () => {
       try {
-        const tvaConfig = await getConfigurationByKey('TAUX_TVA_DEFAUT');
+        const tvaConfig = await getTVADefault();
         if (tvaConfig && tvaConfig.Valeur) {
           setGlobalTVA(tvaConfig.Valeur);
           // Update existing articles with the loaded TVA rate
@@ -54,6 +54,7 @@ const DevisForm = ({ user }) => {
         }
       } catch (err) {
         // Keep default TVA rate if error
+        console.error('Erreur lors du chargement de la TVA:', err);
       }
     };
     loadGlobalTVA();
@@ -565,11 +566,86 @@ const DevisForm = ({ user }) => {
 
   return (
     <div className="max-w-7xl mx-auto p-6 w-full">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Créer un Devis</h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-1">
-          Créer un nouveau devis pour une demande de travaux
-        </p>
+      <div className="mb-6 flex justify-between items-start">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Créer un Devis</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            Créer un nouveau devis pour une demande de travaux
+          </p>
+        </div>
+        
+        {/* Sélecteurs en haut à droite */}
+        <div className="w-80 space-y-3">
+          {/* Numéro de Demande */}
+          <div className="relative" ref={dropdownRef}>
+            <label htmlFor="idDemande" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Numéro de Demande *
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                id="idDemande"
+                name="idDemande"
+                value={demandeSearch}
+                onChange={handleDemandeSearchChange}
+                onFocus={() => setShowDemandeDropdown(true)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                placeholder="Rechercher une demande..."
+                autoComplete="off"
+              />
+              <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              
+              {showDemandeDropdown && (
+                <div className="absolute mt-1 w-full bg-white dark:bg-gray-800 shadow-lg rounded-md overflow-hidden border border-gray-200 dark:border-gray-700" style={{ zIndex: 10000 }}>
+                  {filteredDemandes.length > 0 ? (
+                    <ul className="max-h-60 overflow-y-auto">
+                      {filteredDemandes.map((d) => (
+                        <li
+                          key={d.IdDemande}
+                          className="px-4 py-2 hover:bg-primary-100 dark:hover:bg-primary-900 cursor-pointer text-gray-900 dark:text-white"
+                          onClick={() => handleDemandeSelect(d)}
+                        >
+                          <div className="font-medium">{d.NumeroDemande}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            {d.ClientNom} {d.ClientPrenom}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="px-4 py-2 text-gray-500 dark:text-gray-400">
+                      Aucune demande trouvée
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Type de Devis */}
+          <div>
+            <label htmlFor="idTypeDevis" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Type de Devis *
+            </label>
+            <select
+              id="idTypeDevis"
+              name="idTypeDevis"
+              value={formData.idTypeDevis}
+              onChange={handleInputChange}
+              required
+              className="select-field w-full px-3 py-2"
+            >
+              <option value="">Sélectionner un type de devis</option>
+              {devisTypes.map(type => (
+                <option key={type.IdTypeDevis} value={type.IdTypeDevis}>
+                  {type.LibelleTypeDevis}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
       </div>
 
       {error && (
@@ -599,56 +675,9 @@ const DevisForm = ({ user }) => {
         <div className="glass-card p-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Informations du Devis</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="relative" ref={dropdownRef}>
-              <label htmlFor="idDemande" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Numéro de Demande *
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  id="idDemande"
-                  name="idDemande"
-                  value={demandeSearch}
-                  onChange={handleDemandeSearchChange}
-                  onFocus={() => setShowDemandeDropdown(true)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                  placeholder="Rechercher une demande..."
-                  autoComplete="off"
-                />
-                <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                
-                {showDemandeDropdown && (
-                  <div className="absolute mt-1 w-full bg-white dark:bg-gray-800 shadow-lg rounded-md overflow-hidden border border-gray-200 dark:border-gray-700" style={{ zIndex: 10000 }}>
-                    {filteredDemandes.length > 0 ? (
-                      <ul className="max-h-60 overflow-y-auto">
-                        {filteredDemandes.map((d) => (
-                          <li
-                            key={d.IdDemande}
-                            className="px-4 py-2 hover:bg-primary-100 dark:hover:bg-primary-900 cursor-pointer text-gray-900 dark:text-white"
-                            onClick={() => handleDemandeSelect(d)}
-                          >
-                            <div className="font-medium">{d.NumeroDemande}</div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">
-                              {d.ClientNom} {d.ClientPrenom}
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <div className="px-4 py-2 text-gray-500 dark:text-gray-400">
-                        Aucune demande trouvée
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-            
+          <div className="grid grid-cols-1 gap-4">
             {demande && (
-              <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Numéro de Demande
@@ -677,27 +706,6 @@ const DevisForm = ({ user }) => {
                 </div>
               </div>
             )}
-            
-            <div>
-              <label htmlFor="idTypeDevis" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Type de Devis *
-              </label>
-              <select
-                id="idTypeDevis"
-                name="idTypeDevis"
-                value={formData.idTypeDevis}
-                onChange={handleInputChange}
-                required
-                className="select-field w-full px-3 py-2"
-              >
-                <option value="">Sélectionner un type de devis</option>
-                {devisTypes.map(type => (
-                  <option key={type.IdTypeDevis} value={type.IdTypeDevis}>
-                    {type.LibelleTypeDevis}
-                  </option>
-                ))}
-              </select>
-            </div>
             
             <div>
               <label htmlFor="commentaire" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">

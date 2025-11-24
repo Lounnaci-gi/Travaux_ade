@@ -215,6 +215,11 @@ export const getConfigurationByKey = async (key) => {
   return response.data;
 };
 
+export const getTVADefault = async () => {
+  const response = await api.get('/configurations/public/tva');
+  return response.data;
+};
+
 export const updateConfiguration = async (key, payload) => {
   const response = await api.put(`/configurations/${key}`, payload);
   return response.data;
