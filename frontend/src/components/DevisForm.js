@@ -34,6 +34,7 @@ const DevisForm = ({ user }) => {
   const [demandeSearch, setDemandeSearch] = useState('');
   const [filteredDemandes, setFilteredDemandes] = useState([]);
   const [showDemandeDropdown, setShowDemandeDropdown] = useState(false);
+  const [showDescription, setShowDescription] = useState(false);
   const dropdownRef = useRef(null);
 
   // Load global TVA rate from ConfigurationGlobale
@@ -707,20 +708,48 @@ const DevisForm = ({ user }) => {
               </div>
             )}
             
-            <div>
-              <label htmlFor="commentaire" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Commentaire
-              </label>
-              <textarea
-                id="commentaire"
-                name="commentaire"
-                value={formData.commentaire}
-                onChange={handleInputChange}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                placeholder="Ajouter un commentaire (optionnel)"
-              />
-            </div>
+            {/* Bouton pour afficher/masquer la description */}
+            {!showDescription ? (
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setShowDescription(true)}
+                  className="inline-flex items-center text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                >
+                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Ajouter une Description
+                </button>
+              </div>
+            ) : (
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <label htmlFor="commentaire" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Description
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowDescription(false);
+                      setFormData(prev => ({ ...prev, commentaire: '' }));
+                    }}
+                    className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
+                  >
+                    Masquer
+                  </button>
+                </div>
+                <textarea
+                  id="commentaire"
+                  name="commentaire"
+                  value={formData.commentaire}
+                  onChange={handleInputChange}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                  placeholder="Ajouter une description (optionnel)"
+                />
+              </div>
+            )}
           </div>
           
           {/* Articles Section */}
