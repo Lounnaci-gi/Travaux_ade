@@ -582,7 +582,7 @@ const DevisForm = ({ user }) => {
           </p>
         </div>
         
-        {/* Sélecteurs en haut à droite */}
+        {/* Sélecteurs en haut à droite - Numéro de Demande, Client, Type de Demande */}
         <div className="w-80 space-y-3">
           {/* Numéro de Demande */}
           <div className="relative" ref={dropdownRef}>
@@ -631,6 +631,30 @@ const DevisForm = ({ user }) => {
               )}
             </div>
           </div>
+          
+          {/* Client - Affiché après sélection de la demande */}
+          {demande && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Client
+              </label>
+              <p className="text-gray-900 dark:text-white">
+                {demande.ClientNom} {demande.ClientPrenom}
+              </p>
+            </div>
+          )}
+          
+          {/* Type de Demande - Affiché après sélection de la demande */}
+          {demande && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Type de Demande
+              </label>
+              <p className="text-gray-900 dark:text-white">
+                {demande.TypeDemande}
+              </p>
+            </div>
+          )}
           
           {/* Type de Devis */}
           <div>
@@ -685,31 +709,13 @@ const DevisForm = ({ user }) => {
           
           <div className="grid grid-cols-1 gap-4">
             {demande && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Numéro de Demande
                   </label>
                   <p className="text-gray-900 dark:text-white font-medium">
                     {demande.NumeroDemande}
-                  </p>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Client
-                  </label>
-                  <p className="text-gray-900 dark:text-white">
-                    {demande.ClientNom} {demande.ClientPrenom}
-                  </p>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Type de Demande
-                  </label>
-                  <p className="text-gray-900 dark:text-white">
-                    {demande.TypeDemande}
                   </p>
                 </div>
               </div>
