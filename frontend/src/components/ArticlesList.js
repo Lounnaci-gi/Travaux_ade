@@ -1258,13 +1258,13 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                             {article.PrixFournitureHT != null && (
                               <div className="flex items-center">
                                 <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">F:</span>
-                                <span className="font-semibold">{parseFloat(article.PrixFournitureHT).toFixed(2)} DZD</span>
+                                <span className="font-semibold">{parseFloat(article.PrixFournitureHT).toFixed(2)}</span>
                               </div>
                             )}
                             {article.PrixPoseHT != null && (
                               <div className="flex items-center">
                                 <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">P:</span>
-                                <span className="font-semibold">{parseFloat(article.PrixPoseHT).toFixed(2)} DZD</span>
+                                <span className="font-semibold">{parseFloat(article.PrixPoseHT).toFixed(2)}</span>
                               </div>
                             )}
                             {article.PrixFournitureHT == null && article.PrixPoseHT == null && (
@@ -1436,13 +1436,13 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                       {hoveredArticleDetails.PrixFournitureHT != null && (
                         <div className="flex items-center">
                           <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">F:</span>
-                          <span className="font-semibold">{parseFloat(hoveredArticleDetails.PrixFournitureHT).toFixed(2)} DZD</span>
+                          <span className="font-semibold">{parseFloat(hoveredArticleDetails.PrixFournitureHT).toFixed(2)}</span>
                         </div>
                       )}
                       {hoveredArticleDetails.PrixPoseHT != null && (
                         <div className="flex items-center">
                           <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">P:</span>
-                          <span className="font-semibold">{parseFloat(hoveredArticleDetails.PrixPoseHT).toFixed(2)} DZD</span>
+                          <span className="font-semibold">{parseFloat(hoveredArticleDetails.PrixPoseHT).toFixed(2)}</span>
                         </div>
                       )}
                       {hoveredArticleDetails.PrixFournitureHT == null && hoveredArticleDetails.PrixPoseHT == null && (
@@ -1529,13 +1529,13 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                       {hoveredArticle.PrixFournitureHT != null && (
                         <div className="flex items-center">
                           <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">F:</span>
-                          <span className="font-semibold">{parseFloat(hoveredArticle.PrixFournitureHT).toFixed(2)} DZD</span>
+                          <span className="font-semibold">{parseFloat(hoveredArticle.PrixFournitureHT).toFixed(2)}</span>
                         </div>
                       )}
                       {hoveredArticle.PrixPoseHT != null && (
                         <div className="flex items-center">
                           <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">P:</span>
-                          <span className="font-semibold">{parseFloat(hoveredArticle.PrixPoseHT).toFixed(2)} DZD</span>
+                          <span className="font-semibold">{parseFloat(hoveredArticle.PrixPoseHT).toFixed(2)}</span>
                         </div>
                       )}
                       {hoveredArticle.PrixFournitureHT == null && hoveredArticle.PrixPoseHT == null && (

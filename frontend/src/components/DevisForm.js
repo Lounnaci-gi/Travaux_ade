@@ -582,7 +582,7 @@ const DevisForm = ({ user }) => {
           </p>
         </div>
         
-        {/* Sélecteurs en haut à droite */}
+        {/* Sélecteurs en haut à droite - Numéro de Demande, Client, Type de Demande */}
         <div className="w-80 space-y-3">
           {/* Numéro de Demande */}
           <div className="relative" ref={dropdownRef}>
@@ -631,6 +631,30 @@ const DevisForm = ({ user }) => {
               )}
             </div>
           </div>
+          
+          {/* Client - Affiché après sélection de la demande */}
+          {demande && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Client
+              </label>
+              <p className="text-gray-900 dark:text-white">
+                {demande.ClientNom} {demande.ClientPrenom}
+              </p>
+            </div>
+          )}
+          
+          {/* Type de Demande - Affiché après sélection de la demande */}
+          {demande && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Type de Demande
+              </label>
+              <p className="text-gray-900 dark:text-white">
+                {demande.TypeDemande}
+              </p>
+            </div>
+          )}
           
           {/* Type de Devis */}
           <div>
@@ -685,31 +709,13 @@ const DevisForm = ({ user }) => {
           
           <div className="grid grid-cols-1 gap-4">
             {demande && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Numéro de Demande
                   </label>
                   <p className="text-gray-900 dark:text-white font-medium">
                     {demande.NumeroDemande}
-                  </p>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Client
-                  </label>
-                  <p className="text-gray-900 dark:text-white">
-                    {demande.ClientNom} {demande.ClientPrenom}
-                  </p>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Type de Demande
-                  </label>
-                  <p className="text-gray-900 dark:text-white">
-                    {demande.TypeDemande}
                   </p>
                 </div>
               </div>
@@ -766,12 +772,12 @@ const DevisForm = ({ user }) => {
             </div>
 
             {/* Articles Container - Maximum width */}
-            <div className="space-y-3 w-full">
+            <div className="space-y-2 w-full">
               {formData.articles.map((article, index) => {
                 const articleTotals = calculateArticleTotals(article);
                 return (
-                  <div key={index} className="glass-card p-3 rounded-md w-full">
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 w-full">
+                  <div key={index} className="glass-card p-2 rounded-md w-full">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 w-full">
                       {/* Article Search - Reduced width */}
                       <div className="lg:col-span-5 relative" ref={el => articleDropdownRefs.current[index] = el}>
                         <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -786,7 +792,7 @@ const DevisForm = ({ user }) => {
                               setShowArticleDropdown(prev => ({ ...prev, [index]: true }));
                             }}
                             onFocus={() => setShowArticleDropdown(prev => ({ ...prev, [index]: true }))}
-                            className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-sm"
+                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-sm"
                             placeholder="Rechercher un article..."
                             autoComplete="off"
                           />
@@ -919,7 +925,7 @@ const DevisForm = ({ user }) => {
                             <select
                               value={article.typePrix || 'FOURNITURE'}
                               onChange={(e) => handleArticleChange(index, 'typePrix', e.target.value)}
-                              className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                              className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
                             >
                               <option value="FOURNITURE">F</option>
                               <option value="POSE">P</option>
@@ -939,7 +945,7 @@ const DevisForm = ({ user }) => {
                                 min="0"
                                 value={article.quantite}
                                 onChange={(e) => handleArticleChange(index, 'quantite', e.target.value)}
-                                className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
                               />
                               {article.unite && (
                                 <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-gray-500 dark:text-gray-400 text-xs">
@@ -961,7 +967,7 @@ const DevisForm = ({ user }) => {
                                 min="0"
                                 value={article.prixUnitaireHT}
                                 onChange={(e) => handleArticleChange(index, 'prixUnitaireHT', e.target.value)}
-                                className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
                               />
                               <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-gray-500 dark:text-gray-400 text-xs">
                                 DZD
@@ -982,7 +988,7 @@ const DevisForm = ({ user }) => {
                                 max="100"
                                 value={article.tauxTVAApplique}
                                 onChange={(e) => handleArticleChange(index, 'tauxTVAApplique', e.target.value)}
-                                className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
                               />
                               <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-gray-500 dark:text-gray-400 text-xs">
                                 %
@@ -1013,7 +1019,7 @@ const DevisForm = ({ user }) => {
                             <button
                               type="button"
                               onClick={() => clearAndRemoveArticle(index)}
-                              className="px-2 py-1.5 bg-red-100 dark:bg-red-900/50 border border-gray-300 dark:border-gray-600 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 text-xs rounded"
+                              className="px-2 py-1 bg-red-100 dark:bg-red-900/50 border border-gray-300 dark:border-gray-600 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 text-xs rounded"
                               title="Supprimer"
                             >
                               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1023,7 +1029,7 @@ const DevisForm = ({ user }) => {
                             <button
                               type="button"
                               onClick={addArticle}
-                              className="px-2 py-1.5 bg-green-100 dark:bg-green-900/50 border border-gray-300 dark:border-gray-600 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800 text-xs rounded"
+                              className="px-2 py-1 bg-green-100 dark:bg-green-900/50 border border-gray-300 dark:border-gray-600 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800 text-xs rounded"
                               title="Ajouter"
                             >
                               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1064,18 +1070,18 @@ const DevisForm = ({ user }) => {
           
           {/* Totaux en bas à droite */}
           {formData.articles.length > 0 && (
-            <div className="mt-5 flex justify-end">
-              <div className="w-80 border-2 border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-white dark:bg-gray-800 shadow-md">
-                <div className="space-y-2">
-                  <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-md flex justify-between items-center">
+            <div className="mt-3 flex justify-end">
+              <div className="w-80 border-2 border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-800 shadow-md">
+                <div className="space-y-1">
+                  <div className="bg-gray-50 dark:bg-gray-700 p-2 rounded-md flex justify-between items-center">
                     <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Total HT</span>
                     <span className="text-base font-bold text-gray-900 dark:text-white">{totals.totalHT} DZD</span>
                   </div>
-                  <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-md flex justify-between items-center">
+                  <div className="bg-gray-50 dark:bg-gray-700 p-2 rounded-md flex justify-between items-center">
                     <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Total TVA</span>
                     <span className="text-base font-bold text-gray-900 dark:text-white">{totals.totalTVA} DZD</span>
                   </div>
-                  <div className="bg-gradient-to-r from-primary-500 to-secondary-500 p-3 rounded-md flex justify-between items-center">
+                  <div className="bg-gradient-to-r from-primary-500 to-secondary-500 p-2 rounded-md flex justify-between items-center">
                     <span className="text-sm font-medium text-white">Total TTC</span>
                     <span className="text-lg font-bold text-white">{totals.totalTTC} DZD</span>
                   </div>
