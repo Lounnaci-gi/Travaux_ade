@@ -803,9 +803,6 @@ const DevisForm = ({ user }) => {
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 w-full">
                       {/* Article Search - Reduced width */}
                       <div className="lg:col-span-5 relative" ref={el => articleDropdownRefs.current[index] = el}>
-                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Article *
-                        </label>
                         <div className="relative">
                           <input
                             type="text"
@@ -816,7 +813,7 @@ const DevisForm = ({ user }) => {
                             }}
                             onFocus={() => setShowArticleDropdown(prev => ({ ...prev, [index]: true }))}
                             className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-sm"
-                            placeholder="Rechercher un article..."
+                            placeholder="Rechercher un article... *"
                             autoComplete="off"
                           />
                           
@@ -942,13 +939,11 @@ const DevisForm = ({ user }) => {
                         <div className="flex flex-wrap gap-1 items-start">
                           {/* Type de Prix */}
                           <div className="flex-1 min-w-[70px]">
-                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 text-center">
-                              Type
-                            </label>
                             <select
                               value={article.typePrix || 'FOURNITURE'}
                               onChange={(e) => handleArticleChange(index, 'typePrix', e.target.value)}
                               className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-center"
+                              title="Type"
                             >
                               <option value="FOURNITURE">F</option>
                               <option value="POSE">P</option>
@@ -958,9 +953,6 @@ const DevisForm = ({ user }) => {
                           
                           {/* Quantité */}
                           <div className="flex-1 min-w-[70px]">
-                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 text-center">
-                              Qté
-                            </label>
                             <div className="relative">
                               <input
                                 type="number"
@@ -969,6 +961,7 @@ const DevisForm = ({ user }) => {
                                 value={article.quantite}
                                 onChange={(e) => handleArticleChange(index, 'quantite', e.target.value)}
                                 className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-center"
+                                placeholder="Qté"
                               />
                               {article.unite && (
                                 <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-gray-500 dark:text-gray-400 text-xs">
@@ -980,9 +973,6 @@ const DevisForm = ({ user }) => {
                           
                           {/* Prix Unitaire */}
                           <div className="flex-1 min-w-[70px]">
-                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 text-center">
-                              Prix HT
-                            </label>
                             <div className="relative">
                               <input
                                 type="number"
@@ -991,6 +981,7 @@ const DevisForm = ({ user }) => {
                                 value={article.prixUnitaireHT}
                                 onChange={(e) => handleArticleChange(index, 'prixUnitaireHT', e.target.value)}
                                 className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-center"
+                                placeholder="Prix HT"
                               />
                               <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-gray-500 dark:text-gray-400 text-xs">
                                 DZD
@@ -1000,9 +991,6 @@ const DevisForm = ({ user }) => {
                           
                           {/* TVA */}
                           <div className="flex-1 min-w-[70px]">
-                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 text-center">
-                              TVA
-                            </label>
                             <div className="relative">
                               <input
                                 type="number"
@@ -1012,6 +1000,7 @@ const DevisForm = ({ user }) => {
                                 value={article.tauxTVAApplique}
                                 onChange={(e) => handleArticleChange(index, 'tauxTVAApplique', e.target.value)}
                                 className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-center"
+                                placeholder="TVA"
                               />
                               <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-gray-500 dark:text-gray-400 text-xs">
                                 %
@@ -1020,20 +1009,17 @@ const DevisForm = ({ user }) => {
                           </div>
                           
                           {/* HT Total */}
-                          <div className="flex-1 min-w-[70px] p-1 rounded text-center">
-                            <div className="text-xs text-gray-500 dark:text-gray-400 text-center">HT</div>
+                          <div className="flex-1 min-w-[70px] p-1 rounded text-center" title="HT">
                             <div className="text-xs font-semibold text-gray-900 dark:text-white text-center">{articleTotals.montantHT}</div>
                           </div>
                           
                           {/* TVA Total */}
-                          <div className="flex-1 min-w-[70px] p-1 rounded text-center">
-                            <div className="text-xs text-gray-500 dark:text-gray-400 text-center">TVA</div>
+                          <div className="flex-1 min-w-[70px] p-1 rounded text-center" title="TVA">
                             <div className="text-xs font-semibold text-gray-900 dark:text-white text-center">{articleTotals.montantTVA}</div>
                           </div>
                           
                           {/* TTC */}
-                          <div className="flex-1 min-w-[70px] p-1 rounded text-center">
-                            <div className="text-xs text-primary-500 text-center">TTC</div>
+                          <div className="flex-1 min-w-[70px] p-1 rounded text-center" title="TTC">
                             <div className="text-xs font-bold text-gray-900 dark:text-white text-center">{articleTotals.montantTTC}</div>
                           </div>
                           
