@@ -170,7 +170,7 @@ function App() {
 
   return (
     <ThemeProvider>
-      <div className={`min-h-screen transition-colors duration-300 ${showIdleWarning ? 'bg-red-900/20' : ''}`}>
+      <div className={`min-h-screen flex flex-col transition-colors duration-300 ${showIdleWarning ? 'bg-red-900/20' : ''}`}>
         <Navbar 
           currentView={currentView} 
           setCurrentView={setCurrentView} 
@@ -184,7 +184,7 @@ function App() {
           </div>
         )}
         
-        <main className="pt-16">
+        <main className="flex-grow pt-16">
           {renderView()}
         </main>
         

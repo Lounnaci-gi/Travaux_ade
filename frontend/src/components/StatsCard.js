@@ -13,7 +13,7 @@ const StatsCard = ({ title, value, icon, color, delay = 0 }) => {
   
   return (
     <div
-      className={`${getCardClass()} hover-lift hover-shadow transition-all duration-300`}
+      className={`${getCardClass()} hover-lift hover-shadow transition-all duration-300 transform hover:-translate-y-1`}
       style={{ animationDelay: `${delay}ms` }}
     >
       <div className="flex items-center justify-between mb-4">

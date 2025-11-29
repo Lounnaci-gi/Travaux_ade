@@ -36,15 +36,15 @@
 
 /* Footer styles */
 .app-footer {
-  @apply bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 py-6 mt-12;
+  @apply bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 py-6;
 }
 
 .footer-content {
-  @apply container-obat flex flex-col md:flex-row justify-between items-center;
+  @apply container-obat flex flex-col items-center justify-center text-center min-h-screen;
 }
 
 .footer-links {
-  @apply flex space-x-6 mb-4 md:mb-0;
+  @apply flex flex-wrap justify-center gap-6 mb-4;
 }
 
 .footer-link {
@@ -66,7 +66,7 @@
   }
   
   .footer-content {
-    @apply px-4 flex-col text-center;
+    @apply px-4;
   }
   
   .footer-links {
