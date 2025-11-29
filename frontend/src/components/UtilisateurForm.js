@@ -566,8 +566,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                           name="Role"
                           value={form.Role}
                           onChange={handleChange}
-                          //className="select-field w-full pl-10 pr-4 py-2"                        
-                          className="w-full pl-10 pr-4 py-2 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                          className="select-field w-full pl-10 pr-4 py-2"
                           required
                         >
                           <option value="" >Sélectionner un rôle</option>
@@ -1064,7 +1063,8 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                           onChange={handleChange}
                           className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"                          
                           required
-                          disabled={!isAdmin(user) && isChefCentreUser}                        >
+                          disabled={!isAdmin(user) && isChefCentreUser}
+                        >
                           <option value="">Sélectionner un rôle</option>
                           {roles.map((r) => (
                             <option key={r.CodeRole} value={r.CodeRole} className="text-black">
@@ -1089,7 +1089,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                                 IdAgence: '',
                               }));
                             }}
-                            className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                            className="select-field w-full px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             disabled={isChefCentreUser}
                           >
                             <option value="">Aucune</option>
@@ -1113,7 +1113,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                                 IdAgence: '',
                               }));
                             }}
-                            className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                            className="select-field w-full px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             disabled={!form.IdUnite || isChefCentreUser}
                           >
                             <option value="">Aucun</option>
@@ -1130,7 +1130,7 @@ const UtilisateurForm = ({ user, onUnauthorized }) => {
                             name="IdAgence"
                             value={form.IdAgence}
                             onChange={handleChange}
-                            className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900"
+                            className="select-field w-full px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             disabled={!form.IdCentre}
                           >
                             <option value="">Aucune</option>

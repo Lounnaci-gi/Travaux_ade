@@ -721,410 +721,347 @@ const DevisForm = ({ user }) => {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Devis Information */}
-        <div className="glass-card p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Informations du Devis</h2>
-          
-          <div className="grid grid-cols-1 gap-4">
-            {demande && (
-              <div className="grid grid-cols-1 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Numéro de Demande
-                  </label>
-                  <p className="text-gray-900 dark:text-white font-medium">
-                    {demande.NumeroDemande}
-                  </p>
-                </div>
-              </div>
-            )}
-            
-            {/* Bouton pour afficher/masquer la description */}
-            {!showDescription ? (
-              <div>
-                <button
-                  type="button"
-                  onClick={() => setShowDescription(true)}
-                  className="inline-flex items-center text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
-                >
-                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                  Ajouter une Description
-                </button>
-              </div>
-            ) : (
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label htmlFor="commentaire" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Description
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowDescription(false);
-                      setFormData(prev => ({ ...prev, commentaire: '' }));
-                    }}
-                    className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
-                  >
-                    Masquer
-                  </button>
-                </div>
-                <textarea
-                  id="commentaire"
-                  name="commentaire"
-                  value={formData.commentaire}
-                  onChange={handleInputChange}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                  placeholder="Ajouter une description (optionnel)"
-                />
-              </div>
-            )}
+        {/* Articles Section */}
+        <div className="mt-6">
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-white">Articles</h3>
           </div>
-          
-          {/* Articles Section */}
-          <div className="mt-6">
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="text-base font-semibold text-gray-900 dark:text-white">Articles</h3>
-            </div>
 
-            {/* Articles Container - Maximum width */}
-            <div className="space-y-2 w-full">
-              {/* Articles Table Header */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 w-full hidden lg:grid bg-gray-100 dark:bg-gray-700 p-2 rounded-md mb-2">
-                <div className="lg:col-span-5">
-                  <div className="flex flex-wrap gap-1 items-start text-xs font-bold text-gray-700 dark:text-gray-300">
-                    <div className="flex-1 min-w-[100px]">Désignation</div>
-                  </div>
-                </div>
-                <div className="lg:col-span-7">
-                  <div className="flex flex-wrap gap-1 items-start text-xs font-bold text-gray-700 dark:text-gray-300">
-                    <div className="flex-1 min-w-[70px] text-center">Type</div>
-                    <div className="flex-1 min-w-[70px] text-center">Qté</div>
-                    <div className="flex-1 min-w-[70px] text-center">Unité</div>
-                    <div className="flex-1 min-w-[70px] text-center">P.U.HT</div>
-                    <div className="flex-1 min-w-[70px] text-center">TVA%</div>
-                    <div className="flex-1 min-w-[70px] text-center">HT</div>
-                    <div className="flex-1 min-w-[70px] text-center">TVA</div>
-                    <div className="flex-1 min-w-[70px] text-center">TTC</div>
-                    <div className="flex-1 min-w-[50px] text-center">Actions</div>
-                  </div>
+          {/* Articles Container - Maximum width */}
+          <div className="space-y-2 w-full">
+            {/* Articles Table Header */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 w-full hidden lg:grid bg-gray-100 dark:bg-gray-700 p-2 rounded-md mb-2">
+              <div className="lg:col-span-5">
+                <div className="flex flex-wrap gap-1 items-start text-xs font-bold text-gray-700 dark:text-gray-300">
+                  <div className="flex-1 min-w-[100px]">Désignation</div>
                 </div>
               </div>
-              {formData.articles.map((article, index) => {
-                const articleTotals = calculateArticleTotals(article);
-                // Check if this article is a duplicate
-                const isDuplicate = formData.articles.filter(a => a.idArticle === article.idArticle).length > 1 && article.idArticle;
-                return (
-                  <div key={index} className={`glass-card p-2 rounded-md w-full ${isDuplicate ? 'border-2 border-red-500 bg-red-50 dark:bg-red-900/20' : ''}`}>
-                    {isDuplicate && (
-                      <div className="text-red-600 dark:text-red-400 text-xs font-medium mb-1 flex items-center">
-                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                        Article en double - veuillez le supprimer
-                      </div>
-                    )}
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 w-full">
-                      {/* Article Search - Reduced width */}
-                      <div className="lg:col-span-5 relative" ref={el => articleDropdownRefs.current[index] = el}>
-                        <div className="relative">
-                          <input
-                            type="text"
-                            value={articleSearch[index] || ''}
-                            onChange={(e) => {
-                              setArticleSearch(prev => ({ ...prev, [index]: e.target.value }));
-                              setShowArticleDropdown(prev => ({ ...prev, [index]: true }));
-                            }}
-                            onFocus={() => setShowArticleDropdown(prev => ({ ...prev, [index]: true }))}
-                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-sm"
-                            placeholder="Rechercher un article... *"
-                            autoComplete="off"
-                          />
-                          
-                          {/* Dropdown - Full width and no scrollbars */}
-                          {showArticleDropdown[index] && (
-                            <div className="absolute mt-1 w-full bg-white dark:bg-gray-800 shadow rounded overflow-hidden border border-gray-200 dark:border-gray-700 z-50">
-                              <div className="max-h-48 overflow-y-auto">
-                                {(() => {
-                                  const filteredArts = availableArticles.filter(art => {
-                                    if (!articleSearch[index]) return true;
-                                    
-                                    // Split search query into keywords (words separated by spaces)
-                                    const keywords = articleSearch[index].toLowerCase().trim().split(/\s+/).filter(k => k.length > 0);
-                                    
-                                    // If no keywords, show all articles
-                                    if (keywords.length === 0) return true;
-                                    
-                                    // Create a search string with all relevant article fields
-                                    const searchString = [
-                                      art.Designation || '',
-                                      art.CodeArticle || '',
-                                      art.LibelleFamille || '',
-                                      art.Unite || ''
-                                    ].join(' ').toLowerCase();
-                                    
-                                    // Check if all keywords are present in the search string (order doesn't matter)
-                                    return keywords.every(keyword => 
-                                      searchString.includes(keyword)
-                                    );
-                                  });
+              <div className="lg:col-span-7">
+                <div className="flex flex-wrap gap-1 items-start text-xs font-bold text-gray-700 dark:text-gray-300">
+                  <div className="flex-1 min-w-[70px] text-center">Type</div>
+                  <div className="flex-1 min-w-[70px] text-center">Qté</div>
+                  <div className="flex-1 min-w-[70px] text-center">Unité</div>
+                  <div className="flex-1 min-w-[70px] text-center">P.U.HT</div>
+                  <div className="flex-1 min-w-[70px] text-center">TVA%</div>
+                  <div className="flex-1 min-w-[70px] text-center">HT</div>
+                  <div className="flex-1 min-w-[70px] text-center">TVA</div>
+                  <div className="flex-1 min-w-[70px] text-center">TTC</div>
+                  <div className="flex-1 min-w-[50px] text-center">Actions</div>
+                </div>
+              </div>
+            </div>
+            {formData.articles.map((article, index) => {
+              const articleTotals = calculateArticleTotals(article);
+              // Check if this article is a duplicate
+              const isDuplicate = formData.articles.filter(a => a.idArticle === article.idArticle).length > 1 && article.idArticle;
+              return (
+                <div key={index} className={`glass-card p-2 rounded-md w-full ${isDuplicate ? 'border-2 border-red-500 bg-red-50 dark:bg-red-900/20' : ''}`}>
+                  {isDuplicate && (
+                    <div className="text-red-600 dark:text-red-400 text-xs font-medium mb-1 flex items-center">
+                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      Article en double - veuillez le supprimer
+                    </div>
+                  )}
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 w-full">
+                    {/* Article Search - Reduced width */}
+                    <div className="lg:col-span-5 relative" ref={el => articleDropdownRefs.current[index] = el}>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={articleSearch[index] || ''}
+                          onChange={(e) => {
+                            setArticleSearch(prev => ({ ...prev, [index]: e.target.value }));
+                            setShowArticleDropdown(prev => ({ ...prev, [index]: true }));
+                          }}
+                          onFocus={() => setShowArticleDropdown(prev => ({ ...prev, [index]: true }))}
+                          className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-sm"
+                          placeholder="Rechercher un article... *"
+                          autoComplete="off"
+                        />
+                        
+                        {/* Dropdown - Full width and no scrollbars */}
+                        {showArticleDropdown[index] && (
+                          <div className="absolute mt-1 w-full bg-white dark:bg-gray-800 shadow rounded overflow-hidden border border-gray-200 dark:border-gray-700 z-50">
+                            <div className="max-h-48 overflow-y-auto">
+                              {(() => {
+                                const filteredArts = availableArticles.filter(art => {
+                                  if (!articleSearch[index]) return true;
                                   
-                                  // Group articles by family
-                                  const groupedByFamily = filteredArts.reduce((acc, art) => {
-                                    const familleKey = art.LibelleFamille || 'Sans famille';
-                                    if (!acc[familleKey]) {
-                                      acc[familleKey] = [];
-                                    }
-                                    acc[familleKey].push(art);
-                                    return acc;
-                                  }, {});
+                                  // Split search query into keywords (words separated by spaces)
+                                  const keywords = articleSearch[index].toLowerCase().trim().split(/\s+/).filter(k => k.length > 0);
                                   
-                                  const familyKeys = Object.keys(groupedByFamily).sort();
+                                  // If no keywords, show all articles
+                                  if (keywords.length === 0) return true;
                                   
-                                  if (familyKeys.length === 0) {
-                                    return (
-                                      <div className="p-3 text-center text-gray-500 dark:text-gray-400">
-                                        <svg className="mx-auto h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        <h3 className="mt-1 text-xs font-medium">Aucun article trouvé</h3>
-                                      </div>
-                                    );
+                                  // Create a search string with all relevant article fields
+                                  const searchString = [
+                                    art.Designation || '',
+                                    art.CodeArticle || '',
+                                    art.LibelleFamille || '',
+                                    art.Unite || ''
+                                  ].join(' ').toLowerCase();
+                                  
+                                  // Check if all keywords are present in the search string (order doesn't matter)
+                                  return keywords.every(keyword => 
+                                    searchString.includes(keyword)
+                                  );
+                                });
+                                
+                                // Group articles by family
+                                const groupedByFamily = filteredArts.reduce((acc, art) => {
+                                  const familleKey = art.LibelleFamille || 'Sans famille';
+                                  if (!acc[familleKey]) {
+                                    acc[familleKey] = [];
                                   }
-                                  
-                                  return familyKeys.map(familleKey => (
-                                    <div key={familleKey}>
-                                      {/* Family Header */}
-                                      <div className="sticky top-0 bg-gradient-to-r from-primary-600 to-primary-700 dark:from-primary-700 dark:to-primary-800 px-3 py-1.5 border-b border-primary-500 dark:border-primary-600">
-                                        <h4 className="text-xs font-semibold text-white flex items-center">
-                                          <svg className="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                                          </svg>
-                                          {familleKey}
-                                          <span className="ml-2 px-1.5 py-0.5 rounded-full text-xs bg-white/20 text-white">
-                                            {groupedByFamily[familleKey].length}
-                                          </span>
-                                        </h4>
-                                      </div>
-                                      {/* Family Articles */}
-                                      {groupedByFamily[familleKey].map((art) => (
-                                        <div
-                                          key={art.IdArticle}
-                                          className="p-2 hover:bg-primary-100 dark:hover:bg-primary-900 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-0 text-sm"
-                                          onClick={() => {
-                                            handleArticleSelect(index, art.IdArticle);
-                                            setShowArticleDropdown(prev => ({ ...prev, [index]: false }));
-                                          }}
-                                        >
-                                          <div className="flex justify-between items-start">
-                                            <div>
-                                              <div className="font-medium text-gray-900 dark:text-white text-sm">{art.Designation}</div>
-                                              <div className="flex items-center mt-0.5 space-x-2">
-                                                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
-                                                  {art.CodeArticle}
-                                                </span>
-                                                <span className="text-xs text-gray-500 dark:text-gray-400">
-                                                  {art.Unite}
-                                                </span>
-                                              </div>
-                                            </div>
-                                            <div className="flex flex-col items-end space-y-0.5">
-                                              {art.PrixFournitureHT && (
-                                                <div className="text-green-600 dark:text-green-400 text-xs">
-                                                  F: {formatNumberWithThousands(art.PrixFournitureHT)}
-                                                </div>
-                                              )}
-                                              {art.PrixPoseHT && (
-                                                <div className="text-purple-600 dark:text-purple-400 text-xs">
-                                                  P: {formatNumberWithThousands(art.PrixPoseHT)}
-                                                </div>
-                                              )}
+                                  acc[familleKey].push(art);
+                                  return acc;
+                                }, {});
+                                
+                                const familyKeys = Object.keys(groupedByFamily).sort();
+                                
+                                if (familyKeys.length === 0) {
+                                  return (
+                                    <div className="p-3 text-center text-gray-500 dark:text-gray-400">
+                                      <svg className="mx-auto h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                      </svg>
+                                      <h3 className="mt-1 text-xs font-medium">Aucun article trouvé</h3>
+                                    </div>
+                                  );
+                                }
+                                
+                                return familyKeys.map(familleKey => (
+                                  <div key={familleKey}>
+                                    {/* Family Header */}
+                                    <div className="sticky top-0 bg-gradient-to-r from-primary-600 to-primary-700 dark:from-primary-700 dark:to-primary-800 px-3 py-1.5 border-b border-primary-500 dark:border-primary-600">
+                                      <h4 className="text-xs font-semibold text-white flex items-center">
+                                        <svg className="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                        </svg>
+                                        {familleKey}
+                                        <span className="ml-2 px-1.5 py-0.5 rounded-full text-xs bg-white/20 text-white">
+                                          {groupedByFamily[familleKey].length}
+                                        </span>
+                                      </h4>
+                                    </div>
+                                    {/* Family Articles */}
+                                    {groupedByFamily[familleKey].map((art) => (
+                                      <div
+                                        key={art.IdArticle}
+                                        className="p-2 hover:bg-primary-100 dark:hover:bg-primary-900 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-0 text-sm"
+                                        onClick={() => {
+                                          handleArticleSelect(index, art.IdArticle);
+                                          setShowArticleDropdown(prev => ({ ...prev, [index]: false }));
+                                        }}
+                                      >
+                                        <div className="flex justify-between items-start">
+                                          <div>
+                                            <div className="font-medium text-gray-900 dark:text-white text-sm">{art.Designation}</div>
+                                            <div className="flex items-center mt-0.5 space-x-2">
+                                              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+                                                {art.CodeArticle}
+                                              </span>
+                                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                                {art.Unite}
+                                              </span>
                                             </div>
                                           </div>
+                                          <div className="flex flex-col items-end space-y-0.5">
+                                            {art.PrixFournitureHT && (
+                                              <div className="text-green-600 dark:text-green-400 text-xs">
+                                                F: {formatNumberWithThousands(art.PrixFournitureHT)}
+                                              </div>
+                                            )}
+                                            {art.PrixPoseHT && (
+                                              <div className="text-purple-600 dark:text-purple-400 text-xs">
+                                                P: {formatNumberWithThousands(art.PrixPoseHT)}
+                                              </div>
+                                            )}
+                                          </div>
                                         </div>
-                                      ))}
-                                    </div>
-                                  ));
-                                })()}
-                              </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ));
+                              })()}
                             </div>
-                          )}
-                        </div>
-                        
-                        {/* Hidden input to store the selected article ID */}
-                        <input
-                          type="hidden"
-                          value={article.idArticle || ''}
-                        />
+                          </div>
+                        )}
                       </div>
                       
-                      {/* Article Details - Takes remaining space */}
-                      <div className="lg:col-span-7">
-                        <div className="flex flex-wrap gap-1 items-start">
-                          {/* Type de Prix */}
-                          <div className="flex-1 min-w-[70px]">
-                            <select
-                              value={article.typePrix || 'FOURNITURE'}
-                              onChange={(e) => handleArticleChange(index, 'typePrix', e.target.value)}
+                      {/* Hidden input to store the selected article ID */}
+                      <input
+                        type="hidden"
+                        value={article.idArticle || ''}
+                      />
+                    </div>
+                    
+                    {/* Article Details - Takes remaining space */}
+                    <div className="lg:col-span-7">
+                      <div className="flex flex-wrap gap-1 items-start">
+                        {/* Type de Prix */}
+                        <div className="flex-1 min-w-[70px]">
+                          <select
+                            value={article.typePrix || 'FOURNITURE'}
+                            onChange={(e) => handleArticleChange(index, 'typePrix', e.target.value)}
+                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-center"
+                            title="Type"
+                          >
+                            <option value="FOURNITURE">F</option>
+                            <option value="POSE">P</option>
+                            <option value="BOTH">F+P</option>
+                          </select>
+                        </div>
+                        
+                        {/* Quantité */}
+                        <div className="flex-1 min-w-[70px]">
+                          <div className="relative">
+                            <input
+                              type="number"
+                              step="0.001"
+                              min="0"
+                              value={article.quantite}
+                              onChange={(e) => handleArticleChange(index, 'quantite', e.target.value)}
                               className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-center"
-                              title="Type"
-                            >
-                              <option value="FOURNITURE">F</option>
-                              <option value="POSE">P</option>
-                              <option value="BOTH">F+P</option>
-                            </select>
-                          </div>
-                          
-                          {/* Quantité */}
-                          <div className="flex-1 min-w-[70px]">
-                            <div className="relative">
-                              <input
-                                type="number"
-                                step="0.001"
-                                min="0"
-                                value={article.quantite}
-                                onChange={(e) => handleArticleChange(index, 'quantite', e.target.value)}
-                                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-center"
-                                placeholder="Qté"
-                              />
-                              {article.unite && (
-                                <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-gray-500 dark:text-gray-400 text-xs">
-                                  {article.unite}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          
-                          {/* Prix Unitaire */}
-                          <div className="flex-1 min-w-[70px]">
-                            <div className="relative">
-                              <input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                value={article.prixUnitaireHT}
-                                onChange={(e) => handleArticleChange(index, 'prixUnitaireHT', e.target.value)}
-                                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-center"
-                                placeholder="Prix HT"
-                              />
+                              placeholder="Qté"
+                            />
+                            {article.unite && (
                               <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-gray-500 dark:text-gray-400 text-xs">
-                                DZD
+                                {article.unite}
                               </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Prix Unitaire */}
+                        <div className="flex-1 min-w-[70px]">
+                          <div className="relative">
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={article.prixUnitaireHT}
+                              onChange={(e) => handleArticleChange(index, 'prixUnitaireHT', e.target.value)}
+                              className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-center"
+                              placeholder="Prix HT"
+                            />
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-gray-500 dark:text-gray-400 text-xs">
+                              DZD
                             </div>
                           </div>
-                          
-                          {/* TVA */}
-                          <div className="flex-1 min-w-[70px]">
-                            <div className="relative">
-                              <input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                max="100"
-                                value={article.tauxTVAApplique}
-                                onChange={(e) => handleArticleChange(index, 'tauxTVAApplique', e.target.value)}
-                                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-center"
-                                placeholder="TVA"
-                              />
-                              <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-gray-500 dark:text-gray-400 text-xs">
-                                %
-                              </div>
+                        </div>
+                        
+                        {/* TVA */}
+                        <div className="flex-1 min-w-[70px]">
+                          <div className="relative">
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              max="100"
+                              value={article.tauxTVAApplique}
+                              onChange={(e) => handleArticleChange(index, 'tauxTVAApplique', e.target.value)}
+                              className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-center"
+                              placeholder="TVA"
+                            />
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-gray-500 dark:text-gray-400 text-xs">
+                              %
                             </div>
                           </div>
-                          
-                          {/* HT Total */}
-                          <div className="flex-1 min-w-[70px] p-1 rounded text-center" title="HT">
-                            <div className="text-xs font-semibold text-gray-900 dark:text-white text-center">{articleTotals.montantHT}</div>
-                          </div>
-                          
-                          {/* TVA Total */}
-                          <div className="flex-1 min-w-[70px] p-1 rounded text-center" title="TVA">
-                            <div className="text-xs font-semibold text-gray-900 dark:text-white text-center">{articleTotals.montantTVA}</div>
-                          </div>
-                          
-                          {/* TTC */}
-                          <div className="flex-1 min-w-[70px] p-1 rounded text-center" title="TTC">
-                            <div className="text-xs font-bold text-gray-900 dark:text-white text-center">{articleTotals.montantTTC}</div>
-                          </div>
-                          
-                          {/* Action Buttons */}
-                          <div className="flex gap-1">
-                            <button
-                              type="button"
-                              onClick={() => clearAndRemoveArticle(index)}
-                              className="px-2 py-1 bg-red-100 dark:bg-red-900/50 border border-gray-300 dark:border-gray-600 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 text-xs rounded"
-                              title="Supprimer"
-                            >
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={addArticle}
-                              className="px-2 py-1 bg-green-100 dark:bg-green-900/50 border border-gray-300 dark:border-gray-600 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800 text-xs rounded"
-                              title="Ajouter"
-                            >
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                              </svg>
-                            </button>
-                          </div>
+                        </div>
+                        
+                        {/* HT Total */}
+                        <div className="flex-1 min-w-[70px] p-1 rounded text-center" title="HT">
+                          <div className="text-xs font-semibold text-gray-900 dark:text-white text-center">{articleTotals.montantHT}</div>
+                        </div>
+                        
+                        {/* TVA Total */}
+                        <div className="flex-1 min-w-[70px] p-1 rounded text-center" title="TVA">
+                          <div className="text-xs font-semibold text-gray-900 dark:text-white text-center">{articleTotals.montantTVA}</div>
+                        </div>
+                        
+                        {/* TTC */}
+                        <div className="flex-1 min-w-[70px] p-1 rounded text-center" title="TTC">
+                          <div className="text-xs font-bold text-gray-900 dark:text-white text-center">{articleTotals.montantTTC}</div>
+                        </div>
+                        
+                        {/* Action Buttons */}
+                        <div className="flex gap-1">
+                          <button
+                            type="button"
+                            onClick={() => clearAndRemoveArticle(index)}
+                            className="px-2 py-1 bg-red-100 dark:bg-red-900/50 border border-gray-300 dark:border-gray-600 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 text-xs rounded"
+                            title="Supprimer"
+                          >
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={addArticle}
+                            className="px-2 py-1 bg-green-100 dark:bg-green-900/50 border border-gray-300 dark:border-gray-600 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800 text-xs rounded"
+                            title="Ajouter"
+                          >
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                          </button>
                         </div>
                       </div>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-            
-            {/* Empty State */}
-            {formData.articles.length === 0 && (
-              <div className="text-center py-6">
-                <svg className="mx-auto h-10 w-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">Aucun article</h3>
-                <div className="mt-3">
-                  <button
-                    type="button"
-                    onClick={addArticle}
-                    className="inline-flex items-center px-2.5 py-1 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary-500"
-                  >
-                    <svg className="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                    Ajouter
-                  </button>
                 </div>
-              </div>
-            )}
+              );
+            })}
           </div>
           
-          {/* Totaux en bas à droite */}
-          {formData.articles.length > 0 && (
-            <div className="mt-3 flex justify-end">
-              <div className="w-80 border-2 border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-800 shadow-md">
-                <div className="space-y-1">
-                  <div className="bg-gray-50 dark:bg-gray-700 p-2 rounded-md flex justify-between items-center">
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Total HT</span>
-                    <span className="text-base font-bold text-gray-900 dark:text-white">{totals.totalHT} DZD</span>
-                  </div>
-                  <div className="bg-gray-50 dark:bg-gray-700 p-2 rounded-md flex justify-between items-center">
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Total TVA</span>
-                    <span className="text-base font-bold text-gray-900 dark:text-white">{totals.totalTVA} DZD</span>
-                  </div>
-                  <div className="bg-gradient-to-r from-primary-500 to-secondary-500 p-2 rounded-md flex justify-between items-center">
-                    <span className="text-sm font-medium text-white">Total TTC</span>
-                    <span className="text-lg font-bold text-white">{totals.totalTTC} DZD</span>
-                  </div>
-                </div>
+          {/* Empty State */}
+          {formData.articles.length === 0 && (
+            <div className="text-center py-6">
+              <svg className="mx-auto h-10 w-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+              <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">Aucun article</h3>
+              <div className="mt-3">
+                <button
+                  type="button"
+                  onClick={addArticle}
+                  className="inline-flex items-center px-2.5 py-1 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary-500"
+                >
+                  <svg className="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Ajouter
+                </button>
               </div>
             </div>
           )}
         </div>
+        
+        {/* Totaux en bas à droite */}
+        {formData.articles.length > 0 && (
+          <div className="mt-3 flex justify-end">
+            <div className="w-80 border-2 border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-800 shadow-md">
+              <div className="space-y-1">
+                <div className="bg-gray-50 dark:bg-gray-700 p-2 rounded-md flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Total HT</span>
+                  <span className="text-base font-bold text-gray-900 dark:text-white">{totals.totalHT} DZD</span>
+                </div>
+                <div className="bg-gray-50 dark:bg-gray-700 p-2 rounded-md flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Total TVA</span>
+                  <span className="text-base font-bold text-gray-900 dark:text-white">{totals.totalTVA} DZD</span>
+                </div>
+                <div className="bg-gradient-to-r from-primary-500 to-secondary-500 p-2 rounded-md flex justify-between items-center">
+                  <span className="text-sm font-medium text-white">Total TTC</span>
+                  <span className="text-lg font-bold text-white">{totals.totalTTC} DZD</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Form Actions */}
         <div className="flex justify-end space-x-3">
