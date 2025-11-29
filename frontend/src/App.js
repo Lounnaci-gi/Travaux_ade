@@ -106,7 +106,7 @@ function App() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary-500"></div>
+        <div className="loading-spinner"></div>
       </div>
     );
   }
@@ -187,6 +187,20 @@ function App() {
         <main className="pt-16">
           {renderView()}
         </main>
+        
+        {/* Footer */}
+        <footer className="app-footer">
+          <div className="footer-content">
+            <div className="footer-links">
+              <a href="#" className="footer-link hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Documentation</a>
+              <a href="#" className="footer-link hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Support</a>
+              <a href="#" className="footer-link hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Contact</a>
+            </div>
+            <div className="footer-copyright">
+              &copy; {new Date().getFullYear()} AquaConnect. Tous droits réservés.
+            </div>
+          </div>
+        </footer>
       </div>
     </ThemeProvider>
   );

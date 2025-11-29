@@ -25,7 +25,7 @@ const TravauxCard = ({ travail, onClick }) => {
   return (
     <div
       onClick={onClick}
-      className="solid-card cursor-pointer transform transition-all duration-300 hover:-translate-y-1 group"
+      className="obat-card cursor-pointer transform transition-all duration-300 hover:-translate-y-1 group"
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">

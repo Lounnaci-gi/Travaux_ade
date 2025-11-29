@@ -101,23 +101,23 @@ const Login = ({ onLogin }) => {
     <div className="min-h-screen flex items-center justify-center p-4 relative">
       {lockTimer && lockTimer.remainingMs > 0 && (
         <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity">
-          <div className="solid-card max-w-sm w-full mx-auto p-6 text-center space-y-4 animate-fadeIn shadow-2xl">
+          <div className="solid-card max-w-xs w-full mx-auto p-5 text-center space-y-3 animate-fadeIn shadow-2xl">
             <div className="flex justify-center">
-              <div className="p-3 rounded-2xl bg-gradient-to-br from-red-500 via-purple-500 to-primary-500 shadow-lg shadow-red-500/30">
-                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-2.5 rounded-xl bg-gradient-to-br from-red-500 via-purple-500 to-primary-500 shadow-lg shadow-red-500/30">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
             </div>
-            <div className="space-y-2">
-              <h2 className="text-2xl font-semibold text-white">Connexion temporairement verrouillée</h2>
-              <p className="text-sm text-gray-200/90">
+            <div className="space-y-1.5">
+              <h2 className="text-lg font-semibold text-white">Connexion temporairement verrouillée</h2>
+              <p className="text-xs text-gray-200/90">
                 Trop de tentatives infructueuses ont été détectées. Veuillez patienter avant de réessayer.
               </p>
             </div>
-            <div className="mt-4">
-              <p className="text-sm uppercase tracking-widest text-gray-300">Temps restant</p>
-              <div className="mt-2 text-5xl font-bold text-white tabular-nums">{formatRemainingTime(lockTimer.remainingMs)}</div>
+            <div className="mt-3">
+              <p className="text-xs uppercase tracking-widest text-gray-300">Temps restant</p>
+              <div className="mt-1.5 text-3xl font-bold text-white tabular-nums">{formatRemainingTime(lockTimer.remainingMs)}</div>
             </div>
           </div>
         </div>
@@ -126,16 +126,16 @@ const Login = ({ onLogin }) => {
       {/* Theme Toggle Button */}
       <button
         onClick={toggleTheme}
-        className="absolute top-4 right-4 p-2 rounded-lg solid-effect hover:bg-white/10 dark:hover:bg-white/10 dark:text-gray-300 dark:hover:text-white text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-all duration-300 group"
+        className="absolute top-3 right-3 p-1.5 rounded-lg solid-effect hover:bg-white/10 dark:hover:bg-white/10 dark:text-gray-300 dark:hover:text-white text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-all duration-300 group"
         title={isDark ? 'Activer le mode clair' : 'Activer le mode sombre'}
         aria-label="Toggle theme"
       >
         {isDark ? (
-          <svg className="w-6 h-6 transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
           </svg>
         ) : (
-          <svg className="w-6 h-6 transition-transform duration-300 group-hover:-rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 transition-transform duration-300 group-hover:-rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
           </svg>
         )}
@@ -149,33 +149,33 @@ const Login = ({ onLogin }) => {
       </div>
 
       {/* Login Card */}
-      <div className="relative w-full max-w-sm mx-auto">
-        <div className="solid-card p-6 space-y-5">
+      <div className="relative w-full max-w-xs mx-auto">
+        <div className="glass-card p-5 space-y-4">
           {/* Logo and Title */}
-          <div className="text-center space-y-4">
+          <div className="text-center space-y-3">
             <div className="flex justify-center">
-              <div className="p-2 rounded-xl">
-                <img src="/ade.png" alt="ADE Logo" className="w-12 h-12 object-contain" />
+              <div className="p-1.5 rounded-lg bg-gradient-to-br from-primary-500/20 to-secondary-500/20 border border-primary-500/30">
+                <img src="/ade.png" alt="ADE Logo" className="w-10 h-10 object-contain" />
               </div>
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gradient">
+              <h1 className="text-xl font-bold text-gradient">
                 AquaConnect
               </h1>
-              <p className="dark:text-gray-400 text-gray-600 mt-1 text-sm">Système de Gestion des Branchements</p>
+              <p className="dark:text-gray-400 text-gray-600 mt-1 text-xs">Système de Gestion des Branchements</p>
             </div>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3">
             {/* Email Input */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
+            <div className="form-group">
+              <label htmlFor="email" className="form-label text-xs">
                 Utilisateur
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="w-5 h-5 dark:text-gray-400 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+                  <svg className="w-4 h-4 dark:text-gray-400 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </div>
@@ -186,21 +186,20 @@ const Login = ({ onLogin }) => {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  //className="input-field pl-10 pr-4 py-3"
-                  className="w-full pl-10 pr-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                  className="form-control pl-8 pr-3 py-2 text-sm"
                   placeholder="Identifiant utilisateur"
                 />
               </div>
             </div>
 
             {/* Password Input */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
+            <div className="form-group">
+              <label htmlFor="password" className="form-label text-xs">
                 Mot de passe
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 dark:text-gray-400 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+                  <svg className="h-4 w-4 dark:text-gray-400 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                 </div>
@@ -211,20 +210,20 @@ const Login = ({ onLogin }) => {
                   value={formData.password}
                   onChange={handleChange}
                   required
-                  className="w-full pl-10 pr-4 py-3 rounded-lg dark:bg-slate-700/50 bg-white border dark:border-slate-600/50 border-gray-300 dark:text-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                  className="form-control pl-8 pr-3 py-2 text-sm"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center dark:text-gray-400 text-gray-500 dark:hover:text-white hover:text-gray-900 transition-colors"
+                  className="absolute inset-y-0 right-0 pr-2.5 flex items-center dark:text-gray-400 text-gray-500 dark:hover:text-white hover:text-gray-900 transition-colors"
                 >
                   {showPassword ? (
-                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.29 3.29m0 0a9.984 9.984 0 015.698-2.611m-5.698 2.611L12 12m-5.71-5.71L12 12m0 0l3.29 3.29M12 12l3.29-3.29m0 0a9.984 9.984 0 012.611-5.698m-2.611 5.698L12 12" />
                     </svg>
                   ) : (
-                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                     </svg>
@@ -235,8 +234,8 @@ const Login = ({ onLogin }) => {
 
             {/* Error Message */}
             {error && (
-              <div className="p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-300 text-sm flex items-center gap-2">
-                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-2.5 rounded-lg bg-red-500/20 border border-red-500/50 text-red-300 text-xs flex items-center gap-1.5">
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 {error}
@@ -247,11 +246,11 @@ const Login = ({ onLogin }) => {
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full py-2 px-4 flex items-center justify-center gap-2"
+              className="btn btn-primary w-full flex items-center justify-center gap-1.5 text-sm py-2"
             >
               {loading ? (
                 <>
-                  <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                  <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
@@ -260,7 +259,7 @@ const Login = ({ onLogin }) => {
               ) : (
                 <>
                   Se connecter
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
                 </>
@@ -269,7 +268,7 @@ const Login = ({ onLogin }) => {
           </form>
 
           {/* Footer */}
-          <div className="text-center text-sm dark:text-gray-400 text-gray-600 pt-4 border-t dark:border-white/10 border-gray-200/50">
+          <div className="text-center text-xs dark:text-gray-400 text-gray-600 pt-3 border-t dark:border-white/10 border-gray-200/50">
             <p>© 2025 AquaConnect - Tous droits réservés</p>
           </div>
         </div>

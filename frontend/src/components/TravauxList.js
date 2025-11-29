@@ -48,40 +48,44 @@ const TravauxList = () => {
   }
 
   return (
-    <div className="min-h-screen p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="app-main">
+      <div className="container-obat">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2 text-gradient">
+        <div className="section-header mb-8">
+          <h1 className="section-title text-gradient">
             Suivi des Travaux
           </h1>
-          <p className="dark:text-gray-400 text-gray-600">Gestion des ordres d'exécution AquaConnect</p>
+          <p className="section-subtitle">Gestion des ordres d'exécution AquaConnect</p>
         </div>
 
         {/* Filters */}
         <div className="solid-card mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
-              <input
-                type="text"
-                placeholder="Rechercher par numéro, client ou demande..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg dark:bg-slate-700 bg-white border dark:border-slate-600 border-gray-300 dark:text-white text-gray-900 dark:placeholder-gray-400 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-transparent transition-all"
-              />
+              <div className="form-group mb-0">
+                <input
+                  type="text"
+                  placeholder="Rechercher par numéro, client ou demande..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="form-control"
+                />
+              </div>
             </div>
             <div>
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="select-field px-4 py-3"
-              >
-                <option value="all">Tous les statuts</option>
-                <option value="EMIS">Émis</option>
-                <option value="EN_COURS">En cours</option>
-                <option value="TERMINE">Terminé</option>
-                <option value="ANNULE">Annulé</option>
-              </select>
+              <div className="form-group mb-0">
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="form-select"
+                >
+                  <option value="all">Tous les statuts</option>
+                  <option value="EMIS">Émis</option>
+                  <option value="EN_COURS">En cours</option>
+                  <option value="TERMINE">Terminé</option>
+                  <option value="ANNULE">Annulé</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
@@ -89,7 +93,7 @@ const TravauxList = () => {
         {/* Loading */}
         {loading ? (
           <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary-600"></div>
+            <div className="loading-spinner"></div>
           </div>
         ) : (
           <>
@@ -101,7 +105,12 @@ const TravauxList = () => {
             {/* Travaux Grid */}
             {filteredTravaux.length === 0 ? (
               <div className="solid-card p-12 text-center">
-                <p className="dark:text-gray-400 text-gray-600 text-lg">Aucun travail trouvé</p>
+                <div className="flex flex-col items-center justify-center space-y-4">
+                  <svg className="w-16 h-16 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                  <p className="dark:text-gray-400 text-gray-600 text-lg">Aucun travail trouvé</p>
+                </div>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

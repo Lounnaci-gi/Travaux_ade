@@ -2280,8 +2280,9 @@ app.get('/api/utilisateurs', verifyToken, async (req, res) => {
     const result = await request.query(query);
     res.json(result.recordset);
   } catch (error) {
+    console.error('Error retrieving utilisateurs:', error);
     // Error retrieving utilisateurs
-    res.status(500).json({ error: 'Erreur serveur' });
+    res.status(500).json({ error: 'Erreur serveur: ' + error.message });
   }
 });
 

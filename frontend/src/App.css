@@ -2,37 +2,214 @@
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+/* Main application wrapper */
+.app-wrapper {
+  @apply min-h-screen bg-gray-50 dark:bg-slate-900 transition-colors duration-300;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
+/* Header styles */
+.app-header {
+  @apply bg-white dark:bg-slate-800 shadow-sm dark:shadow-slate-700/50 sticky top-0 z-10;
+}
+
+.app-header-inner {
+  @apply container-obat py-4 flex items-center justify-between;
+}
+
+/* Navigation styles */
+.app-nav {
+  @apply flex space-x-1;
+}
+
+.nav-item {
+  @apply px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors font-medium;
+}
+
+.nav-item.active {
+  @apply bg-primary-100 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300;
+}
+
+/* Main content */
+.app-main {
+  @apply container-obat py-8;
+}
+
+/* Footer styles */
+.app-footer {
+  @apply bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 py-6 mt-12;
+}
+
+.footer-content {
+  @apply container-obat flex flex-col md:flex-row justify-between items-center;
+}
+
+.footer-links {
+  @apply flex space-x-6 mb-4 md:mb-0;
+}
+
+.footer-link {
+  @apply text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors;
+}
+
+.footer-copyright {
+  @apply text-gray-500 dark:text-gray-500 text-sm;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .app-header-inner {
+    @apply px-4;
+  }
+  
+  .app-main {
+    @apply px-4;
+  }
+  
+  .footer-content {
+    @apply px-4 flex-col text-center;
+  }
+  
+  .footer-links {
+    @apply mb-4 justify-center;
   }
 }
 
-.App-header {
-  background-color: #0c4a6e;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+/* Loading spinner */
+.loading-spinner {
+  @apply animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600 mx-auto;
 }
 
-.App-link {
-  color: #0ea5e9;
+/* Error display */
+.error-display {
+  @apply p-4 rounded-lg bg-red-50 border border-red-200 text-red-800 dark:bg-red-900/30 dark:border-red-800 dark:text-red-200 mb-6;
 }
 
-@keyframes App-logo-spin {
+/* Success display */
+.success-display {
+  @apply p-4 rounded-lg bg-green-50 border border-green-200 text-green-800 dark:bg-green-900/30 dark:border-green-800 dark:text-green-200 mb-6;
+}
+
+/* Logo styles */
+.app-logo {
+  @apply h-10 w-auto;
+}
+
+.app-logo-container {
+  @apply flex items-center;
+}
+
+.app-logo-text {
+  @apply ml-3 text-xl font-bold text-gray-900 dark:text-white;
+}
+
+/* Link styles */
+.app-link {
+  @apply text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300 transition-colors;
+}
+
+/* OBAT-style cards */
+.obat-card {
+  @apply solid-card transition-all duration-300 hover:shadow-md;
+}
+
+.obat-card-primary {
+  @apply obat-card border-l-4 border-primary-500;
+}
+
+.obat-card-success {
+  @apply obat-card border-l-4 border-green-500;
+}
+
+.obat-card-warning {
+  @apply obat-card border-l-4 border-amber-500;
+}
+
+.obat-card-error {
+  @apply obat-card border-l-4 border-red-500;
+}
+
+/* OBAT-style tables */
+table.obat-table {
+  @apply w-full;
+}
+
+table.obat-table th {
+  @apply py-3 px-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-slate-800/50 border-b border-gray-200 dark:border-slate-700;
+}
+
+table.obat-table td {
+  @apply py-3 px-4 text-sm text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-slate-800;
+}
+
+table.obat-table tr:last-child td {
+  @apply border-b-0;
+}
+
+table.obat-table tr:hover td {
+  @apply bg-gray-50 dark:bg-slate-800/30;
+}
+
+/* Form elements */
+.form-group {
+  @apply mb-4;
+}
+
+.form-label {
+  @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2;
+}
+
+.form-control {
+  @apply w-full rounded-lg border border-gray-300 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all;
+  padding: 0.625rem 1rem;
+}
+
+.dark .form-control {
+  @apply bg-slate-700 border-slate-600 text-white;
+}
+
+.form-control:focus {
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2);
+}
+
+.form-select {
+  @apply form-control appearance-none bg-no-repeat;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+}
+
+.dark .form-select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+}
+
+/* Animations */
+@keyframes spin-slow {
   from {
     transform: rotate(0deg);
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fade-in-up 0.5s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .app-logo-animated {
+    animation: spin-slow 20s linear infinite;
   }
 }

@@ -1,9 +1,19 @@
 import React from 'react';
 
 const StatsCard = ({ title, value, icon, color, delay = 0 }) => {
+  // Determine card type based on color
+  const getCardClass = () => {
+    if (color.includes('primary')) return 'obat-card-primary';
+    if (color.includes('green')) return 'obat-card-success';
+    if (color.includes('yellow')) return 'obat-card-warning';
+    if (color.includes('purple')) return 'obat-card';
+    if (color.includes('red')) return 'obat-card-error';
+    return 'obat-card';
+  };
+  
   return (
     <div
-      className="solid-card transform transition-all duration-500 hover:-translate-y-1"
+      className={`${getCardClass()} hover-lift hover-shadow transition-all duration-300`}
       style={{ animationDelay: `${delay}ms` }}
     >
       <div className="flex items-center justify-between mb-4">
