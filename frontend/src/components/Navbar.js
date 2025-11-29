@@ -31,6 +31,7 @@ const formatUserDisplayName = (user) => {
 
 const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
   const isChefCentre = !!(user && user.codeRole && (user.codeRole.toLowerCase().includes('chef') && user.codeRole.toLowerCase().includes('centre')));
+  // eslint-disable-next-line no-unused-vars
   const userDisplayName = formatUserDisplayName(user);
   const { toggleTheme, isDark } = useTheme();
   const [openMenu, setOpenMenu] = useState(null);

@@ -192,9 +192,9 @@ function App() {
         <footer className="app-footer">
           <div className="footer-content">
             <div className="footer-links">
-              <a href="#" className="footer-link hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Documentation</a>
-              <a href="#" className="footer-link hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Support</a>
-              <a href="#" className="footer-link hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Contact</a>
+              <a href="/documentation" className="footer-link hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Documentation</a>
+              <a href="/support" className="footer-link hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Support</a>
+              <a href="/contact" className="footer-link hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Contact</a>
             </div>
             <div className="footer-copyright">
               &copy; {new Date().getFullYear()} AquaConnect. Tous droits réservés.
