@@ -495,6 +495,14 @@ const DevisForm = ({ user }) => {
       }
     }
     
+    // Check for duplicate articles in the same quote
+    const articleIds = formData.articles.map(article => article.idArticle);
+    const uniqueArticleIds = [...new Set(articleIds)];
+    if (articleIds.length !== uniqueArticleIds.length) {
+      setError('Un même article ne peut pas être ajouté plusieurs fois dans un devis. Veuillez supprimer les doublons.');
+      return;
+    }
+    
     try {
       setLoading(true);
       const devisData = {
@@ -775,8 +783,18 @@ const DevisForm = ({ user }) => {
             <div className="space-y-2 w-full">
               {formData.articles.map((article, index) => {
                 const articleTotals = calculateArticleTotals(article);
+                // Check if this article is a duplicate
+                const isDuplicate = formData.articles.filter(a => a.idArticle === article.idArticle).length > 1 && article.idArticle;
                 return (
-                  <div key={index} className="glass-card p-2 rounded-md w-full">
+                  <div key={index} className={`glass-card p-2 rounded-md w-full ${isDuplicate ? 'border-2 border-red-500 bg-red-50 dark:bg-red-900/20' : ''}`}>
+                    {isDuplicate && (
+                      <div className="text-red-600 dark:text-red-400 text-xs font-medium mb-1 flex items-center">
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        Article en double - veuillez le supprimer
+                      </div>
+                    )}
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 w-full">
                       {/* Article Search - Reduced width */}
                       <div className="lg:col-span-5 relative" ref={el => articleDropdownRefs.current[index] = el}>
@@ -919,13 +937,13 @@ const DevisForm = ({ user }) => {
                         <div className="flex flex-wrap gap-1 items-start">
                           {/* Type de Prix */}
                           <div className="flex-1 min-w-[70px]">
-                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 text-center">
                               Type
                             </label>
                             <select
                               value={article.typePrix || 'FOURNITURE'}
                               onChange={(e) => handleArticleChange(index, 'typePrix', e.target.value)}
-                              className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                              className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-center"
                             >
                               <option value="FOURNITURE">F</option>
                               <option value="POSE">P</option>
@@ -935,7 +953,7 @@ const DevisForm = ({ user }) => {
                           
                           {/* Quantité */}
                           <div className="flex-1 min-w-[70px]">
-                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 text-center">
                               Qté
                             </label>
                             <div className="relative">
@@ -945,7 +963,7 @@ const DevisForm = ({ user }) => {
                                 min="0"
                                 value={article.quantite}
                                 onChange={(e) => handleArticleChange(index, 'quantite', e.target.value)}
-                                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-center"
                               />
                               {article.unite && (
                                 <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-gray-500 dark:text-gray-400 text-xs">
@@ -957,7 +975,7 @@ const DevisForm = ({ user }) => {
                           
                           {/* Prix Unitaire */}
                           <div className="flex-1 min-w-[70px]">
-                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 text-center">
                               Prix HT
                             </label>
                             <div className="relative">
@@ -967,7 +985,7 @@ const DevisForm = ({ user }) => {
                                 min="0"
                                 value={article.prixUnitaireHT}
                                 onChange={(e) => handleArticleChange(index, 'prixUnitaireHT', e.target.value)}
-                                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-center"
                               />
                               <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-gray-500 dark:text-gray-400 text-xs">
                                 DZD
@@ -977,7 +995,7 @@ const DevisForm = ({ user }) => {
                           
                           {/* TVA */}
                           <div className="flex-1 min-w-[70px]">
-                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 text-center">
                               TVA
                             </label>
                             <div className="relative">
@@ -988,7 +1006,7 @@ const DevisForm = ({ user }) => {
                                 max="100"
                                 value={article.tauxTVAApplique}
                                 onChange={(e) => handleArticleChange(index, 'tauxTVAApplique', e.target.value)}
-                                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-center"
                               />
                               <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-gray-500 dark:text-gray-400 text-xs">
                                 %
@@ -997,21 +1015,21 @@ const DevisForm = ({ user }) => {
                           </div>
                           
                           {/* HT Total */}
-                          <div className="flex-1 min-w-[70px] bg-gray-50 dark:bg-gray-700 p-1 rounded text-center">
-                            <div className="text-xs text-gray-500 dark:text-gray-400">HT</div>
-                            <div className="text-xs font-semibold text-gray-900 dark:text-white">{articleTotals.montantHT}</div>
+                          <div className="flex-1 min-w-[70px] p-1 rounded text-center">
+                            <div className="text-xs text-gray-500 dark:text-gray-400 text-center">HT</div>
+                            <div className="text-xs font-semibold text-gray-900 dark:text-white text-center">{articleTotals.montantHT}</div>
                           </div>
                           
                           {/* TVA Total */}
-                          <div className="flex-1 min-w-[70px] bg-gray-50 dark:bg-gray-700 p-1 rounded text-center">
-                            <div className="text-xs text-gray-500 dark:text-gray-400">TVA</div>
-                            <div className="text-xs font-semibold text-gray-900 dark:text-white">{articleTotals.montantTVA}</div>
+                          <div className="flex-1 min-w-[70px] p-1 rounded text-center">
+                            <div className="text-xs text-gray-500 dark:text-gray-400 text-center">TVA</div>
+                            <div className="text-xs font-semibold text-gray-900 dark:text-white text-center">{articleTotals.montantTVA}</div>
                           </div>
                           
                           {/* TTC */}
                           <div className="flex-1 min-w-[70px] p-1 rounded text-center">
-                            <div className="text-xs text-primary-500">TTC</div>
-                            <div className="text-xs font-bold text-gray-900 dark:text-white">{articleTotals.montantTTC}</div>
+                            <div className="text-xs text-primary-500 text-center">TTC</div>
+                            <div className="text-xs font-bold text-gray-900 dark:text-white text-center">{articleTotals.montantTTC}</div>
                           </div>
                           
                           {/* Action Buttons */}

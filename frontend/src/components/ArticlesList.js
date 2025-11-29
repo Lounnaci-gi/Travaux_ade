@@ -988,7 +988,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
                 {/* Prix HT Fourniture */}
                 <div>
-                  <label className="block text-xs font-medium dark:text-gray-400 text-gray-600 mb-1">
+                  <label className="block text-xs font-medium dark:text-gray-400 text-gray-600 mb-1 text-center">
                     Prix HT Fourniture
                   </label>
                   <input
@@ -998,13 +998,13 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     value={form.PrixFournitureHT}
                     onChange={handleChange}
                     placeholder="0.00"
-                    className="w-full px-2 py-1.5 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
+                    className="w-full px-2 py-1.5 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all text-center"
                   />
                 </div>
                 
                 {/* Prix HT Pose */}
                 <div>
-                  <label className="block text-xs font-medium dark:text-gray-400 text-gray-600 mb-1">
+                  <label className="block text-xs font-medium dark:text-gray-400 text-gray-600 mb-1 text-center">
                     Prix HT Pose
                   </label>
                   <input
@@ -1014,13 +1014,13 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     value={form.PrixPoseHT}
                     onChange={handleChange}
                     placeholder="0.00"
-                    className="w-full px-2 py-1.5 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
+                    className="w-full px-2 py-1.5 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all text-center"
                   />
                 </div>
                 
                 {/* Date Début Application */}
                 <div>
-                  <label className="block text-xs font-medium dark:text-gray-400 text-gray-600 mb-1">
+                  <label className="block text-xs font-medium dark:text-gray-400 text-gray-600 mb-1 text-center">
                     Date Début Application
                   </label>
                   <input
@@ -1028,16 +1028,16 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     name="DateDebutApplication"
                     value={form.DateDebutApplication}
                     onChange={handleChange}
-                    className="w-full px-2 py-1.5 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
+                    className="w-full px-2 py-1.5 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all text-center"
                   />
                 </div>
                 
                 {/* Taux TVA */}
                 <div>
-                  <label className="block text-xs font-medium dark:text-gray-400 text-gray-600 mb-1">
+                  <label className="block text-xs font-medium dark:text-gray-400 text-gray-600 mb-1 text-center">
                     Taux TVA utilisé
                   </label>
-                  <div className="w-full px-2 py-1.5 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 flex items-center">
+                  <div className="w-full px-2 py-1.5 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 flex items-center justify-center">
                     <span className="font-bold text-primary-500">{globalTVA}%</span>
                   </div>
                 </div>
@@ -1256,19 +1256,19 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                         <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">
                           <div className="space-y-1">
                             {article.PrixFournitureHT != null && (
-                              <div className="flex items-center">
+                              <div className="flex items-center justify-center">
                                 <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">F:</span>
                                 <span className="font-semibold">{parseFloat(article.PrixFournitureHT).toFixed(2)}</span>
                               </div>
                             )}
                             {article.PrixPoseHT != null && (
-                              <div className="flex items-center">
+                              <div className="flex items-center justify-center">
                                 <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">P:</span>
                                 <span className="font-semibold">{parseFloat(article.PrixPoseHT).toFixed(2)}</span>
                               </div>
                             )}
                             {article.PrixFournitureHT == null && article.PrixPoseHT == null && (
-                              <span className="text-gray-400">—</span>
+                              <span className="text-gray-400 flex justify-center">—</span>
                             )}
                           </div>
                         </td>
