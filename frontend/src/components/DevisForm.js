@@ -594,7 +594,7 @@ const DevisForm = ({ user }) => {
         <div className="w-80 space-y-3">
           {/* Numéro de Demande */}
           <div className="relative" ref={dropdownRef}>
-            <label htmlFor="idDemande" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="idDemande" className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">
               Numéro de Demande *
             </label>
             <div className="relative">
@@ -640,33 +640,38 @@ const DevisForm = ({ user }) => {
             </div>
           </div>
           
-          {/* Client - Affiché après sélection de la demande */}
+          {/* Client Information Container - Bordered and Distinct */}
           {demande && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Client
-              </label>
-              <p className="text-gray-900 dark:text-white">
-                {demande.ClientNom} {demande.ClientPrenom}
-              </p>
-            </div>
-          )}
-          
-          {/* Type de Demande - Affiché après sélection de la demande */}
-          {demande && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Type de Demande
-              </label>
-              <p className="text-gray-900 dark:text-white">
-                {demande.TypeDemande}
-              </p>
+            <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-white dark:bg-gray-800 shadow-sm">
+              <h3 className="text-base font-bold text-gray-800 dark:text-gray-200 mb-3 pb-2 border-b border-gray-200 dark:border-gray-700">
+                Informations Client
+              </h3>
+              
+              {/* Client */}
+              <div className="mb-3">
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
+                  Client
+                </label>
+                <p className="text-gray-900 dark:text-white font-medium">
+                  {demande.ClientNom} {demande.ClientPrenom}
+                </p>
+              </div>
+              
+              {/* Type de Demande */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
+                  Type de Demande
+                </label>
+                <p className="text-gray-900 dark:text-white font-medium">
+                  {demande.TypeDemande}
+                </p>
+              </div>
             </div>
           )}
           
           {/* Type de Devis */}
           <div>
-            <label htmlFor="idTypeDevis" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="idTypeDevis" className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">
               Type de Devis *
             </label>
             <select
@@ -1118,23 +1123,34 @@ const DevisForm = ({ user }) => {
           >
             Annuler
           </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
-          >
-            {loading ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Création en cours...
-              </>
-            ) : (
-              'Créer le Devis'
+          <div className="relative group">
+            <button
+              type="submit"
+              disabled={loading || !formData.idDemande}
+              className={`px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${
+                !formData.idDemande 
+                  ? 'bg-gray-400 cursor-not-allowed' 
+                  : 'bg-primary-600 hover:bg-primary-700'
+              } ${loading ? 'disabled:opacity-50' : ''}`}
+            >
+              {loading ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Création en cours...
+                </>
+              ) : (
+                'Créer le Devis'
+              )}
+            </button>
+            {!formData.idDemande && (
+              <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 z-10">
+                Veuillez sélectionner une demande
+              </div>
             )}
-          </button>
+          </div>
         </div>
       </form>
     </div>
