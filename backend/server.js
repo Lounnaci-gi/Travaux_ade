@@ -3478,12 +3478,19 @@ app.get('/api/demandes', verifyToken, async (req, res) => {
         c.Nom as ClientNom,
         c.Prenom as ClientPrenom,
         c.TelephonePrincipal as ClientTelephone,
+        c.Email as ClientEmail,
+        c.AdresseResidence,
+        c.CommuneResidence,
+        c.AdresseBranchement,
+        c.CommuneBranchement,
+        ct.LibelleType as TypeClient,
         u.Nom + ' ' + ISNULL(u.Prenom, '') as Createur
       FROM DemandeTravaux d
       INNER JOIN DemandeStatut s ON d.IdStatut = s.IdStatut
       INNER JOIN DemandeType dt ON d.IdDemandeType = dt.IdDemandeType
       INNER JOIN AgenceCommerciale a ON d.IdAgence = a.IdAgence
       INNER JOIN Client c ON d.IdClient = c.IdClient
+      LEFT JOIN ClientType ct ON c.IdClientType = ct.IdClientType
       INNER JOIN Utilisateur u ON d.IdUtilisateurCreation = u.IdUtilisateur
       ${whereClause}
       ORDER BY d.DateDemande DESC
@@ -4163,6 +4170,67 @@ app.get('/api/devis/:id', verifyToken, async (req, res) => {
 // ============================================================================
 // DEVIS
 // ============================================================================
+
+// Endpoint to get the next devis number for a given demande
+app.get('/api/devis/next-number/:idDemande', verifyToken, async (req, res) => {
+  try {
+    const idDemande = parseInt(req.params.idDemande);
+    if (!idDemande) {
+      return res.status(400).json({ error: 'IdDemande invalide' });
+    }
+
+    const request = pool.request();
+    
+    // Get demande information including agence
+    const demandeResult = await request
+      .input('idDemande', sql.Int, idDemande)
+      .query(`
+        SELECT d.IdAgence, a.CodeAgence
+        FROM DemandeTravaux d
+        INNER JOIN AgenceCommerciale a ON d.IdAgence = a.IdAgence
+        WHERE d.IdDemande = @idDemande AND d.Actif = 1
+      `);
+    
+    if (demandeResult.recordset.length === 0) {
+      return res.status(404).json({ error: 'Demande introuvable ou inactive' });
+    }
+    
+    const demande = demandeResult.recordset[0];
+    const agencePrefix = demande.CodeAgence;
+    const currentYear = new Date().getFullYear();
+    
+    // Find the next sequential number for this year and agence
+    const maxNumberResult = await request
+      .input('agencePrefix', sql.NVarChar, agencePrefix)
+      .input('currentYear', sql.Int, currentYear)
+      .query(`
+        SELECT ISNULL(MAX(
+          CASE 
+            WHEN NumeroDevis LIKE 'Dev-%/' + @agencePrefix + '/' + CAST(@currentYear AS NVARCHAR(4))
+              AND LEN(NumeroDevis) >= 5
+              AND CHARINDEX('/', NumeroDevis) > 4
+              AND SUBSTRING(NumeroDevis, 1, 4) = 'Dev-'
+              AND ISNUMERIC(SUBSTRING(NumeroDevis, 5, CHARINDEX('/', NumeroDevis) - 5)) = 1
+            THEN CAST(SUBSTRING(NumeroDevis, 5, CHARINDEX('/', NumeroDevis) - 5) AS INT)
+            ELSE 0
+          END
+        ), 0) as MaxNum
+        FROM Devis
+        WHERE NumeroDevis LIKE 'Dev-%/' + @agencePrefix + '/' + CAST(@currentYear AS NVARCHAR(4))
+      `);
+    
+    const nextNumber = maxNumberResult.recordset[0].MaxNum + 1;
+    const formattedNumber = String(nextNumber).padStart(4, '0');
+    
+    // Format: Dev-XXXX/prefix/yyyy (as requested by the user)
+    const nextDevisNumber = `Dev-${formattedNumber}/${agencePrefix}/${currentYear}`;
+    
+    res.json({ nextDevisNumber });
+  } catch (error) {
+    // Error generating next devis number
+    res.status(500).json({ error: 'Erreur serveur lors de la génération du numéro de devis' });
+  }
+});
 
 // Créer un nouveau devis
 app.post('/api/devis', verifyToken, async (req, res) => {

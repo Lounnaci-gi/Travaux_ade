@@ -983,15 +983,31 @@ const DemandeForm = ({ user, onCreated }) => {
                         </div>
                         <div>
                           <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">N° pièce d'identité</label>
-                          <input className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.numeroPieceIdentite} onChange={(e)=>setClientForm((p)=>({...p, numeroPieceIdentite:e.target.value}))} />
+                          <input 
+                            className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" 
+                            value={clientForm.numeroPieceIdentite} 
+                            onChange={(e)=>setClientForm((p)=>({...p, numeroPieceIdentite:e.target.value}))} 
+                            maxLength={18}
+                            placeholder="Entrez le numéro de pièce d'identité (max 18 caractères)"
+                          />
                         </div>
                         <div>
                           <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Délivrée par</label>
-                          <input className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.pieceDelivrePar} onChange={(e)=>setClientForm((p)=>({...p, pieceDelivrePar:e.target.value}))} />
+                          <input 
+                            className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" 
+                            value={clientForm.pieceDelivrePar} 
+                            onChange={(e)=>setClientForm((p)=>({...p, pieceDelivrePar:e.target.value}))} 
+                            placeholder="Organisme émetteur"
+                          />
                         </div>
                         <div>
                           <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Date de délivrance</label>
-                          <input type="date" className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.dateDelivrancePiece} onChange={(e)=>setClientForm((p)=>({...p, dateDelivrancePiece:e.target.value}))} />
+                          <input 
+                            type="date" 
+                            className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all" 
+                            value={clientForm.dateDelivrancePiece} 
+                            onChange={(e)=>setClientForm((p)=>({...p, dateDelivrancePiece:e.target.value}))} 
+                          />
                         </div>
                         {isBranchementType() && (
                           <div>

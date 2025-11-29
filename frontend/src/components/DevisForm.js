@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getDemandes, getDevisTypes, getArticles, getFamilles, createDevis, getTVADefault } from '../services/api';
+import { getDemandes, getDevisTypes, getArticles, getFamilles, createDevis, getTVADefault, getAgenceById, getNextDevisNumber } from '../services/api';
 import { alertSuccess, alertError } from '../ui/alerts';
 import { formatNumberWithThousands } from '../utils/numberFormat';
 
@@ -36,6 +36,7 @@ const DevisForm = ({ user }) => {
   const [filteredDemandes, setFilteredDemandes] = useState([]);
   const [showDemandeDropdown, setShowDemandeDropdown] = useState(false);
   const [showDescription, setShowDescription] = useState(false);
+  const [devisCode, setDevisCode] = useState(''); // New state for devis code
   const dropdownRef = useRef(null);
 
   // Load global TVA rate from ConfigurationGlobale
@@ -148,8 +149,23 @@ const DevisForm = ({ user }) => {
     }));
     setDemandeSearch('');
     setShowDemandeDropdown(false);
+    
+    // Generate devis code when demande is selected
+    generateDevisCode(selectedDemande);
   };
 
+  // New function to generate devis code
+  const generateDevisCode = async (selectedDemande) => {
+    try {
+      // Get the next devis number from the backend
+      const result = await getNextDevisNumber(selectedDemande.IdDemande);
+      setDevisCode(result.nextDevisNumber);
+    } catch (error) {
+      console.error('Error generating devis code:', error);
+      setDevisCode(''); // Clear the code if there's an error
+    }
+  };
+  
   const handleArticleChange = (index, field, value) => {
     const updatedArticles = [...formData.articles];
     updatedArticles[index] = {
@@ -593,6 +609,50 @@ const DevisForm = ({ user }) => {
           <p className="text-gray-600 dark:text-gray-400 mt-1">
             Créer un nouveau devis pour une demande de travaux
           </p>
+          {/* Devis Code, Type de Demande, and Date Display - Same div */}
+          {devisCode && demande && (
+            <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                Code Devis: <span className="font-mono font-bold text-gray-900 dark:text-white">{devisCode}</span>
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                Type de Demande: <span className="font-bold text-gray-900 dark:text-white">{demande.TypeDemande}</span>
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                Date: <span className="font-bold text-gray-900 dark:text-white">{new Date().toLocaleDateString('fr-FR')}</span>
+              </p>
+            </div>
+          )}
+          {/* Show Code Devis and Date if no demande selected */}
+          {devisCode && !demande && (
+            <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                Code Devis: <span className="font-mono font-bold text-gray-900 dark:text-white">{devisCode}</span>
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                Date: <span className="font-bold text-gray-900 dark:text-white">{new Date().toLocaleDateString('fr-FR')}</span>
+              </p>
+            </div>
+          )}
+          {/* Show Type de Demande and Date if no devis code but demande selected */}
+          {!devisCode && demande && (
+            <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                Type de Demande: <span className="font-bold text-gray-900 dark:text-white">{demande.TypeDemande}</span>
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                Date: <span className="font-bold text-gray-900 dark:text-white">{new Date().toLocaleDateString('fr-FR')}</span>
+              </p>
+            </div>
+          )}
+          {/* Show only Date if neither devis code nor demande selected */}
+          {!devisCode && !demande && (
+            <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                Date: <span className="font-bold text-gray-900 dark:text-white">{new Date().toLocaleDateString('fr-FR')}</span>
+              </p>
+            </div>
+          )}
         </div>
         
         {/* Sélecteurs en haut à droite - Numéro de Demande, Client, Type de Demande */}
@@ -645,34 +705,83 @@ const DevisForm = ({ user }) => {
             </div>
           </div>
           
-          {/* Client Information Container - Bordered and Distinct */}
-          {demande && (
-            <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-white dark:bg-gray-800 shadow-sm">
-              <h3 className="text-base font-bold text-gray-800 dark:text-gray-200 mb-3 pb-2 border-b border-gray-200 dark:border-gray-700">
-                Informations Client
-              </h3>
-              
-              {/* Client */}
-              <div className="mb-3">
-                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
-                  Client
-                </label>
-                <p className="text-gray-900 dark:text-white font-medium">
-                  {demande.ClientNom} {demande.ClientPrenom}
-                </p>
+          {/* Client Information and Devis Code - Side by side */}
+          <div className="flex space-x-3">
+            {/* Client Information Container - Bordered and Distinct */}
+            {demande && (
+              <div className="flex-1 border-2 border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-white dark:bg-gray-800 shadow-sm">
+                <h3 className="text-base font-bold text-gray-800 dark:text-gray-200 mb-3 pb-2 border-b border-gray-200 dark:border-gray-700">
+                  Informations Client
+                </h3>
+                
+                {/* Client Name */}
+                <div className="mb-2">
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
+                    Nom Complet
+                  </label>
+                  <p className="text-sm text-gray-900 dark:text-white font-medium">
+                    {demande.ClientNom} {demande.ClientPrenom}
+                  </p>
+                </div>
+                
+                {/* Client Type */}
+                <div className="mb-2">
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
+                    Type de Client
+                  </label>
+                  <p className="text-sm text-gray-900 dark:text-white">
+                    {demande.TypeClient || 'Non spécifié'}
+                  </p>
+                </div>
+                
+                {/* Client Contact Info */}
+                <div className="mb-2">
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
+                    Téléphone
+                  </label>
+                  <p className="text-sm text-gray-900 dark:text-white">
+                    {demande.ClientTelephone || 'Non spécifié'}
+                  </p>
+                </div>
+                
+                {/* Client Email */}
+                <div className="mb-2">
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
+                    Email
+                  </label>
+                  <p className="text-sm text-gray-900 dark:text-white">
+                    {demande.ClientEmail || 'Non spécifié'}
+                  </p>
+                </div>
+                
+                {/* Client Residence Address */}
+                <div className="mb-2">
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
+                    Adresse de Résidence
+                  </label>
+                  <p className="text-sm text-gray-900 dark:text-white">
+                    {demande.AdresseResidence || 'Non spécifiée'}
+                  </p>
+                  <p className="text-sm text-gray-900 dark:text-white">
+                    {demande.CommuneResidence || 'Non spécifiée'}
+                  </p>
+                </div>
+                
+                {/* Client Branchement Address */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
+                    Adresse de Branchement
+                  </label>
+                  <p className="text-sm text-gray-900 dark:text-white">
+                    {demande.AdresseBranchement || 'Non spécifiée'}
+                  </p>
+                  <p className="text-sm text-gray-900 dark:text-white">
+                    {demande.CommuneBranchement || 'Non spécifiée'}
+                  </p>
+                </div>
               </div>
-              
-              {/* Type de Demande */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
-                  Type de Demande
-                </label>
-                <p className="text-gray-900 dark:text-white font-medium">
-                  {demande.TypeDemande}
-                </p>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
           
           {/* Type de Devis */}
           <div>
@@ -838,7 +947,7 @@ const DevisForm = ({ user }) => {
                                     <div className="sticky top-0 bg-gradient-to-r from-primary-600 to-primary-700 dark:from-primary-700 dark:to-primary-800 px-3 py-1.5 border-b border-primary-500 dark:border-primary-600">
                                       <h4 className="text-xs font-semibold text-white flex items-center">
                                         <svg className="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                                         </svg>
                                         {familleKey}
                                         <span className="ml-2 px-1.5 py-0.5 rounded-full text-xs bg-white/20 text-white">

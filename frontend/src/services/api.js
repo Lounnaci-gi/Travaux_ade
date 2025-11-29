@@ -342,6 +342,11 @@ export const deleteDevisType = async (id) => {
   return response.data;
 };
 
+export const getNextDevisNumber = async (idDemande) => {
+  const response = await api.get(`/devis/next-number/${idDemande}`);
+  return response.data;
+};
+
 export const validateDevis = async (devisId, typeValidation) => {
   const response = await api.post(`/devis/${devisId}/validate`, { typeValidation });
   return response.data;
