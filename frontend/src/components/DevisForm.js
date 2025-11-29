@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getDemandes, getDevisTypes, getArticles, getFamilles, createDevis, getTVADefault } from '../services/api';
 import { alertSuccess, alertError } from '../ui/alerts';
+import { formatNumberWithThousands } from '../utils/numberFormat';
 
 const DevisForm = ({ user }) => {
   const [globalTVA, setGlobalTVA] = useState('00');
@@ -434,9 +435,13 @@ const DevisForm = ({ user }) => {
     const montantTTC = montantHT + montantTVA;
     
     return {
-      montantHT: montantHT.toFixed(2),
-      montantTVA: montantTVA.toFixed(2),
-      montantTTC: montantTTC.toFixed(2)
+      montantHT: formatNumberWithThousands(montantHT),
+      montantTVA: formatNumberWithThousands(montantTVA),
+      montantTTC: formatNumberWithThousands(montantTTC),
+      // Raw values for calculation purposes
+      rawMontantHT: montantHT,
+      rawMontantTVA: montantTVA,
+      rawMontantTTC: montantTTC
     };
   };
 
@@ -446,16 +451,16 @@ const DevisForm = ({ user }) => {
     
     formData.articles.forEach(article => {
       const totals = calculateArticleTotals(article);
-      totalHT += parseFloat(totals.montantHT);
-      totalTVA += parseFloat(totals.montantTVA);
+      totalHT += totals.rawMontantHT;
+      totalTVA += totals.rawMontantTVA;
     });
     
     const totalTTC = totalHT + totalTVA;
     
     return {
-      totalHT: totalHT.toFixed(2),
-      totalTVA: totalTVA.toFixed(2),
-      totalTTC: totalTTC.toFixed(2)
+      totalHT: formatNumberWithThousands(totalHT),
+      totalTVA: formatNumberWithThousands(totalTVA),
+      totalTTC: formatNumberWithThousands(totalTTC)
     };
   };
 
@@ -786,6 +791,27 @@ const DevisForm = ({ user }) => {
 
             {/* Articles Container - Maximum width */}
             <div className="space-y-2 w-full">
+              {/* Articles Table Header */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 w-full hidden lg:grid bg-gray-100 dark:bg-gray-700 p-2 rounded-md mb-2">
+                <div className="lg:col-span-5">
+                  <div className="flex flex-wrap gap-1 items-start text-xs font-bold text-gray-700 dark:text-gray-300">
+                    <div className="flex-1 min-w-[100px]">Désignation</div>
+                  </div>
+                </div>
+                <div className="lg:col-span-7">
+                  <div className="flex flex-wrap gap-1 items-start text-xs font-bold text-gray-700 dark:text-gray-300">
+                    <div className="flex-1 min-w-[70px] text-center">Type</div>
+                    <div className="flex-1 min-w-[70px] text-center">Qté</div>
+                    <div className="flex-1 min-w-[70px] text-center">Unité</div>
+                    <div className="flex-1 min-w-[70px] text-center">P.U.HT</div>
+                    <div className="flex-1 min-w-[70px] text-center">TVA%</div>
+                    <div className="flex-1 min-w-[70px] text-center">HT</div>
+                    <div className="flex-1 min-w-[70px] text-center">TVA</div>
+                    <div className="flex-1 min-w-[70px] text-center">TTC</div>
+                    <div className="flex-1 min-w-[50px] text-center">Actions</div>
+                  </div>
+                </div>
+              </div>
               {formData.articles.map((article, index) => {
                 const articleTotals = calculateArticleTotals(article);
                 // Check if this article is a duplicate
@@ -907,12 +933,12 @@ const DevisForm = ({ user }) => {
                                             <div className="flex flex-col items-end space-y-0.5">
                                               {art.PrixFournitureHT && (
                                                 <div className="text-green-600 dark:text-green-400 text-xs">
-                                                  F: {parseFloat(art.PrixFournitureHT).toFixed(2)}
+                                                  F: {formatNumberWithThousands(art.PrixFournitureHT)}
                                                 </div>
                                               )}
                                               {art.PrixPoseHT && (
                                                 <div className="text-purple-600 dark:text-purple-400 text-xs">
-                                                  P: {parseFloat(art.PrixPoseHT).toFixed(2)}
+                                                  P: {formatNumberWithThousands(art.PrixPoseHT)}
                                                 </div>
                                               )}
                                             </div>
