@@ -1324,52 +1324,81 @@ const DevisForm = ({ user }) => {
           {/* Articles Table */}
           {formData.articles.length > 0 && (
             <div className="mb-8">
-              <div className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                  <thead className="bg-gray-50 dark:bg-gray-700">
-                    <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Désignation</th>
-                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Qté</th>
-                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Unité</th>
-                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">PU HT</th>
-                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">TVA %</th>
-                      <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Total HT</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                    {formData.articles.map((article, index) => {
-                      const articleTotals = calculateArticleTotals(article);
-                      return (
-                        <tr key={index}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                            <div className="font-medium">{article.designation}</div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                              {article.typePrix === 'FOURNITURE' && 'Fourniture'}
-                              {article.typePrix === 'POSE' && 'Pose'}
-                              {article.typePrix === 'BOTH' && 'Fourniture + Pose'}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900 dark:text-white">
-                            {article.quantite}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900 dark:text-white">
-                            {article.unite || '-'}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900 dark:text-white">
-                            {formatNumberWithThousands(parseFloat(article.prixUnitaireHT) || 0)}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900 dark:text-white">
-                            {article.tauxTVAApplique}%
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900 dark:text-white font-medium">
-                            {articleTotals.montantHT}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+              {(() => {
+                // Group articles by family for preview
+                const groupedArticles = formData.articles.reduce((acc, article, index) => {
+                  // Find the article in availableArticles to get its family
+                  const availableArticle = availableArticles.find(a => a.IdArticle === article.idArticle);
+                  const family = availableArticle?.LibelleFamille || 'Sans famille';
+                  
+                  if (!acc[family]) {
+                    acc[family] = [];
+                  }
+                  
+                  acc[family].push({ article, index });
+                  return acc;
+                }, {});
+                
+                // Sort families alphabetically
+                const sortedFamilies = Object.keys(groupedArticles).sort();
+                
+                return sortedFamilies.map(family => (
+                  <div key={family} className="mb-6">
+                    {/* Family Header */}
+                    <div className="bg-gray-100 dark:bg-gray-700 p-2 rounded-md mb-2">
+                      <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300">{family}</h4>
+                    </div>
+                    
+                    {/* Articles in this family */}
+                    <div className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead className="bg-gray-50 dark:bg-gray-700">
+                          <tr>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Désignation</th>
+                            <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Qté</th>
+                            <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Unité</th>
+                            <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">PU HT</th>
+                            <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">TVA %</th>
+                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Total HT</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                          {groupedArticles[family].map(({ article, index }) => {
+                            const articleTotals = calculateArticleTotals(article);
+                            return (
+                              <tr key={index}>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                  <div className="font-medium">{article.designation}</div>
+                                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    {article.typePrix === 'FOURNITURE' && 'Fourniture'}
+                                    {article.typePrix === 'POSE' && 'Pose'}
+                                    {article.typePrix === 'BOTH' && 'Fourniture + Pose'}
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900 dark:text-white">
+                                  {article.quantite}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900 dark:text-white">
+                                  {article.unite || '-'}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900 dark:text-white">
+                                  {formatNumberWithThousands(parseFloat(article.prixUnitaireHT) || 0)}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900 dark:text-white">
+                                  {article.tauxTVAApplique}%
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900 dark:text-white font-medium">
+                                  {articleTotals.montantHT}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ));
+              })()}
             </div>
           )}
           
