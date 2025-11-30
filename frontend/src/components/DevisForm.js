@@ -5,6 +5,7 @@ import { formatNumberWithThousands } from '../utils/numberFormat';
 
 const DevisForm = ({ user }) => {
   const [globalTVA, setGlobalTVA] = useState('00');
+  const [activeTab, setActiveTab] = useState('form');
   
   // Nouvelle structure : grouper par famille
   const [formData, setFormData] = useState({
@@ -609,6 +610,32 @@ const DevisForm = ({ user }) => {
           <p className="text-gray-600 dark:text-gray-400 mt-1">
             Créer un nouveau devis pour une demande de travaux
           </p>
+          
+          {/* Tabs for Form and Preview */}
+          <div className="mt-4 border-b border-gray-200 dark:border-gray-700">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab('form')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'form'
+                    ? 'border-primary-500 text-primary-600 dark:text-primary-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                }`}
+              >
+                Formulaire
+              </button>
+              <button
+                onClick={() => setActiveTab('preview')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'preview'
+                    ? 'border-primary-500 text-primary-600 dark:text-primary-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                }`}
+              >
+                Aperçu
+              </button>
+            </nav>
+          </div>
           {/* Devis Code, Type de Demande, and Date Display - Same div */}
           {devisCode && demande && (
             <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
@@ -848,7 +875,8 @@ const DevisForm = ({ user }) => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      {activeTab === 'form' && (
+        <form onSubmit={handleSubmit} className="space-y-6">
         {/* Articles Section */}
         <div className="mt-6">
           <div className="flex justify-between items-center mb-3">
@@ -1231,6 +1259,165 @@ const DevisForm = ({ user }) => {
           </div>
         </div>
       </form>
+      )}
+      
+      {/* Preview Tab Content */}
+      {activeTab === 'preview' && (
+        <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <div className="border-b border-gray-200 dark:border-gray-700 pb-4 mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Aperçu du Devis</h2>
+          </div>
+          
+          {/* Devis Header */}
+          <div className="mb-8">
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">DEVIS</h1>
+                {devisCode && (
+                  <p className="text-xl font-mono text-primary-600 dark:text-primary-400 mt-1">N° {devisCode}</p>
+                )}
+                <p className="text-gray-600 dark:text-gray-400 mt-2">
+                  Date d'émission: {new Date().toLocaleDateString('fr-FR')}
+                </p>
+              </div>
+              
+              {demande && (
+                <div className="text-right">
+                  <p className="font-semibold text-gray-900 dark:text-white text-lg">{demande.ClientNom} {demande.ClientPrenom}</p>
+                  <p className="text-gray-600 dark:text-gray-400">{demande.AdresseResidence}</p>
+                  <p className="text-gray-600 dark:text-gray-400">{demande.CommuneResidence}</p>
+                  {demande.ClientTelephone && (
+                    <p className="text-gray-600 dark:text-gray-400">Tél: {demande.ClientTelephone}</p>
+                  )}
+                  {demande.ClientEmail && (
+                    <p className="text-gray-600 dark:text-gray-400">Email: {demande.ClientEmail}</p>
+                  )}
+                </div>
+              )}
+            </div>
+            
+            {demande && (
+              <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <div className="flex justify-between items-center">
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    Valable jusqu'au : 
+                    <span className="font-bold text-gray-900 dark:text-white ml-1">
+                      {(() => {
+                        const baseDate = demande.DateDemande ? new Date(demande.DateDemande) : new Date();
+                        const validUntil = new Date(baseDate);
+                        validUntil.setDate(baseDate.getDate() + (demande.DelaiPaiementJours || 30));
+                        return validUntil.toLocaleDateString('fr-FR');
+                      })()}
+                    </span>
+                  </p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    Délai de paiement: 
+                    <span className="font-bold text-gray-900 dark:text-white ml-1">
+                      {demande.DelaiPaiementJours || 30} jours
+                    </span>
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* Articles Table */}
+          {formData.articles.length > 0 && (
+            <div className="mb-8">
+              <div className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Désignation</th>
+                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Qté</th>
+                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Unité</th>
+                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">PU HT</th>
+                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">TVA %</th>
+                      <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Total HT</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    {formData.articles.map((article, index) => {
+                      const articleTotals = calculateArticleTotals(article);
+                      return (
+                        <tr key={index}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                            <div className="font-medium">{article.designation}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                              {article.typePrix === 'FOURNITURE' && 'Fourniture'}
+                              {article.typePrix === 'POSE' && 'Pose'}
+                              {article.typePrix === 'BOTH' && 'Fourniture + Pose'}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900 dark:text-white">
+                            {article.quantite}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900 dark:text-white">
+                            {article.unite || '-'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900 dark:text-white">
+                            {formatNumberWithThousands(parseFloat(article.prixUnitaireHT) || 0)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900 dark:text-white">
+                            {article.tauxTVAApplique}%
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900 dark:text-white font-medium">
+                            {articleTotals.montantHT}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+          
+          {/* Totals */}
+          {formData.articles.length > 0 && (
+            <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
+              <div className="flex justify-end">
+                <div className="w-80 bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600 dark:text-gray-300">Total HT:</span>
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">{totals.totalHT} DZD</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600 dark:text-gray-300">Total TVA:</span>
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">{totals.totalTVA} DZD</span>
+                    </div>
+                    <div className="flex justify-between pt-2 border-t border-gray-200 dark:border-gray-600 mt-2">
+                      <span className="text-lg font-semibold text-gray-900 dark:text-white">Total TTC:</span>
+                      <span className="text-lg font-bold text-primary-600 dark:text-primary-400">{totals.totalTTC} DZD</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Comment */}
+          {formData.commentaire && (
+            <div className="mt-8">
+              <div className="border-l-4 border-primary-500 pl-4 py-1">
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">Commentaires:</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{formData.commentaire}</p>
+              </div>
+            </div>
+          )}
+          
+          {/* Footer */}
+          <div className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-700 text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Ce devis est établi en double exemplaire, l'un restant chez le client, l'autre chez le prestataire.
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Toute modification de ce devis devra faire l'objet d'un avenant écrit.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
