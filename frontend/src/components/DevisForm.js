@@ -619,6 +619,16 @@ const DevisForm = ({ user }) => {
                 Type de Demande: <span className="font-bold text-gray-900 dark:text-white">{demande.TypeDemande}</span>
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                Valable jusqu'au : <span className="font-bold text-gray-900 dark:text-white">
+                  {(() => {
+                    const baseDate = demande.DateDemande ? new Date(demande.DateDemande) : new Date();
+                    const validUntil = new Date(baseDate);
+                    validUntil.setDate(baseDate.getDate() + (demande.DelaiPaiementJours || 30));
+                    return validUntil.toLocaleDateString('fr-FR');
+                  })()}
+                </span>
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                 Date: <span className="font-bold text-gray-900 dark:text-white">{new Date().toLocaleDateString('fr-FR')}</span>
               </p>
             </div>
@@ -628,6 +638,16 @@ const DevisForm = ({ user }) => {
             <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
               <p className="text-sm text-gray-600 dark:text-gray-300">
                 Code Devis: <span className="font-mono font-bold text-gray-900 dark:text-white">{devisCode}</span>
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                Valable jusqu'au : <span className="font-bold text-gray-900 dark:text-white">
+                  {(() => {
+                    const baseDate = demande?.DateDemande ? new Date(demande.DateDemande) : new Date();
+                    const validUntil = new Date(baseDate);
+                    validUntil.setDate(baseDate.getDate() + 30);
+                    return validUntil.toLocaleDateString('fr-FR');
+                  })()}
+                </span>
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                 Date: <span className="font-bold text-gray-900 dark:text-white">{new Date().toLocaleDateString('fr-FR')}</span>
@@ -641,6 +661,16 @@ const DevisForm = ({ user }) => {
                 Type de Demande: <span className="font-bold text-gray-900 dark:text-white">{demande.TypeDemande}</span>
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                Valable jusqu'au : <span className="font-bold text-gray-900 dark:text-white">
+                  {(() => {
+                    const baseDate = demande?.DateDemande ? new Date(demande.DateDemande) : new Date();
+                    const validUntil = new Date(baseDate);
+                    validUntil.setDate(baseDate.getDate() + (demande.DelaiPaiementJours || 30));
+                    return validUntil.toLocaleDateString('fr-FR');
+                  })()}
+                </span>
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                 Date: <span className="font-bold text-gray-900 dark:text-white">{new Date().toLocaleDateString('fr-FR')}</span>
               </p>
             </div>
@@ -649,7 +679,17 @@ const DevisForm = ({ user }) => {
           {!devisCode && !demande && (
             <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
               <p className="text-sm text-gray-600 dark:text-gray-300">
-                Date: <span className="font-bold text-gray-900 dark:text-white">{new Date().toLocaleDateString('fr-FR')}</span>
+                Valable jusqu'au : <span className="font-bold text-gray-900 dark:text-white">
+                  {(() => {
+                    const baseDate = new Date();
+                    const validUntil = new Date(baseDate);
+                    validUntil.setDate(baseDate.getDate() + 30);
+                    return validUntil.toLocaleDateString('fr-FR');
+                  })()}
+                </span>
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                En date du <span className="font-bold text-gray-900 dark:text-white">{new Date().toLocaleDateString('fr-FR')}</span>
               </p>
             </div>
           )}
@@ -827,9 +867,8 @@ const DevisForm = ({ user }) => {
               <div className="lg:col-span-7">
                 <div className="flex flex-wrap gap-1 items-start text-xs font-bold text-gray-700 dark:text-gray-300">
                   <div className="flex-1 min-w-[70px] text-center">Type</div>
-                  <div className="flex-1 min-w-[70px] text-center">Qté</div>
-                  <div className="flex-1 min-w-[70px] text-center">Unité</div>
-                  <div className="flex-1 min-w-[70px] text-center">P.U.HT</div>
+                  <div className="flex-1 min-w-[70px] text-center">Qté</div>                
+                  <div className="flex-1 min-w-[70px] text-center">PU.HT</div>
                   <div className="flex-1 min-w-[70px] text-center">TVA%</div>
                   <div className="flex-1 min-w-[70px] text-center">HT</div>
                   <div className="flex-1 min-w-[70px] text-center">TVA</div>
@@ -913,7 +952,7 @@ const DevisForm = ({ user }) => {
                                   return (
                                     <div className="p-3 text-center text-gray-500 dark:text-gray-400">
                                       <svg className="mx-auto h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                                       </svg>
                                       <h3 className="mt-1 text-xs font-medium">Aucun article trouvé</h3>
                                     </div>
@@ -1034,6 +1073,7 @@ const DevisForm = ({ user }) => {
                               onChange={(e) => handleArticleChange(index, 'prixUnitaireHT', e.target.value)}
                               className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-center"
                               placeholder="Prix HT"
+                              readOnly
                             />
                             <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-gray-500 dark:text-gray-400 text-xs">
                               DZD
@@ -1053,6 +1093,7 @@ const DevisForm = ({ user }) => {
                               onChange={(e) => handleArticleChange(index, 'tauxTVAApplique', e.target.value)}
                               className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-center"
                               placeholder="TVA"
+                              readOnly
                             />
                             <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-gray-500 dark:text-gray-400 text-xs">
                               %
