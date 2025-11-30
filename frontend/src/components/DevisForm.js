@@ -782,27 +782,7 @@ const DevisForm = ({ user }) => {
             )}
           </div>
           
-          {/* Type de Devis */}
-          <div>
-            <label htmlFor="idTypeDevis" className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">
-              Type de Devis *
-            </label>
-            <select
-              id="idTypeDevis"
-              name="idTypeDevis"
-              value={formData.idTypeDevis}
-              onChange={handleInputChange}
-              required
-              className="select-field w-full px-3 py-2"
-            >
-              <option value="">Sélectionner un type de devis</option>
-              {devisTypes.map(type => (
-                <option key={type.IdTypeDevis} value={type.IdTypeDevis}>
-                  {type.LibelleTypeDevis}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* Type de Devis - REMOVED AS PER USER REQUEST */}
         </div>
       </div>
 
