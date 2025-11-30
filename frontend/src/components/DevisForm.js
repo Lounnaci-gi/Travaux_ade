@@ -724,34 +724,27 @@ const DevisForm = ({ user }) => {
                   </p>
                 </div>
                 
-                {/* Client Type */}
+                {/* Client Contact Info - Telephone and Email side by side */}
                 <div className="mb-2">
-                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
-                    Type de Client
-                  </label>
-                  <p className="text-sm text-gray-900 dark:text-white">
-                    {demande.TypeClient || 'Non spécifié'}
-                  </p>
-                </div>
-                
-                {/* Client Contact Info */}
-                <div className="mb-2">
-                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
-                    Téléphone
-                  </label>
-                  <p className="text-sm text-gray-900 dark:text-white">
-                    {demande.ClientTelephone || 'Non spécifié'}
-                  </p>
-                </div>
-                
-                {/* Client Email */}
-                <div className="mb-2">
-                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
-                    Email
-                  </label>
-                  <p className="text-sm text-gray-900 dark:text-white">
-                    {demande.ClientEmail || 'Non spécifié'}
-                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
+                        Téléphone
+                      </label>
+                      <p className="text-sm text-gray-900 dark:text-white">
+                        {demande.ClientTelephone || 'Non spécifié'}
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
+                        Email
+                      </label>
+                      <p className="text-sm text-gray-900 dark:text-white">
+                        {demande.ClientEmail || 'Non spécifié'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
                 
                 {/* Client Residence Address */}
@@ -759,12 +752,15 @@ const DevisForm = ({ user }) => {
                   <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
                     Adresse de Résidence
                   </label>
-                  <p className="text-sm text-gray-900 dark:text-white">
-                    {demande.AdresseResidence || 'Non spécifiée'}
-                  </p>
-                  <p className="text-sm text-gray-900 dark:text-white">
-                    {demande.CommuneResidence || 'Non spécifiée'}
-                  </p>
+                  <div className="flex items-center gap-1">
+                    <p className="text-sm text-gray-900 dark:text-white">
+                      {demande.AdresseResidence || 'Non spécifiée'}
+                    </p>
+                    <span className="text-sm text-gray-900 dark:text-white">,</span>
+                    <p className="text-sm text-gray-900 dark:text-white">
+                      {demande.CommuneResidence || 'Non spécifiée'}
+                    </p>
+                  </div>
                 </div>
                 
                 {/* Client Branchement Address */}
@@ -772,12 +768,15 @@ const DevisForm = ({ user }) => {
                   <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
                     Adresse de Branchement
                   </label>
-                  <p className="text-sm text-gray-900 dark:text-white">
-                    {demande.AdresseBranchement || 'Non spécifiée'}
-                  </p>
-                  <p className="text-sm text-gray-900 dark:text-white">
-                    {demande.CommuneBranchement || 'Non spécifiée'}
-                  </p>
+                  <div className="flex items-center gap-1">
+                    <p className="text-sm text-gray-900 dark:text-white">
+                      {demande.AdresseBranchement || 'Non spécifiée'}
+                    </p>
+                    <span className="text-sm text-gray-900 dark:text-white">,</span>
+                    <p className="text-sm text-gray-900 dark:text-white">
+                      {demande.CommuneBranchement || 'Non spécifiée'}
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
@@ -947,7 +946,7 @@ const DevisForm = ({ user }) => {
                                     <div className="sticky top-0 bg-gradient-to-r from-primary-600 to-primary-700 dark:from-primary-700 dark:to-primary-800 px-3 py-1.5 border-b border-primary-500 dark:border-primary-600">
                                       <h4 className="text-xs font-semibold text-white flex items-center">
                                         <svg className="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                                         </svg>
                                         {familleKey}
                                         <span className="ml-2 px-1.5 py-0.5 rounded-full text-xs bg-white/20 text-white">
