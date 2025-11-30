@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getDemandes, getDevisTypes, getArticles, getFamilles, createDevis, getTVADefault, getAgenceById, getNextDevisNumber } from '../services/api';
+import { getDemandes, getDevisTypes, getArticles, getFamilles, createDevis, getTVADefault, getAgenceById, getCentreById, getNextDevisNumber } from '../services/api';
 import { alertSuccess, alertError } from '../ui/alerts';
 import { formatNumberWithThousands } from '../utils/numberFormat';
 
 const DevisForm = ({ user }) => {
   const [globalTVA, setGlobalTVA] = useState('00');
   const [activeTab, setActiveTab] = useState('form');
+  
+  // State for center and agency information
+  const [centreInfo, setCentreInfo] = useState(null);
+  const [agenceInfo, setAgenceInfo] = useState(null);
   
   // Nouvelle structure : grouper par famille
   const [formData, setFormData] = useState({
@@ -153,8 +157,28 @@ const DevisForm = ({ user }) => {
     
     // Generate devis code when demande is selected
     generateDevisCode(selectedDemande);
+    
+    // Fetch agency and center information
+    fetchAgenceAndCentreInfo(selectedDemande.IdAgence);
   };
 
+  // New function to fetch agency and center information
+  const fetchAgenceAndCentreInfo = async (idAgence) => {
+    try {
+      // Fetch agency information
+      const agenceData = await getAgenceById(idAgence);
+      setAgenceInfo(agenceData);
+      
+      // Fetch center information using the center ID from agency data
+      if (agenceData && agenceData.IdCentre) {
+        const centreData = await getCentreById(agenceData.IdCentre);
+        setCentreInfo(centreData);
+      }
+    } catch (error) {
+      console.error('Error fetching agency or center information:', error);
+    }
+  };
+  
   // New function to generate devis code
   const generateDevisCode = async (selectedDemande) => {
     try {
@@ -1279,6 +1303,26 @@ const DevisForm = ({ user }) => {
                 <p className="text-gray-600 dark:text-gray-400 mt-2">
                   Date d'émission: {new Date().toLocaleDateString('fr-FR')}
                 </p>
+                {/* Center and Agency Information */}
+                {(centreInfo || agenceInfo) && (
+                  <div className="mt-4 p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700">
+                    <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-2">
+                      Informations Organisation
+                    </h3>
+                    <div className="space-y-1">
+                      {centreInfo && (
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Centre: <span className="font-medium">{centreInfo.NomCentre}</span>
+                        </p>
+                      )}
+                      {agenceInfo && (
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Agence commerciale: <span className="font-medium">{agenceInfo.NomAgence}</span>
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
               
               {demande && (
