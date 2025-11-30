@@ -816,7 +816,7 @@ const DevisForm = ({ user }) => {
           </div>
 
           {/* Articles Container - Maximum width */}
-          <div className="space-y-2 w-full">
+          <div className="space-y-2 w-full" style={{ position: 'relative' }}>
             {/* Articles Table Header */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 w-full hidden lg:grid bg-gray-100 dark:bg-gray-700 p-2 rounded-md mb-2">
               <div className="lg:col-span-5">
@@ -843,7 +843,7 @@ const DevisForm = ({ user }) => {
               // Check if this article is a duplicate
               const isDuplicate = formData.articles.filter(a => a.idArticle === article.idArticle).length > 1 && article.idArticle;
               return (
-                <div key={index} className={`glass-card p-2 rounded-md w-full ${isDuplicate ? 'border-2 border-red-500 bg-red-50 dark:bg-red-900/20' : ''}`}>
+                <div key={index} className={`glass-card p-2 rounded-md w-full ${isDuplicate ? 'border-2 border-red-500 bg-red-50 dark:bg-red-900/20' : ''}`} style={{ position: 'relative', zIndex: formData.articles.length - index }}>
                   {isDuplicate && (
                     <div className="text-red-600 dark:text-red-400 text-xs font-medium mb-1 flex items-center">
                       <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -854,7 +854,7 @@ const DevisForm = ({ user }) => {
                   )}
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 w-full">
                     {/* Article Search - Reduced width */}
-                    <div className="lg:col-span-5 relative" ref={el => articleDropdownRefs.current[index] = el}>
+                    <div className="lg:col-span-5 relative" ref={el => articleDropdownRefs.current[index] = el} style={{ zIndex: 100, position: 'relative' }}>
                       <div className="relative">
                         <input
                           type="text"
@@ -871,7 +871,7 @@ const DevisForm = ({ user }) => {
                         
                         {/* Dropdown - Full width and no scrollbars */}
                         {showArticleDropdown[index] && (
-                          <div className="absolute mt-1 w-full bg-white dark:bg-gray-800 shadow rounded overflow-hidden border border-gray-200 dark:border-gray-700 z-50">
+                          <div className="absolute mt-1 w-full bg-white dark:bg-gray-800 shadow rounded overflow-hidden border border-gray-200 dark:border-gray-700 z-50" style={{ zIndex: 9999, position: 'absolute', transform: 'translateZ(0)' }}>
                             <div className="max-h-48 overflow-y-auto">
                               {(() => {
                                 const filteredArts = availableArticles.filter(art => {

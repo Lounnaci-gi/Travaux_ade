@@ -109,7 +109,7 @@
 
 /* OBAT-style cards */
 .obat-card {
-  @apply solid-card transition-all duration-300 hover:shadow-md;
+  @apply solid-card transition-all duration-300 hover:shadow-md border border-gray-200 dark:border-slate-700;
 }
 
 .obat-card-primary {

@@ -13,10 +13,10 @@ const StatsCard = ({ title, value, icon, color, delay = 0 }) => {
   
   return (
     <div
-      className={`${getCardClass()} hover-lift hover-shadow transition-all duration-300 transform hover:-translate-y-1`}
+      className={`${getCardClass()} hover-lift hover-shadow transition-all duration-300 transform hover:-translate-y-1 border border-gray-200 dark:border-slate-700`}
       style={{ animationDelay: `${delay}ms` }}
     >
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-5">
         <div className={`p-3 rounded-lg ${color} bg-opacity-20`}>
           {icon}
         </div>
@@ -27,7 +27,7 @@ const StatsCard = ({ title, value, icon, color, delay = 0 }) => {
           <p className="dark:text-gray-300 text-gray-700 text-sm mt-1">{title}</p>
         </div>
       </div>
-      <div className="h-1 w-full dark:bg-gray-700 bg-gray-300 rounded-full overflow-hidden">
+      <div className="h-1 w-full dark:bg-gray-700 bg-gray-300 rounded-full overflow-hidden mb-2">
         <div 
           className={`h-full ${color}`}
           style={{ width: '100%' }}
