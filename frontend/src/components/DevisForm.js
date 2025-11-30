@@ -885,7 +885,7 @@ const DevisForm = ({ user }) => {
 
           {/* Articles Container - Maximum width */}
           <div className="space-y-2 w-full" style={{ position: 'relative' }}>
-            {/* Articles Table Header */}
+            {/* Articles Table Header - Consistent column alignment */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 w-full hidden lg:grid bg-gray-100 dark:bg-gray-700 p-2 rounded-md mb-2">
               <div className="lg:col-span-5">
                 <div className="flex flex-wrap gap-1 items-start text-xs font-bold text-gray-700 dark:text-gray-300">
@@ -893,15 +893,15 @@ const DevisForm = ({ user }) => {
                 </div>
               </div>
               <div className="lg:col-span-7">
-                <div className="flex flex-wrap gap-1 items-start text-xs font-bold text-gray-700 dark:text-gray-300">
-                  <div className="flex-1 min-w-[70px] text-center">Type</div>
-                  <div className="flex-1 min-w-[70px] text-center">Qté</div>                
-                  <div className="flex-1 min-w-[70px] text-center">PU.HT</div>
-                  <div className="flex-1 min-w-[70px] text-center">TVA%</div>
-                  <div className="flex-1 min-w-[70px] text-center">HT</div>
-                  <div className="flex-1 min-w-[70px] text-center">TVA</div>
-                  <div className="flex-1 min-w-[70px] text-center">TTC</div>
-                  <div className="flex-1 min-w-[50px] text-center">Actions</div>
+                <div className="grid grid-cols-8 gap-1 items-start text-xs font-bold text-gray-700 dark:text-gray-300">
+                  <div className="col-span-1 text-center">Type</div>
+                  <div className="col-span-1 text-center">Qté</div>
+                  <div className="col-span-1 text-center">PU.HT</div>
+                  <div className="col-span-1 text-center">TVA%</div>
+                  <div className="col-span-1 text-center">HT</div>
+                  <div className="col-span-1 text-center">TVA</div>
+                  <div className="col-span-1 text-center">TTC</div>
+                  <div className="col-span-1 text-center">Actions</div>
                 </div>
               </div>
             </div>
@@ -1053,11 +1053,11 @@ const DevisForm = ({ user }) => {
                       />
                     </div>
                     
-                    {/* Article Details - Takes remaining space */}
+                    {/* Article Details - Takes remaining space with consistent column alignment */}
                     <div className="lg:col-span-7">
-                      <div className="flex flex-wrap gap-1 items-start">
+                      <div className="grid grid-cols-8 gap-1 items-start">
                         {/* Type de Prix */}
-                        <div className="flex-1 min-w-[70px]">
+                        <div className="col-span-1">
                           <select
                             value={article.typePrix || 'FOURNITURE'}
                             onChange={(e) => handleArticleChange(index, 'typePrix', e.target.value)}
@@ -1071,7 +1071,7 @@ const DevisForm = ({ user }) => {
                         </div>
                         
                         {/* Quantité */}
-                        <div className="flex-1 min-w-[70px]">
+                        <div className="col-span-1">
                           <div className="relative">
                             <input
                               type="number"
@@ -1091,7 +1091,7 @@ const DevisForm = ({ user }) => {
                         </div>
                         
                         {/* Prix Unitaire */}
-                        <div className="flex-1 min-w-[70px]">
+                        <div className="col-span-1">
                           <div className="relative">
                             <input
                               type="number"
@@ -1349,17 +1349,18 @@ const DevisForm = ({ user }) => {
                       <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300">{family}</h4>
                     </div>
                     
-                    {/* Articles in this family */}
+                    {/* Articles in this family with consistent column alignment */}
                     <div className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
                       <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead className="bg-gray-50 dark:bg-gray-700">
                           <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Désignation</th>
-                            <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Qté</th>
-                            <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Unité</th>
-                            <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">PU HT</th>
-                            <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">TVA %</th>
-                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Total HT</th>
+                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-3/6">Désignation</th>
+                            <th scope="col" className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/12">Type</th>
+                            <th scope="col" className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/12">Qté</th>
+                            <th scope="col" className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/12">Unité</th>
+                            <th scope="col" className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/12">PU HT</th>
+                            <th scope="col" className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/12">TVA %</th>
+                            <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-2/12">Total HT</th>
                           </tr>
                         </thead>
                         <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -1367,7 +1368,7 @@ const DevisForm = ({ user }) => {
                             const articleTotals = calculateArticleTotals(article);
                             return (
                               <tr key={index}>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                <td className="px-4 py-3 whitespace-normal text-sm text-gray-900 dark:text-white w-3/6">
                                   <div className="font-medium">{article.designation}</div>
                                   <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                     {article.typePrix === 'FOURNITURE' && 'Fourniture'}
@@ -1375,19 +1376,24 @@ const DevisForm = ({ user }) => {
                                     {article.typePrix === 'BOTH' && 'Fourniture + Pose'}
                                   </div>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900 dark:text-white">
+                                <td className="px-2 py-3 whitespace-nowrap text-sm text-center text-gray-900 dark:text-white w-1/12">
+                                  {article.typePrix === 'FOURNITURE' && 'F'}
+                                  {article.typePrix === 'POSE' && 'P'}
+                                  {article.typePrix === 'BOTH' && 'F+P'}
+                                </td>
+                                <td className="px-2 py-3 whitespace-nowrap text-sm text-center text-gray-900 dark:text-white w-1/12">
                                   {article.quantite}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900 dark:text-white">
+                                <td className="px-2 py-3 whitespace-nowrap text-sm text-center text-gray-900 dark:text-white w-1/12">
                                   {article.unite || '-'}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900 dark:text-white">
+                                <td className="px-2 py-3 whitespace-nowrap text-sm text-center text-gray-900 dark:text-white w-1/12">
                                   {formatNumberWithThousands(parseFloat(article.prixUnitaireHT) || 0)}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900 dark:text-white">
+                                <td className="px-2 py-3 whitespace-nowrap text-sm text-center text-gray-900 dark:text-white w-1/12">
                                   {article.tauxTVAApplique}%
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900 dark:text-white font-medium">
+                                <td className="px-4 py-3 whitespace-nowrap text-sm text-right text-gray-900 dark:text-white font-medium w-2/12">
                                   {articleTotals.montantHT}
                                 </td>
                               </tr>
