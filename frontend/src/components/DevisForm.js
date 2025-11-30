@@ -613,12 +613,15 @@ const DevisForm = ({ user }) => {
           {devisCode && demande && (
             <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
               <p className="text-sm text-gray-600 dark:text-gray-300">
-                Code Devis: <span className="font-mono font-bold text-gray-900 dark:text-white">{devisCode}</span>
+                Code Devis: <span className="font-mono font-bold text-lg text-primary-600 dark:text-primary-400">{devisCode}</span>
               </p>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-0">
                 Type de Demande: <span className="font-bold text-gray-900 dark:text-white">{demande.TypeDemande}</span>
               </p>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-0">
+                Date: <span className="font-bold text-gray-900 dark:text-white">{new Date().toLocaleDateString('fr-FR')}</span>
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-0">
                 Valable jusqu'au : <span className="font-bold text-gray-900 dark:text-white">
                   {(() => {
                     const baseDate = demande.DateDemande ? new Date(demande.DateDemande) : new Date();
@@ -628,57 +631,18 @@ const DevisForm = ({ user }) => {
                   })()}
                 </span>
               </p>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                Date: <span className="font-bold text-gray-900 dark:text-white">{new Date().toLocaleDateString('fr-FR')}</span>
-              </p>
             </div>
           )}
           {/* Show Code Devis and Date if no demande selected */}
           {devisCode && !demande && (
             <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
               <p className="text-sm text-gray-600 dark:text-gray-300">
-                Code Devis: <span className="font-mono font-bold text-gray-900 dark:text-white">{devisCode}</span>
+                Code Devis: <span className="font-mono font-bold text-lg text-primary-600 dark:text-primary-400">{devisCode}</span>
               </p>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                Valable jusqu'au : <span className="font-bold text-gray-900 dark:text-white">
-                  {(() => {
-                    const baseDate = demande?.DateDemande ? new Date(demande.DateDemande) : new Date();
-                    const validUntil = new Date(baseDate);
-                    validUntil.setDate(baseDate.getDate() + 30);
-                    return validUntil.toLocaleDateString('fr-FR');
-                  })()}
-                </span>
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-0">
                 Date: <span className="font-bold text-gray-900 dark:text-white">{new Date().toLocaleDateString('fr-FR')}</span>
               </p>
-            </div>
-          )}
-          {/* Show Type de Demande and Date if no devis code but demande selected */}
-          {!devisCode && demande && (
-            <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                Type de Demande: <span className="font-bold text-gray-900 dark:text-white">{demande.TypeDemande}</span>
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                Valable jusqu'au : <span className="font-bold text-gray-900 dark:text-white">
-                  {(() => {
-                    const baseDate = demande?.DateDemande ? new Date(demande.DateDemande) : new Date();
-                    const validUntil = new Date(baseDate);
-                    validUntil.setDate(baseDate.getDate() + (demande.DelaiPaiementJours || 30));
-                    return validUntil.toLocaleDateString('fr-FR');
-                  })()}
-                </span>
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                Date: <span className="font-bold text-gray-900 dark:text-white">{new Date().toLocaleDateString('fr-FR')}</span>
-              </p>
-            </div>
-          )}
-          {/* Show only Date if neither devis code nor demande selected */}
-          {!devisCode && !demande && (
-            <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
-              <p className="text-sm text-gray-600 dark:text-gray-300">
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-0">
                 Valable jusqu'au : <span className="font-bold text-gray-900 dark:text-white">
                   {(() => {
                     const baseDate = new Date();
@@ -688,8 +652,44 @@ const DevisForm = ({ user }) => {
                   })()}
                 </span>
               </p>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+            </div>
+          )}
+          {/* Show Type de Demande and Date if no devis code but demande selected */}
+          {!devisCode && demande && (
+            <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                Type de Demande: <span className="font-bold text-gray-900 dark:text-white">{demande.TypeDemande}</span>
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-0">
+                Date: <span className="font-bold text-gray-900 dark:text-white">{new Date().toLocaleDateString('fr-FR')}</span>
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-0">
+                Valable jusqu'au : <span className="font-bold text-gray-900 dark:text-white">
+                  {(() => {
+                    const baseDate = demande?.DateDemande ? new Date(demande.DateDemande) : new Date();
+                    const validUntil = new Date(baseDate);
+                    validUntil.setDate(baseDate.getDate() + (demande.DelaiPaiementJours || 30));
+                    return validUntil.toLocaleDateString('fr-FR');
+                  })()}
+                </span>
+              </p>
+            </div>
+          )}
+          {/* Show only Date if neither devis code nor demande selected */}
+          {!devisCode && !demande && (
+            <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+              <p className="text-sm text-gray-600 dark:text-gray-300">
                 En date du <span className="font-bold text-gray-900 dark:text-white">{new Date().toLocaleDateString('fr-FR')}</span>
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-0">
+                Valable jusqu'au : <span className="font-bold text-gray-900 dark:text-white">
+                  {(() => {
+                    const baseDate = new Date();
+                    const validUntil = new Date(baseDate);
+                    validUntil.setDate(baseDate.getDate() + 30);
+                    return validUntil.toLocaleDateString('fr-FR');
+                  })()}
+                </span>
               </p>
             </div>
           )}
@@ -755,8 +755,8 @@ const DevisForm = ({ user }) => {
                 </h3>
                 
                 {/* Client Name */}
-                <div className="mb-2">
-                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
+                <div className="mb-0.5">
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-0">
                     Nom Complet
                   </label>
                   <p className="text-sm text-gray-900 dark:text-white font-medium">
@@ -765,10 +765,10 @@ const DevisForm = ({ user }) => {
                 </div>
                 
                 {/* Client Contact Info - Telephone and Email side by side */}
-                <div className="mb-2">
+                <div className="mb-0.5">
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
+                      <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-0">
                         Téléphone
                       </label>
                       <p className="text-sm text-gray-900 dark:text-white">
@@ -777,7 +777,7 @@ const DevisForm = ({ user }) => {
                     </div>
                     
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
+                      <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-0">
                         Email
                       </label>
                       <p className="text-sm text-gray-900 dark:text-white">
@@ -788,8 +788,8 @@ const DevisForm = ({ user }) => {
                 </div>
                 
                 {/* Client Residence Address */}
-                <div className="mb-2">
-                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
+                <div className="mb-0.5">
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-0">
                     Adresse de Résidence
                   </label>
                   <div className="flex items-center gap-1">
@@ -805,7 +805,7 @@ const DevisForm = ({ user }) => {
                 
                 {/* Client Branchement Address */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-0">
                     Adresse de Branchement
                   </label>
                   <div className="flex items-center gap-1">
