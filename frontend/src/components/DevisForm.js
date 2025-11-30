@@ -1354,13 +1354,12 @@ const DevisForm = ({ user }) => {
                       <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead className="bg-gray-50 dark:bg-gray-700">
                           <tr>
-                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-3/6">Désignation</th>
-                            <th scope="col" className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/12">Type</th>
+                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-4/12">Désignation</th>
                             <th scope="col" className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/12">Qté</th>
                             <th scope="col" className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/12">Unité</th>
                             <th scope="col" className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/12">PU HT</th>
-                            <th scope="col" className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/12">TVA %</th>
-                            <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-2/12">Total HT</th>
+                            <th scope="col" className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/12">P.TVA</th>
+                            <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-3/12">Total HT</th>
                           </tr>
                         </thead>
                         <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -1368,18 +1367,13 @@ const DevisForm = ({ user }) => {
                             const articleTotals = calculateArticleTotals(article);
                             return (
                               <tr key={index}>
-                                <td className="px-4 py-3 whitespace-normal text-sm text-gray-900 dark:text-white w-3/6">
+                                <td className="px-4 py-3 whitespace-normal text-sm text-gray-900 dark:text-white w-4/12">
                                   <div className="font-medium">{article.designation}</div>
                                   <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                     {article.typePrix === 'FOURNITURE' && 'Fourniture'}
                                     {article.typePrix === 'POSE' && 'Pose'}
                                     {article.typePrix === 'BOTH' && 'Fourniture + Pose'}
                                   </div>
-                                </td>
-                                <td className="px-2 py-3 whitespace-nowrap text-sm text-center text-gray-900 dark:text-white w-1/12">
-                                  {article.typePrix === 'FOURNITURE' && 'F'}
-                                  {article.typePrix === 'POSE' && 'P'}
-                                  {article.typePrix === 'BOTH' && 'F+P'}
                                 </td>
                                 <td className="px-2 py-3 whitespace-nowrap text-sm text-center text-gray-900 dark:text-white w-1/12">
                                   {article.quantite}
@@ -1391,9 +1385,9 @@ const DevisForm = ({ user }) => {
                                   {formatNumberWithThousands(parseFloat(article.prixUnitaireHT) || 0)}
                                 </td>
                                 <td className="px-2 py-3 whitespace-nowrap text-sm text-center text-gray-900 dark:text-white w-1/12">
-                                  {article.tauxTVAApplique}%
+                                  {formatNumberWithThousands(((parseFloat(article.prixUnitaireHT) || 0) * (parseFloat(article.tauxTVAApplique) || 0) / 100))}
                                 </td>
-                                <td className="px-4 py-3 whitespace-nowrap text-sm text-right text-gray-900 dark:text-white font-medium w-2/12">
+                                <td className="px-4 py-3 whitespace-nowrap text-sm text-right text-gray-900 dark:text-white font-medium w-3/12">
                                   {articleTotals.montantHT}
                                 </td>
                               </tr>
