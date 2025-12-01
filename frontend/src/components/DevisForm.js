@@ -1322,6 +1322,11 @@ const DevisForm = ({ user }) => {
                 )}
               </div>
               
+              {/* Logo placed between Informations Organisation and Informations Client */}
+              <div className="flex items-center justify-center">
+                <img src="/ade.png" alt="Logo" className="w-16 h-16 object-contain" />
+              </div>
+              
               {demande && (
                 <div>
                   {/* Code devis and Date d'émission in a separate div */}
