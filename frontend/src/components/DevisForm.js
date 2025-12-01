@@ -796,82 +796,63 @@ const DevisForm = ({ user }) => {
             </div>
           </div>
           
-          {/* Client Information and Devis Code - Side by side */}
-          <div className="flex space-x-3">
-            {/* Client Information Container - Bordered and Distinct */}
-            {demande && (
-              <div className="flex-1 border-2 border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-white dark:bg-gray-800 shadow-sm">
-                <h3 className="text-base font-bold text-gray-800 dark:text-gray-200 mb-3 pb-2 border-b border-gray-200 dark:border-gray-700">
-                  Informations Client
-                </h3>
-                
-                {/* Client Name */}
-                <div className="mb-0.5">
-                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-0">
-                    Nom Complet
-                  </label>
-                  <p className="text-sm text-gray-900 dark:text-white font-medium">
-                    {demande.ClientNom} {demande.ClientPrenom}
+          {/* Client Information in a bordered div on the right */}
+          {demande && (
+            <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-800 shadow-sm">
+              <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 pb-1 border-b border-gray-200 dark:border-gray-700">
+                Informations Client
+              </h3>
+              
+              {/* Client Name */}
+              <div className="mb-0.5">
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-0">
+                  Nom Complet
+                </label>
+                <p className="text-xs text-gray-900 dark:text-white font-medium">
+                  {demande.ClientNom} {demande.ClientPrenom}
+                </p>
+              </div>
+              
+              {/* Client Residence Address */}
+              <div className="mb-0.5">
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-0">
+                  Adresse de Résidence
+                </label>
+                <div className="flex items-center gap-1">
+                  <p className="text-xs text-gray-900 dark:text-white">
+                    {demande.AdresseResidence || 'Non spécifiée'}
+                  </p>
+                  <span className="text-xs text-gray-900 dark:text-white">,</span>
+                  <p className="text-xs text-gray-900 dark:text-white">
+                    {demande.CommuneResidence || 'Non spécifiée'}
                   </p>
                 </div>
-                
-                {/* Client Contact Info - Telephone and Email side by side */}
-                <div className="mb-0.5">
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-0">
-                        Téléphone
-                      </label>
-                      <p className="text-sm text-gray-900 dark:text-white">
-                        {demande.ClientTelephone || 'Non spécifié'}
-                      </p>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-0">
-                        Email
-                      </label>
-                      <p className="text-sm text-gray-900 dark:text-white">
-                        {demande.ClientEmail || 'Non spécifié'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Client Residence Address */}
-                <div className="mb-0.5">
-                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-0">
-                    Adresse de Résidence
-                  </label>
-                  <div className="flex items-center gap-1">
-                    <p className="text-sm text-gray-900 dark:text-white">
-                      {demande.AdresseResidence || 'Non spécifiée'}
-                    </p>
-                    <span className="text-sm text-gray-900 dark:text-white">,</span>
-                    <p className="text-sm text-gray-900 dark:text-white">
-                      {demande.CommuneResidence || 'Non spécifiée'}
-                    </p>
-                  </div>
-                </div>
-                
-                {/* Client Branchement Address */}
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-0">
-                    Adresse de Branchement
-                  </label>
-                  <div className="flex items-center gap-1">
-                    <p className="text-sm text-gray-900 dark:text-white">
-                      {demande.AdresseBranchement || 'Non spécifiée'}
-                    </p>
-                    <span className="text-sm text-gray-900 dark:text-white">,</span>
-                    <p className="text-sm text-gray-900 dark:text-white">
-                      {demande.CommuneBranchement || 'Non spécifiée'}
-                    </p>
-                  </div>
-                </div>
               </div>
-            )}
-          </div>
+              
+              {/* Client Contact Info - Telephone and Email */}
+              {demande.ClientTelephone && (
+                <div className="mb-0.5">
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-0">
+                    Téléphone
+                  </label>
+                  <p className="text-xs text-gray-900 dark:text-white">
+                    {demande.ClientTelephone}
+                  </p>
+                </div>
+              )}
+              
+              {demande.ClientEmail && (
+                <div className="mb-0.5">
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-0">
+                    Email
+                  </label>
+                  <p className="text-xs text-gray-900 dark:text-white">
+                    {demande.ClientEmail}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
           
           {/* Type de Devis - REMOVED AS PER USER REQUEST */}
         </div>
@@ -1326,15 +1307,18 @@ const DevisForm = ({ user }) => {
               </div>
               
               {demande && (
-                <div className="text-right">
-                  <p className="font-semibold text-gray-900 dark:text-white text-lg">{demande.ClientNom} {demande.ClientPrenom}</p>
-                  <p className="text-gray-600 dark:text-gray-400">{demande.AdresseResidence}</p>
-                  <p className="text-gray-600 dark:text-gray-400">{demande.CommuneResidence}</p>
+                <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-800 shadow-sm text-left">
+                  <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 pb-1 border-b border-gray-200 dark:border-gray-700">
+                    Informations Client
+                  </h3>
+                  <p className="font-semibold text-gray-900 dark:text-white text-base">{demande.ClientNom} {demande.ClientPrenom}</p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">{demande.AdresseResidence}</p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">{demande.CommuneResidence}</p>
                   {demande.ClientTelephone && (
-                    <p className="text-gray-600 dark:text-gray-400">Tél: {demande.ClientTelephone}</p>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">Tél: {demande.ClientTelephone}</p>
                   )}
                   {demande.ClientEmail && (
-                    <p className="text-gray-600 dark:text-gray-400">Email: {demande.ClientEmail}</p>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">Email: {demande.ClientEmail}</p>
                   )}
                 </div>
               )}
