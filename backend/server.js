@@ -1174,6 +1174,8 @@ app.get('/api/centres/:id', verifyToken, async (req, res) => {
         SELECT 
           c.IdCentre, c.CodeCentre, c.NomCentre, c.PrefixeCentre, c.IdUnite,
           u.NomUnite,
+          u.Adresse AS AdresseUnite,
+          u.Commune AS CommuneUnite,
           c.Adresse, c.Commune, c.CodePostal,
           c.TelephonePrincipal, c.TelephoneSecondaire, c.Fax, c.Email,
           c.NumerocompteBancaire, c.NumeroComptePostal,

@@ -1280,9 +1280,16 @@ const DevisForm = ({ user }) => {
                     </h3>
                     <div className="space-y-1">
                       {centreInfo && centreInfo.NomUnite && (
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Unité: <span className="font-medium">{centreInfo.NomUnite}</span>
-                        </p>
+                        <div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Unité: <span className="font-medium">{centreInfo.NomUnite}</span>
+                          </p>
+                          {(centreInfo.AdresseUnite || centreInfo.CommuneUnite) && (
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              {centreInfo.AdresseUnite}{centreInfo.AdresseUnite && centreInfo.CommuneUnite ? ', ' : ''}{centreInfo.CommuneUnite}
+                            </p>
+                          )}
+                        </div>
                       )}
 
 
