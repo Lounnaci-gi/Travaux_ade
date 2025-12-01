@@ -172,6 +172,8 @@ const DevisForm = ({ user }) => {
       // Fetch center information using the center ID from agency data
       if (agenceData && agenceData.IdCentre) {
         const centreData = await getCentreById(agenceData.IdCentre);
+        // Debug log to see what data is available in centreData
+        console.log('Centre data:', centreData);
         setCentreInfo(centreData);
       }
     } catch (error) {
@@ -818,15 +820,9 @@ const DevisForm = ({ user }) => {
                 <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-0">
                   Adresse de Résidence
                 </label>
-                <div className="flex items-center gap-1">
-                  <p className="text-xs text-gray-900 dark:text-white">
-                    {demande.AdresseResidence || 'Non spécifiée'}
-                  </p>
-                  <span className="text-xs text-gray-900 dark:text-white">,</span>
-                  <p className="text-xs text-gray-900 dark:text-white">
-                    {demande.CommuneResidence || 'Non spécifiée'}
-                  </p>
-                </div>
+                <p className="text-xs text-gray-900 dark:text-white">
+                  {demande.AdresseResidence || 'Non spécifiée'}, {demande.CommuneResidence || 'Non spécifiée'}
+                </p>
               </div>
               
               {/* Client Contact Info - Telephone and Email */}
@@ -1278,12 +1274,17 @@ const DevisForm = ({ user }) => {
             <div className="flex justify-between items-start">
               <div>
                 {/* Center and Agency Information */}
-                {(centreInfo || agenceInfo) && (
+                {(centreInfo || agenceInfo || (centreInfo && (centreInfo.Unite || centreInfo.NomUnite || centreInfo.NomUniteCentre))) && (
                   <div className="mt-4 p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700">
                     <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-2">
                       Informations Organisation
                     </h3>
                     <div className="space-y-1">
+                      {centreInfo && (centreInfo.Unite || centreInfo.NomUnite || centreInfo.NomUniteCentre) && (
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Unité: <span className="font-medium">{centreInfo.Unite || centreInfo.NomUnite || centreInfo.NomUniteCentre}</span>
+                        </p>
+                      )}
                       {centreInfo && (
                         <p className="text-sm text-gray-600 dark:text-gray-400">
                           Centre: <span className="font-medium">{centreInfo.NomCentre}</span>
@@ -1302,15 +1303,15 @@ const DevisForm = ({ user }) => {
               {demande && (
                 <div>
                   {/* Code devis and Date d'émission in a separate div */}
-                  <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-800 shadow-sm text-left mb-4">
+                  <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg p-1 bg-white dark:bg-gray-800 shadow-sm text-left mb-4 w-96">
                     {devisCode && (
-                      <p className="text-lg font-mono text-primary-600 dark:text-primary-400 mt-1">N° {devisCode}</p>
+                      <p className="text-lg font-mono text-primary-600 dark:text-primary-400 mt-0">N° {devisCode}</p>
                     )}
-                    <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mt-0">
                       Date d'émission: {new Date().toLocaleDateString('fr-FR')}
                     </p>
                     {demande && (
-                      <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                      <p className="text-gray-600 dark:text-gray-400 text-sm mt-0">
                         Valable jusqu'au : {
                           (() => {
                             const baseDate = demande.DateDemande ? new Date(demande.DateDemande) : new Date();
@@ -1324,13 +1325,12 @@ const DevisForm = ({ user }) => {
                   </div>
                   
                   {/* Client Information */}
-                  <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-800 shadow-sm text-left">
-                    <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 pb-1 border-b border-gray-200 dark:border-gray-700">
+                  <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg p-1 bg-white dark:bg-gray-800 shadow-sm text-left w-96">
+                    <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-0.5 pb-1 border-b border-gray-200 dark:border-gray-700">
                       Informations Client
                     </h3>
                     <p className="font-semibold text-gray-900 dark:text-white text-base">{demande.ClientNom} {demande.ClientPrenom}</p>
-                    <p className="text-gray-600 dark:text-gray-400 text-sm">{demande.AdresseResidence}</p>
-                    <p className="text-gray-600 dark:text-gray-400 text-sm">{demande.CommuneResidence}</p>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">{demande.AdresseResidence}, {demande.CommuneResidence}</p>
                     {demande.ClientTelephone && (
                       <p className="text-gray-600 dark:text-gray-400 text-sm">Tél: {demande.ClientTelephone}</p>
                     )}
@@ -1342,29 +1342,7 @@ const DevisForm = ({ user }) => {
               )}
             </div>
             
-            {demande && (
-              <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                <div className="flex justify-between items-center">
-                  <p className="text-sm text-gray-700 dark:text-gray-300">
-                    Valable jusqu'au : 
-                    <span className="font-bold text-gray-900 dark:text-white ml-1">
-                      {(() => {
-                        const baseDate = demande.DateDemande ? new Date(demande.DateDemande) : new Date();
-                        const validUntil = new Date(baseDate);
-                        validUntil.setDate(baseDate.getDate() + (demande.DelaiPaiementJours || 30));
-                        return validUntil.toLocaleDateString('fr-FR');
-                      })()}
-                    </span>
-                  </p>
-                  <p className="text-sm text-gray-700 dark:text-gray-300">
-                    Délai de paiement: 
-                    <span className="font-bold text-gray-900 dark:text-white ml-1">
-                      {demande.DelaiPaiementJours || 30} jours
-                    </span>
-                  </p>
-                </div>
-              </div>
-            )}
+
           </div>
           
           {/* Articles Table */}
