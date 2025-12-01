@@ -1275,15 +1275,8 @@ const DevisForm = ({ user }) => {
           
           {/* Devis Header */}
           <div className="mb-8">
-            <div className="flex justify-between items-start mb-6">
+            <div className="flex justify-between items-start">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">DEVIS</h1>
-                {devisCode && (
-                  <p className="text-xl font-mono text-primary-600 dark:text-primary-400 mt-1">N° {devisCode}</p>
-                )}
-                <p className="text-gray-600 dark:text-gray-400 mt-2">
-                  Date d'émission: {new Date().toLocaleDateString('fr-FR')}
-                </p>
                 {/* Center and Agency Information */}
                 {(centreInfo || agenceInfo) && (
                   <div className="mt-4 p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700">
@@ -1307,19 +1300,32 @@ const DevisForm = ({ user }) => {
               </div>
               
               {demande && (
-                <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-800 shadow-sm text-left">
-                  <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 pb-1 border-b border-gray-200 dark:border-gray-700">
-                    Informations Client
-                  </h3>
-                  <p className="font-semibold text-gray-900 dark:text-white text-base">{demande.ClientNom} {demande.ClientPrenom}</p>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">{demande.AdresseResidence}</p>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">{demande.CommuneResidence}</p>
-                  {demande.ClientTelephone && (
-                    <p className="text-gray-600 dark:text-gray-400 text-sm">Tél: {demande.ClientTelephone}</p>
-                  )}
-                  {demande.ClientEmail && (
-                    <p className="text-gray-600 dark:text-gray-400 text-sm">Email: {demande.ClientEmail}</p>
-                  )}
+                <div>
+                  {/* Code devis and Date d'émission in a separate div */}
+                  <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-800 shadow-sm text-center mb-4">
+                    {devisCode && (
+                      <p className="text-lg font-mono text-primary-600 dark:text-primary-400 mt-1">N° {devisCode}</p>
+                    )}
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                      Date d'émission: {new Date().toLocaleDateString('fr-FR')}
+                    </p>
+                  </div>
+                  
+                  {/* Client Information */}
+                  <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-800 shadow-sm text-left">
+                    <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 pb-1 border-b border-gray-200 dark:border-gray-700">
+                      Informations Client
+                    </h3>
+                    <p className="font-semibold text-gray-900 dark:text-white text-base">{demande.ClientNom} {demande.ClientPrenom}</p>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">{demande.AdresseResidence}</p>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">{demande.CommuneResidence}</p>
+                    {demande.ClientTelephone && (
+                      <p className="text-gray-600 dark:text-gray-400 text-sm">Tél: {demande.ClientTelephone}</p>
+                    )}
+                    {demande.ClientEmail && (
+                      <p className="text-gray-600 dark:text-gray-400 text-sm">Email: {demande.ClientEmail}</p>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
