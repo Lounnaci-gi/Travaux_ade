@@ -1173,11 +1173,13 @@ app.get('/api/centres/:id', verifyToken, async (req, res) => {
       .query(`
         SELECT 
           c.IdCentre, c.CodeCentre, c.NomCentre, c.PrefixeCentre, c.IdUnite,
+          u.NomUnite,
           c.Adresse, c.Commune, c.CodePostal,
           c.TelephonePrincipal, c.TelephoneSecondaire, c.Fax, c.Email,
           c.NumerocompteBancaire, c.NumeroComptePostal,
           c.Actif, c.DateCreation, c.DateModification
         FROM Centre c
+        LEFT JOIN Unite u ON c.IdUnite = u.IdUnite
         WHERE c.IdCentre = @id
       `);
     

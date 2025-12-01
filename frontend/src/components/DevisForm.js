@@ -172,8 +172,7 @@ const DevisForm = ({ user }) => {
       // Fetch center information using the center ID from agency data
       if (agenceData && agenceData.IdCentre) {
         const centreData = await getCentreById(agenceData.IdCentre);
-        // Debug log to see what data is available in centreData
-        console.log('Centre data:', centreData);
+
         setCentreInfo(centreData);
       }
     } catch (error) {
@@ -1274,26 +1273,42 @@ const DevisForm = ({ user }) => {
             <div className="flex justify-between items-start">
               <div>
                 {/* Center and Agency Information */}
-                {(centreInfo || agenceInfo || (centreInfo && (centreInfo.Unite || centreInfo.NomUnite || centreInfo.NomUniteCentre))) && (
+                {(centreInfo || agenceInfo) && (
                   <div className="mt-4 p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700">
                     <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-2">
                       Informations Organisation
                     </h3>
                     <div className="space-y-1">
-                      {centreInfo && (centreInfo.Unite || centreInfo.NomUnite || centreInfo.NomUniteCentre) && (
+                      {centreInfo && centreInfo.NomUnite && (
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Unité: <span className="font-medium">{centreInfo.Unite || centreInfo.NomUnite || centreInfo.NomUniteCentre}</span>
+                          Unité: <span className="font-medium">{centreInfo.NomUnite}</span>
                         </p>
                       )}
+
+
                       {centreInfo && (
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Centre: <span className="font-medium">{centreInfo.NomCentre}</span>
-                        </p>
+                        <div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Centre: <span className="font-medium">{centreInfo.NomCentre}</span>
+                          </p>
+                          {centreInfo.TelephonePrincipal && (
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              Téléphone Centre: <span className="font-medium">{centreInfo.TelephonePrincipal}</span>
+                            </p>
+                          )}
+                        </div>
                       )}
                       {agenceInfo && (
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Agence commerciale: <span className="font-medium">{agenceInfo.NomAgence}</span>
-                        </p>
+                        <div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Agence commerciale: <span className="font-medium">{agenceInfo.NomAgence}</span>
+                          </p>
+                          {agenceInfo.TelephonePrincipal && (
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              Téléphone Agence: <span className="font-medium">{agenceInfo.TelephonePrincipal}</span>
+                            </p>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>
