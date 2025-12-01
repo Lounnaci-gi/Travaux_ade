@@ -1302,13 +1302,25 @@ const DevisForm = ({ user }) => {
               {demande && (
                 <div>
                   {/* Code devis and Date d'émission in a separate div */}
-                  <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-800 shadow-sm text-center mb-4">
+                  <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-800 shadow-sm text-left mb-4">
                     {devisCode && (
                       <p className="text-lg font-mono text-primary-600 dark:text-primary-400 mt-1">N° {devisCode}</p>
                     )}
                     <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
                       Date d'émission: {new Date().toLocaleDateString('fr-FR')}
                     </p>
+                    {demande && (
+                      <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                        Valable jusqu'au : {
+                          (() => {
+                            const baseDate = demande.DateDemande ? new Date(demande.DateDemande) : new Date();
+                            const validUntil = new Date(baseDate);
+                            validUntil.setDate(baseDate.getDate() + (demande.DelaiPaiementJours || 30));
+                            return validUntil.toLocaleDateString('fr-FR');
+                          })()
+                        }
+                      </p>
+                    )}
                   </div>
                   
                   {/* Client Information */}
