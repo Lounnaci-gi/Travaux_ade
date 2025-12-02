@@ -1405,45 +1405,49 @@ const DevisForm = ({ user }) => {
           {/* Articles Table */}
           {formData.articles.length > 0 && (
             <div className="mb-8">
-              {(() => {
-                // Group articles by family for preview
-                const groupedArticles = formData.articles.reduce((acc, article, index) => {
-                  // Find the article in availableArticles to get its family
-                  const availableArticle = availableArticles.find(a => a.IdArticle === article.idArticle);
-                  const family = availableArticle?.LibelleFamille || 'Sans famille';
-                  
-                  if (!acc[family]) {
-                    acc[family] = [];
-                  }
-                  
-                  acc[family].push({ article, index });
-                  return acc;
-                }, {});
-                
-                // Sort families alphabetically
-                const sortedFamilies = Object.keys(groupedArticles).sort();
-                
-                return sortedFamilies.map(family => (
-                  <div key={family} className="mb-6">
-                    {/* Family Header */}
-                    <div className="bg-gray-100 dark:bg-gray-700 p-2 rounded-md mb-2">
-                      <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300">{family}</h4>
-                    </div>
-                    
-                    {/* Articles in this family with consistent column alignment */}
-                    <div className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-                      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead className="bg-gray-50 dark:bg-gray-700">
-                          <tr>
-                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-4/12">Désignation</th>
-                            <th scope="col" className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/12">Qté</th>
-                            <th scope="col" className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/12">Unité</th>
-                            <th scope="col" className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/12">PU HT</th>
-                            <th scope="col" className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/12">P.TVA</th>
-                            <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-3/12">Total HT</th>
+              {/* Table with single header for all articles */}
+              <div className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                      <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-4/12">Désignation</th>
+                      <th scope="col" className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/12">Qté</th>
+                      <th scope="col" className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/12">Unité</th>
+                      <th scope="col" className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/12">PU HT</th>
+                      <th scope="col" className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/12">P.TVA</th>
+                      <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-3/12">Total HT</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    {(() => {
+                      // Group articles by family for preview
+                      const groupedArticles = formData.articles.reduce((acc, article, index) => {
+                        // Find the article in availableArticles to get its family
+                        const availableArticle = availableArticles.find(a => a.IdArticle === article.idArticle);
+                        const family = availableArticle?.LibelleFamille || 'Sans famille';
+                        
+                        if (!acc[family]) {
+                          acc[family] = [];
+                        }
+                        
+                        acc[family].push({ article, index });
+                        return acc;
+                      }, {});
+                      
+                      // Sort families alphabetically
+                      const sortedFamilies = Object.keys(groupedArticles).sort();
+                      
+                      // Render articles grouped by family with family headers as separators
+                      return sortedFamilies.map((family, familyIndex) => (
+                        <React.Fragment key={family}>
+                          {/* Family Header as separator */}
+                          <tr className="bg-gray-100 dark:bg-gray-700">
+                            <td colSpan="6" className="px-4 py-2 text-sm font-bold text-gray-700 dark:text-gray-300">
+                              {family}
+                            </td>
                           </tr>
-                        </thead>
-                        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                          
+                          {/* Articles in this family */}
                           {groupedArticles[family].map(({ article, index }) => {
                             const articleTotals = calculateArticleTotals(article);
                             return (
@@ -1474,12 +1478,12 @@ const DevisForm = ({ user }) => {
                               </tr>
                             );
                           })}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                ));
-              })()}
+                        </React.Fragment>
+                      ));
+                    })()}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
           
