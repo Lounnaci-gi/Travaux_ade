@@ -663,9 +663,9 @@ const DevisForm = ({ user }) => {
           </div>
           {/* Devis Code, Type de Demande, and Date Display - Same div */}
           {devisCode && demande && (
-            <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+            <div className="mt-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
               <p className="text-sm text-gray-600 dark:text-gray-300">
-                Code Devis: <span className="font-mono font-bold text-lg text-primary-600 dark:text-primary-400">{devisCode}</span>
+                Code Devis: <span className="font-mono font-bold text-base text-primary-600 dark:text-primary-400">{devisCode}</span>
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-300 mt-0">
                 Type de Demande: <span className="font-bold text-gray-900 dark:text-white">{demande.TypeDemande}</span>
@@ -687,9 +687,9 @@ const DevisForm = ({ user }) => {
           )}
           {/* Show Code Devis and Date if no demande selected */}
           {devisCode && !demande && (
-            <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+            <div className="mt-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
               <p className="text-sm text-gray-600 dark:text-gray-300">
-                Code Devis: <span className="font-mono font-bold text-lg text-primary-600 dark:text-primary-400">{devisCode}</span>
+                Code Devis: <span className="font-mono font-bold text-base text-primary-600 dark:text-primary-400">{devisCode}</span>
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-300 mt-0">
                 Date: <span className="font-bold text-gray-900 dark:text-white">{new Date().toLocaleDateString('fr-FR')}</span>
@@ -708,7 +708,7 @@ const DevisForm = ({ user }) => {
           )}
           {/* Show Type de Demande and Date if no devis code but demande selected */}
           {!devisCode && demande && (
-            <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+            <div className="mt-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
               <p className="text-sm text-gray-600 dark:text-gray-300">
                 Type de Demande: <span className="font-bold text-gray-900 dark:text-white">{demande.TypeDemande}</span>
               </p>
@@ -729,7 +729,7 @@ const DevisForm = ({ user }) => {
           )}
           {/* Show only Date if neither devis code nor demande selected */}
           {!devisCode && !demande && (
-            <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+            <div className="mt-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
               <p className="text-sm text-gray-600 dark:text-gray-300">
                 En date du <span className="font-bold text-gray-900 dark:text-white">{new Date().toLocaleDateString('fr-FR')}</span>
               </p>
@@ -799,8 +799,8 @@ const DevisForm = ({ user }) => {
           
           {/* Client Information in a bordered div on the right */}
           {demande && (
-            <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-800 shadow-sm">
-              <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 pb-1 border-b border-gray-200 dark:border-gray-700">
+            <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg p-2 bg-white dark:bg-gray-800 shadow-sm">
+              <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-1 pb-1 border-b border-gray-200 dark:border-gray-700">
                 Informations Client
               </h3>
               
@@ -811,6 +811,20 @@ const DevisForm = ({ user }) => {
                 </label>
                 <p className="text-xs text-gray-900 dark:text-white font-medium">
                   {demande.ClientNom} {demande.ClientPrenom}
+                </p>
+              </div>
+              
+              {/* Objet */}
+              <div className="mt-2">
+                <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                  Objet: 
+                </p>
+              </div>
+              
+              {/* Logo placed between Informations Organisation and Informations Client */}
+              <div className="mt-2">
+                <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                  Logo: 
                 </p>
               </div>
               
@@ -1274,11 +1288,11 @@ const DevisForm = ({ user }) => {
               <div>
                 {/* Center and Agency Information */}
                 {(centreInfo || agenceInfo) && (
-                  <div className="mt-4 p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700">
-                    <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-2">
+                  <div className="mt-4 p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700">
+                    <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">
                       Informations Organisation
                     </h3>
-                    <div className="space-y-1">
+                    <div className="space-y-0.5">
                       {centreInfo && centreInfo.NomUnite && (
                         <div>
                           <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -1320,6 +1334,13 @@ const DevisForm = ({ user }) => {
                     </div>
                   </div>
                 )}
+                
+                {/* Objet */}
+                <div className="mt-2">
+                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                    Objet: 
+                  </p>
+                </div>
               </div>
               
               {/* Logo placed between Informations Organisation and Informations Client */}
