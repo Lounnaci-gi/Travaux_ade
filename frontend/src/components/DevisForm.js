@@ -970,19 +970,6 @@ const DevisForm = ({ user }) => {
                   </p>
                 </div>
                 
-                {/* Objet */}
-                <div className="mt-2">
-                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                    Objet: 
-                  </p>
-                </div>
-                
-                {/* Logo placed between Informations Organisation and Informations Client */}
-                <div className="mt-2">
-                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                    Logo: 
-                  </p>
-                </div>
                 
                 {/* Client Residence Address */}
                 <div className="mb-0.5">
@@ -1499,12 +1486,6 @@ const DevisForm = ({ user }) => {
                   </p>
                 </div>
                 
-                {/* Objet */}
-                <div className="mt-2">
-                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                    Objet: 
-                  </p>
-                </div>
               </div>
               
               {/* Logo placed between Informations Organisation and Informations Client */}
@@ -1558,7 +1539,7 @@ const DevisForm = ({ user }) => {
           </div>
           
           {/* Articles Table */}
-          {formData.articles.length > 0 && (
+          {formData.articles.filter(article => article.idArticle && article.designation).length > 0 && (
             <div className="mb-8">
               {/* Table with single header for all articles */}
               <div className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
@@ -1576,7 +1557,12 @@ const DevisForm = ({ user }) => {
                   <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     {(() => {
                       // Group articles by family for preview
-                      const groupedArticles = formData.articles.reduce((acc, article, index) => {
+                      // Filter out empty articles (those without designation or idArticle)
+                      const validArticles = formData.articles.filter(article => 
+                        article.idArticle && article.designation
+                      );
+                      
+                      const groupedArticles = validArticles.reduce((acc, article, index) => {
                         // Find the article in availableArticles to get its family
                         const availableArticle = availableArticles.find(a => a.IdArticle === article.idArticle);
                         const family = availableArticle?.LibelleFamille || 'Sans famille';
@@ -1643,7 +1629,7 @@ const DevisForm = ({ user }) => {
           )}
           
           {/* Totals */}
-          {formData.articles.length > 0 && (
+          {formData.articles.filter(article => article.idArticle && article.designation).length > 0 && (
             <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
               <div className="flex justify-end">
                 <div className="w-80 bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
@@ -1667,7 +1653,7 @@ const DevisForm = ({ user }) => {
           )}
           
           {/* Total TTC in letters - Separate div */}
-          {formData.articles.length > 0 && (
+          {formData.articles.filter(article => article.idArticle && article.designation).length > 0 && (
             <div className="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
               <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
                 <p className="text-sm text-gray-600 dark:text-gray-300">
