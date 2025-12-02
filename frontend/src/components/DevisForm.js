@@ -1266,7 +1266,7 @@ const DevisForm = ({ user }) => {
                               readOnly
                             />
                             <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-gray-500 dark:text-gray-400 text-xs">
-                              DZD
+                              {/* Currency symbol removed as per user request */}
                             </div>
                           </div>
                         </div>

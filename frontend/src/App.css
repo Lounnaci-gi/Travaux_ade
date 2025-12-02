@@ -62,7 +62,7 @@
   }
   
   .app-main {
-    @apply px-4;
+    @apply px-4 py-4;
   }
   
   .footer-content {
@@ -70,7 +70,20 @@
   }
   
   .footer-links {
-    @apply mb-4 justify-center;
+    @apply mb-4 justify-center flex-wrap;
+  }
+  
+  /* Mobile-specific adjustments */
+  .section-header {
+    @apply mb-6;
+  }
+  
+  .section-title {
+    @apply text-2xl mb-2;
+  }
+  
+  .section-subtitle {
+    @apply text-base;
   }
 }
 

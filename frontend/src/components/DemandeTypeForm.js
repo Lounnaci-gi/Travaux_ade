@@ -462,7 +462,7 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
   }
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen p-4 sm:p-6">
       <div className="max-w-5xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary-400 via-secondary-400 to-primary-300 bg-clip-text text-transparent">
@@ -471,10 +471,10 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
           <p className="dark:text-gray-400 text-gray-600">Créer et lister les types de travaux (DemandeType)</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="glass-card p-6 mb-6">
+        <form onSubmit={handleSubmit} className="form-responsive-card">
           {/* Messages d'alerte */}
           {error && (
-            <div className="mb-4 p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-300 text-sm flex items-center gap-2">
+            <div className="form-responsive-alert bg-red-500/20 border border-red-500/50 text-red-300">
               <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
               </svg>
@@ -482,7 +482,7 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
             </div>
           )}
           {success && (
-            <div className="mb-4 p-3 rounded-lg bg-green-500/20 border border-green-500/50 text-green-300 text-sm flex items-center gap-2">
+            <div className="form-responsive-alert bg-green-500/20 border border-green-500/50 text-green-300">
               <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
@@ -492,9 +492,9 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
           
           {/* Bannière d'édition */}
           {editingId && (
-            <div className="mb-6 p-4 rounded-lg bg-gradient-to-r from-primary-500/20 to-secondary-500/20 border border-primary-500/50 flex items-center justify-between">
+            <div className="form-responsive-edit-banner bg-gradient-to-r from-primary-500/20 to-secondary-500/20 border border-primary-500/50">
               <div className="flex items-center gap-3">
-                <svg className="w-5 h-5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-primary-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
                 <div>
@@ -505,7 +505,7 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
               <button
                 type="button"
                 onClick={handleCancelEdit}
-                className="px-4 py-2 rounded-lg bg-primary-500/30 hover:bg-primary-500/40 text-primary-200 text-sm font-medium transition-colors"
+                className="px-4 py-2 rounded-lg bg-primary-500/30 hover:bg-primary-500/40 text-primary-200 text-sm font-medium transition-colors form-responsive-button"
               >
                 Annuler
               </button>
@@ -513,16 +513,18 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
           )}
 
           {/* Section: Informations de base */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-4 dark:text-white text-gray-900 flex items-center gap-2">
-              <svg className="w-5 h-5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="form-section">
+            <h3 className="form-section-header">
+              <svg className="form-section-icon text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              Informations de base
+              <span className="form-section-title">
+                Informations de base
+              </span>
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="form-section-grid">
               <div className="relative">
-                <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
+                <label className="form-responsive-label">
                   Libellé <span className="text-red-400">*</span>
                 </label>
                 <div className="relative">
@@ -539,7 +541,7 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
                       // Délai pour permettre le clic sur une suggestion
                       setTimeout(() => setShowLibelleSuggestions(false), 200);
                     }}
-                    className="w-full px-4 py-2.5 pr-10 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all" 
+                    className="form-responsive-input pr-10" 
                     placeholder="Ex: Branchement nouveau" 
                     required
                     autoComplete="off"
@@ -589,36 +591,36 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
+                <label className="form-responsive-label">
                   Statut
                 </label>
                 {editingId ? (
-                  <label className="flex items-center gap-3 h-full px-4 py-2.5 rounded-lg dark:bg-white/5 bg-gray-50 border dark:border-white/10 border-gray-200 cursor-pointer hover:bg-white/10 transition-colors">
+                  <label className="flex items-start gap-3 h-full p-4 rounded-lg dark:bg-white/5 bg-gray-50 border dark:border-white/10 border-gray-200 cursor-pointer hover:bg-white/10 transition-colors">
                     <input 
                       type="checkbox" 
                       name="Actif" 
                       checked={form.Actif} 
                       onChange={handleChange} 
-                      className="w-5 h-5 accent-green-500 cursor-pointer" 
+                      className="form-section-checkbox accent-green-500" 
                     />
                     <div>
                       <span className="text-sm font-medium dark:text-gray-300 text-gray-700">
                         {form.Actif ? 'Actif' : 'Inactif'}
                       </span>
-                      <p className="text-xs text-gray-400 mt-0.5">
+                      <p className="text-xs text-gray-400 mt-1">
                         {form.Actif ? 'Visible dans les listes' : 'Masqué des listes'}
                       </p>
                     </div>
                   </label>
                 ) : (
-                  <div className="flex items-center h-full px-4 py-2.5 rounded-lg dark:bg-white/5 bg-gray-50 border dark:border-white/10 border-gray-200">
+                  <div className="flex items-center h-full p-4 rounded-lg dark:bg-white/5 bg-gray-50 border dark:border-white/10 border-gray-200">
                     <span className="text-sm text-gray-400">Défini lors de l'édition</span>
                   </div>
                 )}
               </div>
             </div>
             <div className="mt-4">
-              <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
+              <label className="form-responsive-label">
                 Description
               </label>
               <textarea 
@@ -626,29 +628,31 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
                 value={form.Description} 
                 onChange={handleChange} 
                 rows="3"
-                className="w-full px-4 py-2.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all resize-none" 
+                className="form-responsive-textarea" 
                 placeholder="Description optionnelle du type de travaux"
               />
             </div>
           </div>
 
           {/* Section: Rôles autorisés (repliable) */}
-          <div className="mb-6 border-t dark:border-white/10 border-gray-200/50 pt-6">
+          <div className="form-section border-t dark:border-white/10 border-gray-200/50 pt-6">
             <button
               type="button"
               onClick={() => toggleSection('roles')}
               className="w-full flex items-center justify-between text-left mb-4 group"
             >
-              <h3 className="text-lg font-semibold dark:text-white text-gray-900 flex items-center gap-2">
-                <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <h3 className="form-section-header">
+                <svg className="form-section-icon text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-                Rôles autorisés
-                {form.RolesAutorises.length > 0 && (
-                  <span className="ml-2 px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400 text-xs font-medium">
-                    {form.RolesAutorises.length} sélectionné{form.RolesAutorises.length > 1 ? 's' : ''}
-                  </span>
-                )}
+                <span className="form-section-title">
+                  Rôles autorisés
+                  {form.RolesAutorises.length > 0 && (
+                    <span className="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400 text-xs font-medium">
+                      {form.RolesAutorises.length} sélectionné{form.RolesAutorises.length > 1 ? 's' : ''}
+                    </span>
+                  )}
+                </span>
               </h3>
               <svg 
                 className={`w-5 h-5 text-gray-400 transition-transform ${expandedSections.roles ? 'rotate-180' : ''}`} 
@@ -660,18 +664,18 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
               </svg>
             </button>
             {expandedSections.roles && (
-              <div className="space-y-3">
-                <p className="text-sm text-gray-400 mb-4">
+              <div className="form-section-content">
+                <p className="form-section-description">
                   Sélectionnez les rôles autorisés à créer ce type de demande. Si aucun rôle n'est sélectionné, tous les utilisateurs peuvent créer ce type. <span className="text-purple-400 font-medium">L'Administrateur a une autorisation globale et n'apparaît pas dans cette liste.</span>
                 </p>
                 {(() => {
                   const rolesWithoutAdmin = getRolesWithoutAdmin();
                   return rolesWithoutAdmin.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <div className="form-section-grid-wide">
                       {rolesWithoutAdmin.map((role) => (
                         <label 
                           key={role.CodeRole} 
-                          className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                          className={`form-section-item ${
                             form.RolesAutorises.includes(role.CodeRole)
                               ? 'bg-purple-500/20 border-purple-500/50 dark:bg-purple-500/10'
                               : 'dark:bg-white/5 bg-gray-50 dark:border-white/10 border-gray-200 hover:bg-white/10'
@@ -681,13 +685,13 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
                             type="checkbox"
                             checked={form.RolesAutorises.includes(role.CodeRole)}
                             onChange={(e) => handleRoleChange(role.CodeRole, e.target.checked)}
-                            className="w-5 h-5 accent-purple-500 cursor-pointer"
+                            className="form-section-checkbox accent-purple-500"
                           />
-                          <div className="flex-1">
-                            <span className="text-sm font-medium dark:text-gray-300 text-gray-700 block">
+                          <div className="form-section-label">
+                            <span className="form-section-label-title">
                               {role.LibelleRole}
                             </span>
-                            <span className="text-xs text-gray-400">{role.CodeRole}</span>
+                            <span className="form-section-label-subtitle">{role.CodeRole}</span>
                           </div>
                         </label>
                       ))}
@@ -701,26 +705,28 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
           </div>
 
           {/* Section: Validations Demande (repliable) */}
-          <div className="mb-6 border-t dark:border-white/10 border-gray-200/50 pt-6">
+          <div className="form-section border-t dark:border-white/10 border-gray-200/50 pt-6">
             <button
               type="button"
               onClick={() => toggleSection('validationsDemande')}
               className="w-full flex items-center justify-between text-left mb-4 group"
             >
-              <h3 className="text-lg font-semibold dark:text-white text-gray-900 flex items-center gap-2">
-                <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <h3 className="form-section-header">
+                <svg className="form-section-icon text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                Validations requises - Demande
-                {(() => {
-                  const rolesWithoutAdmin = getRolesWithoutAdmin();
-                  const count = rolesWithoutAdmin.filter(role => getValidationDemandeValue(role.CodeRole)).length;
-                  return count > 0 ? (
-                    <span className="ml-2 px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 text-xs font-medium">
-                      {count} validation{count > 1 ? 's' : ''}
-                    </span>
-                  ) : null;
-                })()}
+                <span className="form-section-title">
+                  Validations requises - Demande
+                  {(() => {
+                    const rolesWithoutAdmin = getRolesWithoutAdmin();
+                    const count = rolesWithoutAdmin.filter(role => getValidationDemandeValue(role.CodeRole)).length;
+                    return count > 0 ? (
+                      <span className="px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 text-xs font-medium">
+                        {count} validation{count > 1 ? 's' : ''}
+                      </span>
+                    ) : null;
+                  })()}
+                </span>
               </h3>
               <svg 
                 className={`w-5 h-5 text-gray-400 transition-transform ${expandedSections.validationsDemande ? 'rotate-180' : ''}`} 
@@ -732,8 +738,8 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
               </svg>
             </button>
             {expandedSections.validationsDemande && (
-              <div className="space-y-3">
-                <p className="text-sm text-gray-400 mb-4">
+              <div className="form-section-content">
+                <p className="form-section-description">
                   Sélectionnez les rôles qui doivent valider ce type de demande. <span className="text-cyan-400 font-medium">L'Administrateur a une autorisation globale et n'apparaît pas dans cette liste.</span>
                 </p>
                 {(() => {
@@ -782,26 +788,26 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
                   };
                   
                   return rolesWithoutAdmin.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="form-section-grid">
                       {rolesWithoutAdmin.map((role, index) => {
                         const isChecked = getValidationDemandeValue(role.CodeRole);
                         const colorClasses = getColorClasses(role.CodeRole, isChecked, index);
                         return (
                           <label 
                             key={role.IdRole}
-                            className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${colorClasses.container}`}
+                            className={`form-section-item ${colorClasses.container}`}
                           >
                             <input 
                               type="checkbox" 
                               checked={isChecked}
                               onChange={(e) => handleValidationDemandeChange(role.CodeRole, e.target.checked)} 
-                              className={`w-5 h-5 ${colorClasses.checkbox} cursor-pointer`}
+                              className={`form-section-checkbox ${colorClasses.checkbox}`}
                             />
-                            <div className="flex-1">
-                              <span className="text-sm font-medium dark:text-gray-300 text-gray-700 block">
+                            <div className="form-section-label">
+                              <span className="form-section-label-title">
                                 {role.LibelleRole}
                               </span>
-                              <span className="text-xs text-gray-400">Validation pour la demande</span>
+                              <span className="form-section-label-subtitle">Validation pour la demande</span>
                             </div>
                           </label>
                         );
@@ -818,26 +824,28 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
           </div>
 
           {/* Section: Validations Ordre d'Exécution (repliable) */}
-          <div className="mb-6 border-t dark:border-white/10 border-gray-200/50 pt-6">
+          <div className="form-section border-t dark:border-white/10 border-gray-200/50 pt-6">
             <button
               type="button"
               onClick={() => toggleSection('validationsOE')}
               className="w-full flex items-center justify-between text-left mb-4 group"
             >
-              <h3 className="text-lg font-semibold dark:text-white text-gray-900 flex items-center gap-2">
-                <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <h3 className="form-section-header">
+                <svg className="form-section-icon text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
-                Validations requises - Ordre d'Exécution
-                {(() => {
-                  const rolesWithoutAdmin = getRolesWithoutAdmin();
-                  const count = rolesWithoutAdmin.filter(role => getValidationOEValue(role.CodeRole)).length;
-                  return count > 0 ? (
-                    <span className="ml-2 px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 text-xs font-medium">
-                      {count} validation{count > 1 ? 's' : ''}
-                    </span>
-                  ) : null;
-                })()}
+                <span className="form-section-title">
+                  Validations requises - Ordre d'Exécution
+                  {(() => {
+                    const rolesWithoutAdmin = getRolesWithoutAdmin();
+                    const count = rolesWithoutAdmin.filter(role => getValidationOEValue(role.CodeRole)).length;
+                    return count > 0 ? (
+                      <span className="px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 text-xs font-medium">
+                        {count} validation{count > 1 ? 's' : ''}
+                      </span>
+                    ) : null;
+                  })()}
+                </span>
               </h3>
               <svg 
                 className={`w-5 h-5 text-gray-400 transition-transform ${expandedSections.validationsOE ? 'rotate-180' : ''}`} 
@@ -849,8 +857,8 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
               </svg>
             </button>
             {expandedSections.validationsOE && (
-              <div className="space-y-3">
-                <p className="text-sm text-gray-400 mb-4">
+              <div className="form-section-content">
+                <p className="form-section-description">
                   Sélectionnez les rôles qui doivent valider l'ordre d'exécution. <span className="text-green-400 font-medium">L'Administrateur a une autorisation globale et n'apparaît pas dans cette liste.</span>
                 </p>
                 {(() => {
@@ -899,26 +907,26 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
                   };
                   
                   return rolesWithoutAdmin.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="form-section-grid">
                       {rolesWithoutAdmin.map((role, index) => {
                         const isChecked = getValidationOEValue(role.CodeRole);
                         const colorClasses = getColorClassesOE(role.CodeRole, isChecked, index);
                         return (
                           <label 
                             key={role.IdRole}
-                            className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${colorClasses.container}`}
+                            className={`form-section-item ${colorClasses.container}`}
                           >
                             <input 
                               type="checkbox" 
                               checked={isChecked}
                               onChange={(e) => handleValidationOEChange(role.CodeRole, e.target.checked)} 
-                              className={`w-5 h-5 ${colorClasses.checkbox} cursor-pointer`}
+                              className={`form-section-checkbox ${colorClasses.checkbox}`}
                             />
-                            <div className="flex-1">
-                              <span className="text-sm font-medium dark:text-gray-300 text-gray-700 block">
+                            <div className="form-section-label">
+                              <span className="form-section-label-title">
                                 {role.LibelleRole}
                               </span>
-                              <span className="text-xs text-gray-400">Validation pour l'ordre d'exécution</span>
+                              <span className="form-section-label-subtitle">Validation pour l'ordre d'exécution</span>
                             </div>
                           </label>
                         );
@@ -935,12 +943,12 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
           </div>
 
           {/* Boutons d'action */}
-          <div className="flex justify-end gap-3 pt-4 border-t dark:border-white/10 border-gray-200/50">
+          <div className="flex flex-col sm:flex-row sm:justify-end gap-3 pt-4 border-t dark:border-white/10 border-gray-200/50">
             {editingId && (
               <button
                 type="button"
                 onClick={handleCancelEdit}
-                className="px-6 py-2.5 rounded-lg bg-gray-500/80 hover:bg-gray-500 text-white font-medium shadow-lg transition-colors"
+                className="px-6 py-2.5 rounded-lg bg-gray-500/80 hover:bg-gray-500 text-white font-medium shadow-lg transition-colors form-responsive-button"
               >
                 Annuler
               </button>
@@ -948,7 +956,7 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
             <button 
               type="submit" 
               disabled={submitting} 
-              className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-medium shadow-lg hover:from-primary-600 hover:to-secondary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+              className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-medium shadow-lg hover:from-primary-600 hover:to-secondary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 form-responsive-button"
             >
               {submitting ? (
                 <>
@@ -982,10 +990,10 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
         </form>
 
         {/* Section Diagnostic */}
-        <div className="glass-card p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
+        <div className="glass-card p-4 sm:p-6 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
             <h2 className="text-xl font-semibold dark:text-white text-gray-900">Diagnostic des autorisations</h2>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <button
                 onClick={loadTestAuthorizations}
                 disabled={loadingTest}
@@ -1174,7 +1182,7 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
           )}
         </div>
 
-        <div className="glass-card p-6">
+        <div className="glass-card p-4 sm:p-6">
           <h2 className="text-xl font-semibold mb-4 dark:text-white text-gray-900">Types existants</h2>
           {loading ? (
             <div className="flex justify-center py-8">

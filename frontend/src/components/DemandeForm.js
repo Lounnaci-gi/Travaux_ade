@@ -767,7 +767,7 @@ const DemandeForm = ({ user, onCreated }) => {
     <div className="min-h-screen p-2 pt-1">
       <div className="max-w-4xl mx-auto">
         <div className="mb-3 mt-0">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-2">
             <div>
               <h1 className="text-2xl font-bold mb-1 bg-gradient-to-r from-primary-400 via-secondary-400 to-primary-300 bg-clip-text text-transparent">
                 Nouvelle Demande
@@ -873,7 +873,7 @@ const DemandeForm = ({ user, onCreated }) => {
                                   onClick={() => handleClientSelect(client.IdClient.toString())}
                                   className="w-full text-left px-3 py-2 text-sm hover:bg-primary-500/20 dark:hover:bg-primary-500/20 dark:text-white text-gray-900 transition-colors first:rounded-t-lg last:rounded-b-lg"
                                 >
-                                  <div className="font-medium">{client.Nom} {client.Prenom || ''}</div>
+                                  <div className="font-medium truncate">{client.Nom} {client.Prenom || ''}</div>
                                   <div className="text-xs text-gray-500 dark:text-gray-400">ID: {client.IdClient}</div>
                                 </button>
                               ))
@@ -929,11 +929,11 @@ const DemandeForm = ({ user, onCreated }) => {
                             <option value="MANDATAIRE">Mandataire</option>
                           </select>
                         </div>
-                        <div>
+                        <div className="md:col-span-2">
                           <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Nom *</label>
                           <input className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.nom} onChange={(e)=>setClientForm((p)=>({...p, nom:e.target.value}))} />
                         </div>
-                        <div>
+                        <div className="md:col-span-2">
                           <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Prénom</label>
                           <input className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.prenom} onChange={(e)=>setClientForm((p)=>({...p, prenom:e.target.value}))} />
                         </div>
@@ -977,7 +977,7 @@ const DemandeForm = ({ user, onCreated }) => {
                           <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Fax</label>
                           <input className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.fax} onChange={(e)=>setClientForm((p)=>({...p, fax:e.target.value}))} maxLength={10} />
                         </div>
-                        <div>
+                        <div className="md:col-span-2">
                           <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Email</label>
                           <input type="email" className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.email} onChange={(e)=>setClientForm((p)=>({...p, email:e.target.value}))} />
                         </div>

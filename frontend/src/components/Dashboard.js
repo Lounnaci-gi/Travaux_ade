@@ -93,7 +93,7 @@ const Dashboard = () => {
         ) : (
           <>
             {/* Stats Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               {statsCards.map((card, index) => {
                 // Carte spéciale pour "En Attente" avec détails par type
                 if (card.title === 'En Attente') {
@@ -103,41 +103,41 @@ const Dashboard = () => {
                       className="obat-card-primary transform transition-all duration-500 hover:-translate-y-1 border border-gray-200 dark:border-slate-700"
                       style={{ animationDelay: `${card.delay}ms` }}
                     >
-                      <div className="flex items-center justify-between mb-5">
+                      <div className="flex items-center justify-between mb-4">
                         <div className={`p-3 rounded-lg ${card.color} bg-opacity-20`}>
                           {card.icon}
                         </div>
                         <div className="text-right">
-                          <p className="text-3xl font-bold text-gradient">
+                          <p className="text-2xl font-bold text-gradient">
                             {card.value}
                           </p>
-                          <p className="dark:text-gray-300 text-gray-700 text-sm mt-1">{card.title}</p>
+                          <p className="dark:text-gray-300 text-gray-700 text-xs mt-1">{card.title}</p>
                         </div>
                       </div>
-                      <div className="h-1 w-full dark:bg-gray-700 bg-gray-300 rounded-full overflow-hidden mb-5">
+                      <div className="h-1 w-full dark:bg-gray-700 bg-gray-300 rounded-full overflow-hidden mb-4">
                         <div 
                           className={`h-full ${card.color}`}
                           style={{ width: '100%' }}
                         ></div>
                       </div>
                       {stats.DemandesEnAttenteParType && stats.DemandesEnAttenteParType.length > 0 ? (
-                        <div className="space-y-4 mt-2">
+                        <div className="space-y-3 mt-2">
                           {stats.DemandesEnAttenteParType.map((item, idx) => (
                             <div
                               key={idx}
-                              className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-slate-700/30 hover:bg-gray-100 dark:hover:bg-slate-600/50 transition-colors"
+                              className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-slate-700/30 hover:bg-gray-100 dark:hover:bg-slate-600/50 transition-colors"
                             >
-                              <span className="text-sm dark:text-gray-300 text-gray-700 truncate flex-1 mr-3">
+                              <span className="text-xs dark:text-gray-300 text-gray-700 truncate flex-1 mr-2">
                                 {item.TypeDemande || 'Non spécifié'}
                               </span>
-                              <span className="text-lg font-bold text-gradient whitespace-nowrap">
+                              <span className="text-base font-bold text-gradient whitespace-nowrap">
                                 {String(item.Nombre || 0).padStart(2, '0')}
                               </span>
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <div className="text-center py-6">
+                        <div className="text-center py-4">
                           <p className="text-gray-400 dark:text-gray-500 text-sm">
                             Aucune demande en attente
                           </p>
@@ -152,33 +152,33 @@ const Dashboard = () => {
             </div>
 
             {/* Additional Dashboard Content */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {/* Quick Actions */}
-              <div className="lg:col-span-1">
+              <div className="md:col-span-1 lg:col-span-1">
                 <div className="obat-card border border-gray-200 dark:border-slate-700">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold dark:text-white text-gray-900">Actions Rapides</h2>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-bold dark:text-white text-gray-900">Actions Rapides</h2>
                     <div className="p-2 rounded-lg bg-primary-500/10">
                       <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>
                     </div>
                   </div>
-                  <div className="space-y-4 mt-2">
-                    <button className="w-full btn btn-primary flex items-center justify-center gap-3 py-4">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="space-y-3 mt-2">
+                    <button className="w-full btn btn-primary flex items-center justify-center gap-2 py-3 text-sm">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                       </svg>
                       Nouvelle Demande
                     </button>
-                    <button className="w-full btn btn-secondary flex items-center justify-center gap-3 py-4">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button className="w-full btn btn-secondary flex items-center justify-center gap-2 py-3 text-sm">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                       Créer un Devis
                     </button>
-                    <button className="w-full btn btn-secondary flex items-center justify-center gap-3 py-4">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button className="w-full btn btn-secondary flex items-center justify-center gap-2 py-3 text-sm">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                       </svg>
                       Ajouter un Client
@@ -187,17 +187,17 @@ const Dashboard = () => {
                 </div>
 
                 {/* Recent Activity */}
-                <div className="obat-card mt-6 border border-gray-200 dark:border-slate-700">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold dark:text-white text-gray-900">Activité Récente</h2>
+                <div className="obat-card mt-4 border border-gray-200 dark:border-slate-700">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-bold dark:text-white text-gray-900">Activité Récente</h2>
                     <div className="p-2 rounded-lg bg-amber-500/10">
                       <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
                   </div>
-                  <div className="space-y-5 mt-2">
-                    <div className="flex items-start gap-4 p-4 rounded-lg bg-gray-50 dark:bg-slate-700/30 hover:bg-gray-100 dark:hover:bg-slate-600/50 transition-colors">
+                  <div className="space-y-3 mt-2">
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-slate-700/30 hover:bg-gray-100 dark:hover:bg-slate-600/50 transition-colors">
                       <div className="p-2 rounded-lg bg-primary-500/10 flex-shrink-0">
                         <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -208,7 +208,7 @@ const Dashboard = () => {
                         <p className="text-xs dark:text-gray-400 text-gray-600 mt-1">Il y a 2 heures</p>
                       </div>
                     </div>
-                    <div className="flex items-start gap-4 p-4 rounded-lg bg-gray-50 dark:bg-slate-700/30 hover:bg-gray-100 dark:hover:bg-slate-600/50 transition-colors">
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-slate-700/30 hover:bg-gray-100 dark:hover:bg-slate-600/50 transition-colors">
                       <div className="p-2 rounded-lg bg-green-500/10 flex-shrink-0">
                         <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -219,7 +219,7 @@ const Dashboard = () => {
                         <p className="text-xs dark:text-gray-400 text-gray-600 mt-1">Il y a 1 jour</p>
                       </div>
                     </div>
-                    <div className="flex items-start gap-4 p-4 rounded-lg bg-gray-50 dark:bg-slate-700/30 hover:bg-gray-100 dark:hover:bg-slate-600/50 transition-colors">
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-slate-700/30 hover:bg-gray-100 dark:hover:bg-slate-600/50 transition-colors">
                       <div className="p-2 rounded-lg bg-amber-500/10 flex-shrink-0">
                         <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -235,103 +235,103 @@ const Dashboard = () => {
               </div>
 
               {/* Charts/Graphs Section */}
-              <div className="lg:col-span-2">
+              <div className="md:col-span-2">
                 <div className="obat-card border border-gray-200 dark:border-slate-700">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-3">
-                      <h2 className="text-xl font-bold dark:text-white text-gray-900">Performance Mensuelle</h2>
+                  <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-lg font-bold dark:text-white text-gray-900">Performance Mensuelle</h2>
                       <div className="px-2 py-1 rounded-full bg-primary-500/10 text-primary-600 text-xs font-medium">
                         En temps réel
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      <button className="btn btn-sm btn-secondary">Mois</button>
-                      <button className="btn btn-sm btn-secondary">Trimestre</button>
-                      <button className="btn btn-sm btn-secondary">Année</button>
+                    <div className="flex gap-1">
+                      <button className="btn btn-sm btn-secondary text-xs">Mois</button>
+                      <button className="btn btn-sm btn-secondary text-xs">Trimestre</button>
+                      <button className="btn btn-sm btn-secondary text-xs">Année</button>
                     </div>
                   </div>
                   
                   {/* Chart Placeholder */}
-                  <div className="h-64 flex items-center justify-center bg-gray-50 dark:bg-slate-700/30 rounded-lg border border-gray-200 dark:border-slate-600 mt-2">
-                    <div className="text-center p-6">
-                      <svg className="w-16 h-16 mx-auto text-gray-400 dark:text-gray-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="h-48 flex items-center justify-center bg-gray-50 dark:bg-slate-700/30 rounded-lg border border-gray-200 dark:border-slate-600 mt-2">
+                    <div className="text-center p-4">
+                      <svg className="w-12 h-12 mx-auto text-gray-400 dark:text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                       </svg>
-                      <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">Graphique des performances</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Les données s'afficheront ici</p>
+                      <h3 className="text-base font-medium text-gray-700 dark:text-gray-300 mb-1">Graphique des performances</h3>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Les données s'afficheront ici</p>
                     </div>
                   </div>
                   
                   {/* Stats Summary */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-                    <div className="text-center p-5 rounded-lg bg-gray-50 dark:bg-slate-700/30 hover:bg-gray-100 dark:hover:bg-slate-600/50 transition-colors">
-                      <div className="inline-flex items-center justify-center p-3 rounded-full bg-primary-500/10 mb-3">
-                        <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
+                    <div className="text-center p-4 rounded-lg bg-gray-50 dark:bg-slate-700/30 hover:bg-gray-100 dark:hover:bg-slate-600/50 transition-colors">
+                      <div className="inline-flex items-center justify-center p-2 rounded-full bg-primary-500/10 mb-2">
+                        <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                       </div>
-                      <p className="text-2xl font-bold text-primary-600 mb-1">85%</p>
-                      <p className="text-sm dark:text-gray-400 text-gray-600">Taux de réussite</p>
+                      <p className="text-xl font-bold text-primary-600 mb-1">85%</p>
+                      <p className="text-xs dark:text-gray-400 text-gray-600">Taux de réussite</p>
                     </div>
-                    <div className="text-center p-5 rounded-lg bg-gray-50 dark:bg-slate-700/30 hover:bg-gray-100 dark:hover:bg-slate-600/50 transition-colors">
-                      <div className="inline-flex items-center justify-center p-3 rounded-full bg-green-500/10 mb-3">
-                        <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="text-center p-4 rounded-lg bg-gray-50 dark:bg-slate-700/30 hover:bg-gray-100 dark:hover:bg-slate-600/50 transition-colors">
+                      <div className="inline-flex items-center justify-center p-2 rounded-full bg-green-500/10 mb-2">
+                        <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                       </div>
-                      <p className="text-2xl font-bold text-green-600 mb-1">24h</p>
-                      <p className="text-sm dark:text-gray-400 text-gray-600">Temps moyen</p>
+                      <p className="text-xl font-bold text-green-600 mb-1">24h</p>
+                      <p className="text-xs dark:text-gray-400 text-gray-600">Temps moyen</p>
                     </div>
-                    <div className="text-center p-5 rounded-lg bg-gray-50 dark:bg-slate-700/30 hover:bg-gray-100 dark:hover:bg-slate-600/50 transition-colors">
-                      <div className="inline-flex items-center justify-center p-3 rounded-full bg-amber-500/10 mb-3">
-                        <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="text-center p-4 rounded-lg bg-gray-50 dark:bg-slate-700/30 hover:bg-gray-100 dark:hover:bg-slate-600/50 transition-colors">
+                      <div className="inline-flex items-center justify-center p-2 rounded-full bg-amber-500/10 mb-2">
+                        <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                       </div>
-                      <p className="text-2xl font-bold text-amber-600 mb-1">98%</p>
-                      <p className="text-sm dark:text-gray-400 text-gray-600">Satisfaction client</p>
+                      <p className="text-xl font-bold text-amber-600 mb-1">98%</p>
+                      <p className="text-xs dark:text-gray-400 text-gray-600">Satisfaction client</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Upcoming Tasks */}
-                <div className="obat-card mt-6 border border-gray-200 dark:border-slate-700">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold dark:text-white text-gray-900">Tâches à Venir</h2>
+                <div className="obat-card mt-4 border border-gray-200 dark:border-slate-700">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-bold dark:text-white text-gray-900">Tâches à Venir</h2>
                     <div className="p-2 rounded-lg bg-purple-500/10">
                       <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
                     </div>
                   </div>
-                  <div className="space-y-4 mt-2">
-                    <div className="flex items-center justify-between p-5 rounded-lg border border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors">
-                      <div className="flex items-center gap-4">
+                  <div className="space-y-3 mt-2">
+                    <div className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors flex-wrap gap-2">
+                      <div className="flex items-center gap-3">
                         <div className="p-2 rounded-lg bg-primary-500/10">
                           <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                           </svg>
                         </div>
                         <div>
-                          <p className="font-medium dark:text-white text-gray-900">Inspection mensuelle</p>
-                          <p className="text-sm dark:text-gray-400 text-gray-600">Zone A - Bâtiment 12</p>
+                          <p className="font-medium dark:text-white text-gray-900 text-sm">Inspection mensuelle</p>
+                          <p className="text-xs dark:text-gray-400 text-gray-600">Zone A - Bâtiment 12</p>
                         </div>
                       </div>
-                      <span className="px-2 py-1 rounded-full bg-amber-500/10 text-amber-600 text-xs font-medium">3 jours</span>
+                      <span className="px-2 py-1 rounded-full bg-amber-500/10 text-amber-600 text-xs font-medium whitespace-nowrap">3 jours</span>
                     </div>
-                    <div className="flex items-center justify-between p-5 rounded-lg border border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors">
-                      <div className="flex items-center gap-4">
+                    <div className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors flex-wrap gap-2">
+                      <div className="flex items-center gap-3">
                         <div className="p-2 rounded-lg bg-amber-500/10">
                           <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                           </svg>
                         </div>
                         <div>
-                          <p className="font-medium dark:text-white text-gray-900">Maintenance préventive</p>
-                          <p className="text-sm dark:text-gray-400 text-gray-600">Zone C - Bâtiment 7</p>
+                          <p className="font-medium dark:text-white text-gray-900 text-sm">Maintenance préventive</p>
+                          <p className="text-xs dark:text-gray-400 text-gray-600">Zone C - Bâtiment 7</p>
                         </div>
                       </div>
-                      <span className="px-2 py-1 rounded-full bg-purple-500/10 text-purple-600 text-xs font-medium">1 semaine</span>
+                      <span className="px-2 py-1 rounded-full bg-purple-500/10 text-purple-600 text-xs font-medium whitespace-nowrap">1 semaine</span>
                     </div>
                   </div>
                 </div>

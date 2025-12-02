@@ -97,11 +97,11 @@ const ClientsList = () => {
                   <tr className="border-b border-white/10 dark:border-white/10 border-gray-200/50">
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">ID</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Nom</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Prénom</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900 hidden md:table-cell">Prénom</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Adresse</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Téléphone</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Email</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Date de création</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900 hidden lg:table-cell">Téléphone</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900 hidden lg:table-cell">Email</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900 hidden xl:table-cell">Date de création</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Actions</th>
                   </tr>
                 </thead>
@@ -110,15 +110,17 @@ const ClientsList = () => {
                     <tr key={client.IdClient} className="border-b border-white/5 dark:border-white/5 border-gray-100/50 hover:bg-white/5 dark:hover:bg-white/5">
                       <td className="py-3 px-4 text-sm dark:text-white text-gray-900 font-mono">{client.IdClient}</td>
                       <td className="py-3 px-4 text-sm dark:text-white text-gray-900 font-semibold">{client.Nom || '—'}</td>
-                      <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{client.Prenom || '—'}</td>
+                      <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700 hidden md:table-cell">{client.Prenom || '—'}</td>
                       <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">
-                        {client.AdresseResidence && client.CommuneResidence 
-                          ? `${client.AdresseResidence}, ${client.CommuneResidence}`
-                          : client.AdresseResidence || client.CommuneResidence || '—'}
+                        <div className="max-w-xs truncate" title={`${client.AdresseResidence || ''} ${client.CommuneResidence || ''}`}>
+                          {client.AdresseResidence && client.CommuneResidence 
+                            ? `${client.AdresseResidence}, ${client.CommuneResidence}`
+                            : client.AdresseResidence || client.CommuneResidence || '—'}
+                        </div>
                       </td>
-                      <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{client.TelephonePrincipal || '—'}</td>
-                      <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{client.Email || '—'}</td>
-                      <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">
+                      <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700 hidden lg:table-cell">{client.TelephonePrincipal || '—'}</td>
+                      <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700 hidden lg:table-cell truncate max-w-xs">{client.Email || '—'}</td>
+                      <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700 hidden xl:table-cell">
                         {client.DateCreation 
                           ? new Date(client.DateCreation).toLocaleDateString('fr-FR')
                           : '—'}
