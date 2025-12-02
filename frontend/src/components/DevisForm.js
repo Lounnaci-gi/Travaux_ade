@@ -662,7 +662,7 @@ const DevisForm = ({ user }) => {
             </nav>
           </div>
           {/* Devis Code, Type de Demande, and Date Display - Same div */}
-          {devisCode && demande && (
+          {devisCode && demande && activeTab !== 'preview' && (
             <div className="mt-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
               <p className="text-sm text-gray-600 dark:text-gray-300">
                 Code Devis: <span className="font-mono font-bold text-base text-primary-600 dark:text-primary-400">{devisCode}</span>
@@ -686,7 +686,7 @@ const DevisForm = ({ user }) => {
             </div>
           )}
           {/* Show Code Devis and Date if no demande selected */}
-          {devisCode && !demande && (
+          {devisCode && !demande && activeTab !== 'preview' && (
             <div className="mt-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
               <p className="text-sm text-gray-600 dark:text-gray-300">
                 Code Devis: <span className="font-mono font-bold text-base text-primary-600 dark:text-primary-400">{devisCode}</span>
@@ -707,7 +707,7 @@ const DevisForm = ({ user }) => {
             </div>
           )}
           {/* Show Type de Demande and Date if no devis code but demande selected */}
-          {!devisCode && demande && (
+          {!devisCode && demande && activeTab !== 'preview' && (
             <div className="mt-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
               <p className="text-sm text-gray-600 dark:text-gray-300">
                 Type de Demande: <span className="font-bold text-gray-900 dark:text-white">{demande.TypeDemande}</span>
@@ -728,7 +728,7 @@ const DevisForm = ({ user }) => {
             </div>
           )}
           {/* Show only Date if neither devis code nor demande selected */}
-          {!devisCode && !demande && (
+          {!devisCode && !demande && activeTab !== 'preview' && (
             <div className="mt-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
               <p className="text-sm text-gray-600 dark:text-gray-300">
                 En date du <span className="font-bold text-gray-900 dark:text-white">{new Date().toLocaleDateString('fr-FR')}</span>
@@ -748,123 +748,125 @@ const DevisForm = ({ user }) => {
         </div>
         
         {/* Sélecteurs en haut à droite - Numéro de Demande, Client, Type de Demande */}
-        <div className="w-80 space-y-3">
-          {/* Numéro de Demande */}
-          <div className="relative" ref={dropdownRef}>
-            <label htmlFor="idDemande" className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">
-              Numéro de Demande *
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                id="idDemande"
-                name="idDemande"
-                value={demandeSearch}
-                onChange={handleDemandeSearchChange}
-                onFocus={() => setShowDemandeDropdown(true)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                placeholder="Rechercher une demande..."
-                autoComplete="off"
-              />
-              <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              
-              {showDemandeDropdown && (
-                <div className="absolute mt-1 w-full bg-white dark:bg-gray-800 shadow-lg rounded-md overflow-hidden border border-gray-200 dark:border-gray-700" style={{ zIndex: 10000 }}>
-                  {filteredDemandes.length > 0 ? (
-                    <ul className="max-h-60 overflow-y-auto">
-                      {filteredDemandes.map((d) => (
-                        <li
-                          key={d.IdDemande}
-                          className="px-4 py-2 hover:bg-primary-100 dark:hover:bg-primary-900 cursor-pointer text-gray-900 dark:text-white"
-                          onClick={() => handleDemandeSelect(d)}
-                        >
-                          <div className="font-medium">{d.NumeroDemande}</div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400">
-                            {d.ClientNom} {d.ClientPrenom}
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <div className="px-4 py-2 text-gray-500 dark:text-gray-400">
-                      Aucune demande trouvée
-                    </div>
-                  )}
-                </div>
-              )}
+        {activeTab !== 'preview' && (
+          <div className="w-80 space-y-3">
+            {/* Numéro de Demande */}
+            <div className="relative" ref={dropdownRef}>
+              <label htmlFor="idDemande" className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">
+                Numéro de Demande *
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  id="idDemande"
+                  name="idDemande"
+                  value={demandeSearch}
+                  onChange={handleDemandeSearchChange}
+                  onFocus={() => setShowDemandeDropdown(true)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                  placeholder="Rechercher une demande..."
+                  autoComplete="off"
+                />
+                <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                
+                {showDemandeDropdown && (
+                  <div className="absolute mt-1 w-full bg-white dark:bg-gray-800 shadow-lg rounded-md overflow-hidden border border-gray-200 dark:border-gray-700" style={{ zIndex: 10000 }}>
+                    {filteredDemandes.length > 0 ? (
+                      <ul className="max-h-60 overflow-y-auto">
+                        {filteredDemandes.map((d) => (
+                          <li
+                            key={d.IdDemande}
+                            className="px-4 py-2 hover:bg-primary-100 dark:hover:bg-primary-900 cursor-pointer text-gray-900 dark:text-white"
+                            onClick={() => handleDemandeSelect(d)}
+                          >
+                            <div className="font-medium">{d.NumeroDemande}</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              {d.ClientNom} {d.ClientPrenom}
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div className="px-4 py-2 text-gray-500 dark:text-gray-400">
+                        Aucune demande trouvée
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
+            
+            {/* Client Information in a bordered div on the right */}
+            {demande && (
+              <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg p-2 bg-white dark:bg-gray-800 shadow-sm">
+                <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-1 pb-1 border-b border-gray-200 dark:border-gray-700">
+                  Informations Client
+                </h3>
+                
+                {/* Client Name */}
+                <div className="mb-0.5">
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-0">
+                    Nom Complet
+                  </label>
+                  <p className="text-xs text-gray-900 dark:text-white font-medium">
+                    {demande.ClientNom} {demande.ClientPrenom}
+                  </p>
+                </div>
+                
+                {/* Objet */}
+                <div className="mt-2">
+                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                    Objet: 
+                  </p>
+                </div>
+                
+                {/* Logo placed between Informations Organisation and Informations Client */}
+                <div className="mt-2">
+                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                    Logo: 
+                  </p>
+                </div>
+                
+                {/* Client Residence Address */}
+                <div className="mb-0.5">
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-0">
+                    Adresse de Résidence
+                  </label>
+                  <p className="text-xs text-gray-900 dark:text-white">
+                    {demande.AdresseResidence || 'Non spécifiée'}, {demande.CommuneResidence || 'Non spécifiée'}
+                  </p>
+                </div>
+                
+                {/* Client Contact Info - Telephone and Email */}
+                {demande.ClientTelephone && (
+                  <div className="mb-0.5">
+                    <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-0">
+                      Téléphone
+                    </label>
+                    <p className="text-xs text-gray-900 dark:text-white">
+                      {demande.ClientTelephone}
+                    </p>
+                  </div>
+                )}
+                
+                {demande.ClientEmail && (
+                  <div className="mb-0.5">
+                    <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-0">
+                      Email
+                    </label>
+                    <p className="text-xs text-gray-900 dark:text-white">
+                      {demande.ClientEmail}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* Type de Devis - REMOVED AS PER USER REQUEST */}
           </div>
-          
-          {/* Client Information in a bordered div on the right */}
-          {demande && (
-            <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg p-2 bg-white dark:bg-gray-800 shadow-sm">
-              <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-1 pb-1 border-b border-gray-200 dark:border-gray-700">
-                Informations Client
-              </h3>
-              
-              {/* Client Name */}
-              <div className="mb-0.5">
-                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-0">
-                  Nom Complet
-                </label>
-                <p className="text-xs text-gray-900 dark:text-white font-medium">
-                  {demande.ClientNom} {demande.ClientPrenom}
-                </p>
-              </div>
-              
-              {/* Objet */}
-              <div className="mt-2">
-                <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                  Objet: 
-                </p>
-              </div>
-              
-              {/* Logo placed between Informations Organisation and Informations Client */}
-              <div className="mt-2">
-                <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                  Logo: 
-                </p>
-              </div>
-              
-              {/* Client Residence Address */}
-              <div className="mb-0.5">
-                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-0">
-                  Adresse de Résidence
-                </label>
-                <p className="text-xs text-gray-900 dark:text-white">
-                  {demande.AdresseResidence || 'Non spécifiée'}, {demande.CommuneResidence || 'Non spécifiée'}
-                </p>
-              </div>
-              
-              {/* Client Contact Info - Telephone and Email */}
-              {demande.ClientTelephone && (
-                <div className="mb-0.5">
-                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-0">
-                    Téléphone
-                  </label>
-                  <p className="text-xs text-gray-900 dark:text-white">
-                    {demande.ClientTelephone}
-                  </p>
-                </div>
-              )}
-              
-              {demande.ClientEmail && (
-                <div className="mb-0.5">
-                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-0">
-                    Email
-                  </label>
-                  <p className="text-xs text-gray-900 dark:text-white">
-                    {demande.ClientEmail}
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-          
-          {/* Type de Devis - REMOVED AS PER USER REQUEST */}
-        </div>
+        )}
       </div>
 
       {error && (
@@ -1334,6 +1336,13 @@ const DevisForm = ({ user }) => {
                     </div>
                   </div>
                 )}
+                
+                {/* DEVIS QUANTITATIF ET ESTIMATIF */}
+                <div className="mt-2">
+                  <p className="text-sm font-bold text-gray-800 dark:text-gray-200">
+                    DEVIS QUANTITATIF ET ESTIMATIF
+                  </p>
+                </div>
                 
                 {/* Objet */}
                 <div className="mt-2">
