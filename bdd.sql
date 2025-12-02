@@ -1,9 +1,7 @@
 -- ====================================================================
--- AquaConnect_DB - Script complet avec modifications (Version 5.0)
--- - Table Role supprimée et fusionnée dans Utilisateur
--- - Ajout TypePrix (FOURNITURE/POSE) dans ArticlePrixHistorique
--- - Ajout Table ConfigurationGlobale pour gérer le Taux TVA
--- - DateFinApplication non utilisée (toujours NULL)
+-- AquaConnect_DB - Version 5.1
+-- Modifications : TypePrix élargi (FOURNITURE, POSE, PRESTATION, CAUTIONNEMENT, SERVICE)
+-- Tables & Index uniquement
 -- ====================================================================
 
 /* 1) Créer la base si nécessaire */
@@ -210,7 +208,7 @@ CREATE TABLE Utilisateur (
 );
 GO
 
--- 4.7 ConfigurationGlobale (NOUVELLE TABLE)
+-- 4.7 ConfigurationGlobale
 CREATE TABLE ConfigurationGlobale (
     IdConfig INT IDENTITY(1,1) PRIMARY KEY,
     Cle NVARCHAR(100) NOT NULL UNIQUE,
@@ -339,15 +337,15 @@ CREATE TABLE Article (
 );
 GO
 
--- 4.14 ArticlePrixHistorique (MODIFIÉE - Ajout TypePrix)
+-- 4.14 ArticlePrixHistorique (MODIFIÉE - TypePrix élargi)
 CREATE TABLE ArticlePrixHistorique (
     IdPrixHistorique INT IDENTITY(1,1) PRIMARY KEY,
     IdArticle INT NOT NULL,
-    TypePrix NVARCHAR(20) NOT NULL CHECK (TypePrix IN ('FOURNITURE', 'POSE')),
+    TypePrix NVARCHAR(20) NOT NULL CHECK (TypePrix IN ('FOURNITURE', 'POSE', 'PRESTATION', 'CAUTIONNEMENT', 'SERVICE')),
     PrixHT DECIMAL(18, 2) NOT NULL CHECK (PrixHT >= 0),
     TauxTVA DECIMAL(5, 2) NOT NULL CHECK (TauxTVA >= 0 AND TauxTVA <= 100),
     DateDebutApplication DATE NOT NULL,
-    DateFinApplication DATE NULL, -- Non utilisé, toujours NULL
+    DateFinApplication DATE NULL,
     EstActif BIT NOT NULL DEFAULT 1,
     DateCreation DATETIME NOT NULL DEFAULT GETDATE(),
     IdUtilisateurCreation INT NOT NULL,

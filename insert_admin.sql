@@ -11,7 +11,7 @@ GO
 -- ============================================================================
 
 -- Vérifier si l'utilisateur existe déjà
-IF NOT EXISTS (SELECT * FROM Utilisateur WHERE Email = 'admin' OR Matricule = 'ADMIN001')
+IF NOT EXISTS (SELECT * FROM Utilisateur WHERE Email = 'admin' OR Matricule = 'UTI-0001')
 BEGIN
     INSERT INTO Utilisateur (
         Role,
@@ -29,7 +29,7 @@ BEGIN
     )
     VALUES (
         'ADMINISTRATEUR',           -- Rôle directement dans la table
-        'ADMIN001',                 -- Matricule
+        'UTI-0001',                 -- Matricule
         'Administrateur',           -- Nom
         'Système',                  -- Prénom
         'admin',                    -- Email
@@ -46,7 +46,7 @@ BEGIN
     PRINT '✅ Utilisateur Administrateur créé avec succès!';
     PRINT '============================================================================';
     PRINT '📧 Email      : admin';
-    PRINT '🔑 Matricule  : ADMIN001';
+    PRINT '🔑 Matricule  : UTI-0001';
     PRINT '🔒 Mot de passe : admin123';
     PRINT '👤 Rôle       : ADMINISTRATEUR';
     PRINT '📱 Téléphone  : 0665847684';
@@ -60,7 +60,7 @@ BEGIN
     PRINT 'ℹ️  Utilisateur Administrateur existe déjà';
     PRINT '============================================================================';
     PRINT '📧 Email      : admin';
-    PRINT '🔑 Matricule  : ADMIN001';
+    PRINT '🔑 Matricule  : UTI-0001';
     PRINT '============================================================================';
 END
 GO
@@ -98,7 +98,7 @@ SELECT
     u.DateModification,
     u.DerniereConnexion
 FROM Utilisateur u
-WHERE u.Email = 'admin' OR u.Matricule = 'ADMIN001';
+WHERE u.Email = 'admin' OR u.Matricule = 'UTI-0001';
 GO
 
 PRINT '';
