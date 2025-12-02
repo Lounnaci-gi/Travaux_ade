@@ -31,24 +31,54 @@ const DevisForm = ({ user }) => {
         num %= 100;
       }
       
-      // Tens and units
+      // Special handling for 70-79 and 90-99
       if (num >= 70 && num < 80) {
-        // Soixante-dix
-        result += tens[7] + '-';
-        const unit = num - 70;
-        if (unit === 1) {
-          result += 'et-' + units[unit + 10];
+        // Soixante-douze (72) instead of soixante-dix-douze
+        if (num === 71) {
+          result += 'soixante-et-onze';
+        } else if (num === 72) {
+          result += 'soixante-douze';
+        } else if (num === 73) {
+          result += 'soixante-treize';
+        } else if (num === 74) {
+          result += 'soixante-quatorze';
+        } else if (num === 75) {
+          result += 'soixante-quinze';
+        } else if (num === 76) {
+          result += 'soixante-seize';
+        } else if (num === 77) {
+          result += 'soixante-dix-sept';
+        } else if (num === 78) {
+          result += 'soixante-dix-huit';
+        } else if (num === 79) {
+          result += 'soixante-dix-neuf';
         } else {
-          result += units[unit + 10];
+          // soixante-dix (70)
+          result += 'soixante-dix';
         }
       } else if (num >= 90 && num < 100) {
-        // Quatre-vingt-dix
-        result += tens[9] + '-';
-        const unit = num - 90;
-        if (unit === 1) {
-          result += 'et-' + units[unit + 10];
+        // Quatre-vingt-douze (92) instead of quatre-vingt-dix-douze
+        if (num === 91) {
+          result += 'quatre-vingt-onze';
+        } else if (num === 92) {
+          result += 'quatre-vingt-douze';
+        } else if (num === 93) {
+          result += 'quatre-vingt-treize';
+        } else if (num === 94) {
+          result += 'quatre-vingt-quatorze';
+        } else if (num === 95) {
+          result += 'quatre-vingt-quinze';
+        } else if (num === 96) {
+          result += 'quatre-vingt-seize';
+        } else if (num === 97) {
+          result += 'quatre-vingt-dix-sept';
+        } else if (num === 98) {
+          result += 'quatre-vingt-dix-huit';
+        } else if (num === 99) {
+          result += 'quatre-vingt-dix-neuf';
         } else {
-          result += units[unit + 10];
+          // quatre-vingt-dix (90)
+          result += 'quatre-vingt-dix';
         }
       } else if (num >= 20) {
         let ten = Math.floor(num / 10);
@@ -66,7 +96,7 @@ const DevisForm = ({ user }) => {
           // Vingt, trente, etc.
           result += tens[ten];
           if (unit === 1 && ten !== 8) {
-            if (ten === 1 || ten === 2 || ten === 3 || ten === 4 || ten === 5 || ten === 6) {
+            if (ten === 2 || ten === 3 || ten === 4 || ten === 5 || ten === 6) {
               result += '-et-un';
             } else {
               result += '-un';
