@@ -28,9 +28,9 @@ const DevisForm = ({ user }) => {
         }
         result += 'cent';
         if (num % 100 === 0 && num >= 200) result += 's';
+        else if (num % 100 > 0) result += ' '; // Add space after 'cent' when there are remaining digits
         num %= 100;
-      }
-      
+      }      
       // Special handling for 70-79 and 90-99
       if (num >= 70 && num < 80) {
         // Soixante-douze (72) instead of soixante-dix-douze
@@ -128,7 +128,7 @@ const DevisForm = ({ user }) => {
         str += convertHundreds(thousands) + ' mille';
       } else {
         str += 'mille';
-      }
+            }
       number %= 1000;
       if (number > 0) str += ' ';
     }
@@ -683,8 +683,8 @@ const DevisForm = ({ user }) => {
         setError(`Veuillez sélectionner un article à la ligne ${i + 1}`);
         return;
       }
-      if (!article.quantite || parseFloat(article.quantite) <= 0) {
-        setError(`Veuillez saisir une quantité valide à la ligne ${i + 1}`);
+      if (!article.quantite || parseFloat(article.quantite) <= 0 || !/^\d+$/.test(article.quantite)) {
+        setError(`Veuillez saisir une quantité entière valide à la ligne ${i + 1}`);
         return;
       }
       if (!article.prixUnitaireHT || parseFloat(article.prixUnitaireHT) < 0) {
@@ -695,8 +695,7 @@ const DevisForm = ({ user }) => {
         setError(`Veuillez saisir un taux de TVA valide (0-100%) à la ligne ${i + 1}`);
         return;
       }
-    }
-    
+    }    
     // Check for duplicate articles in the same quote
     const articleIds = formData.articles.map(article => article.idArticle);
     const uniqueArticleIds = [...new Set(articleIds)];
@@ -1097,7 +1096,7 @@ const DevisForm = ({ user }) => {
                         {/* Dropdown - Full width and no scrollbars */}
                         {showArticleDropdown[index] && (
                           <div className="absolute mt-1 w-full bg-white dark:bg-gray-800 shadow rounded overflow-hidden border border-gray-200 dark:border-gray-700 z-50" style={{ zIndex: 9999, position: 'absolute', transform: 'translateZ(0)' }}>
-                            <div className="max-h-48 overflow-y-auto">
+                            <div className="max-h-96 overflow-y-auto">
                               {(() => {
                                 const filteredArts = availableArticles.filter(art => {
                                   if (!articleSearch[index]) return true;
@@ -1233,10 +1232,16 @@ const DevisForm = ({ user }) => {
                           <div className="relative">
                             <input
                               type="number"
-                              step="0.001"
+                              step="1"
                               min="0"
                               value={article.quantite}
-                              onChange={(e) => handleArticleChange(index, 'quantite', e.target.value)}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                // Ne permettre que des nombres entiers
+                                if (value === '' || /^\d+$/.test(value)) {
+                                  handleArticleChange(index, 'quantite', value);
+                                }
+                              }}
                               className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-center"
                               placeholder="Qté"
                             />
@@ -1246,8 +1251,7 @@ const DevisForm = ({ user }) => {
                               </div>
                             )}
                           </div>
-                        </div>
-                        
+                        </div>                        
                         {/* Prix Unitaire */}
                         <div className="col-span-1">
                           <div className="relative">
