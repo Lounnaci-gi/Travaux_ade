@@ -7,6 +7,131 @@ const DevisForm = ({ user }) => {
   const [globalTVA, setGlobalTVA] = useState('00');
   const [activeTab, setActiveTab] = useState('form');
   
+  // Function to convert number to words in French
+  const convertNumberToWords = (number) => {
+    const units = ['', 'un', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf', 'dix', 'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize', 'dix-sept', 'dix-huit', 'dix-neuf'];
+    const tens = ['', '', 'vingt', 'trente', 'quarante', 'cinquante', 'soixante', 'soixante-dix', 'quatre-vingt', 'quatre-vingt-dix'];
+    
+    if (number === 0) return 'zéro';
+    
+    let str = '';
+    let decimalPart = Math.round((number - Math.floor(number)) * 100);
+    number = Math.floor(number);
+    
+    const convertHundreds = (num) => {
+      let result = '';
+      
+      // Hundreds
+      if (num >= 100) {
+        if (num >= 200) {
+          result += units[Math.floor(num / 100)] + ' ';
+        }
+        result += 'cent';
+        if (num % 100 === 0 && num >= 200) result += 's';
+        num %= 100;
+      }
+      
+      // Tens and units
+      if (num >= 70 && num < 80) {
+        // Soixante-dix
+        result += tens[7] + '-';
+        const unit = num - 70;
+        if (unit === 1) {
+          result += 'et-' + units[unit + 10];
+        } else {
+          result += units[unit + 10];
+        }
+      } else if (num >= 90 && num < 100) {
+        // Quatre-vingt-dix
+        result += tens[9] + '-';
+        const unit = num - 90;
+        if (unit === 1) {
+          result += 'et-' + units[unit + 10];
+        } else {
+          result += units[unit + 10];
+        }
+      } else if (num >= 20) {
+        let ten = Math.floor(num / 10);
+        let unit = num % 10;
+        
+        if (ten === 8) {
+          // Quatre-vingt
+          result += tens[ten];
+          if (unit === 0) {
+            result += 's';
+          } else {
+            result += '-' + units[unit];
+          }
+        } else {
+          // Vingt, trente, etc.
+          result += tens[ten];
+          if (unit === 1 && ten !== 8) {
+            if (ten === 1 || ten === 2 || ten === 3 || ten === 4 || ten === 5 || ten === 6) {
+              result += '-et-un';
+            } else {
+              result += '-un';
+            }
+          } else if (unit > 0) {
+            result += '-' + units[unit];
+          }
+        }
+      } else if (num > 0) {
+        result += units[num];
+      }
+      
+      return result;
+    };
+    
+    if (number >= 1000000) {
+      // Millions
+      const millions = Math.floor(number / 1000000);
+      str += convertHundreds(millions) + ' million';
+      if (millions > 1) str += 's';
+      number %= 1000000;
+      if (number > 0) str += ' ';
+    }
+    
+    if (number >= 1000) {
+      // Thousands
+      const thousands = Math.floor(number / 1000);
+      if (thousands > 1) {
+        str += convertHundreds(thousands) + ' mille';
+      } else {
+        str += 'mille';
+      }
+      number %= 1000;
+      if (number > 0) str += ' ';
+    }
+    
+    if (number > 0) {
+      str += convertHundreds(number);
+    }
+    
+    // Capitalize first letter
+    str = str.charAt(0).toUpperCase() + str.slice(1);
+    
+    // Add decimal part
+    if (decimalPart > 0) {
+      str += ' dinars et ';
+      if (decimalPart < 20) {
+        str += units[decimalPart];
+      } else {
+        const decimalTens = Math.floor(decimalPart / 10);
+        const decimalUnits = decimalPart % 10;
+        if (decimalUnits === 0) {
+          str += tens[decimalTens];
+        } else {
+          str += tens[decimalTens] + '-' + units[decimalUnits];
+        }
+      }
+      str += ' centimes';
+    } else {
+      str += ' dinars';
+    }
+    
+    return str;
+  };
+  
   // State for center and agency information
   const [centreInfo, setCentreInfo] = useState(null);
   const [agenceInfo, setAgenceInfo] = useState(null);
@@ -1507,6 +1632,17 @@ const DevisForm = ({ user }) => {
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Total TTC in letters - Separate div */}
+          {formData.articles.length > 0 && (
+            <div className="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
+              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  Arrêté ce présent devis à la somme de : <span className="font-medium text-gray-900 dark:text-white">{convertNumberToWords(parseFloat(totals.totalTTC.replace(/\s/g, '').replace(',', '.')))}</span>
+                </p>
               </div>
             </div>
           )}
