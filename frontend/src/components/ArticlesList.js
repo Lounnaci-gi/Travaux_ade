@@ -5,6 +5,24 @@ import { isAdmin } from '../utils/auth';
 import { getConfigurations } from '../services/api';
 
 const ArticlesList = ({ user, onUnauthorized }) => {
+  // Helper function to get label for TypePrix
+  const getTypePrixLabel = (typePrix) => {
+    switch (typePrix) {
+      case 'FOURNITURE':
+        return 'Fourniture';
+      case 'POSE':
+        return 'Pose';
+      case 'PRESTATION':
+        return 'Prestation';
+      case 'CAUTIONNEMENT':
+        return 'Cautionnement';
+      case 'SERVICE':
+        return 'Service';
+      default:
+        return 'Prix';
+    }
+  };
+
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -34,8 +52,8 @@ const ArticlesList = ({ user, onUnauthorized }) => {
     Couleur: '',
     Caracteristiques: '',
     // Article Prix Historique fields
-    PrixFournitureHT: '',
-    PrixPoseHT: '',
+    TypePrix: 'FOURNITURE',
+    PrixHT: '',
     DateDebutApplication: new Date().toISOString().split('T')[0],
     DateFinApplication: '',
   });
@@ -311,8 +329,8 @@ const ArticlesList = ({ user, onUnauthorized }) => {
       Couleur: '',
       Caracteristiques: '',
       // Article Prix Historique fields
-      PrixFournitureHT: '',
-      PrixPoseHT: '',
+      TypePrix: 'FOURNITURE',
+      PrixHT: '',
       DateDebutApplication: new Date().toISOString().split('T')[0],
       DateFinApplication: '',
     });
@@ -335,34 +353,21 @@ const ArticlesList = ({ user, onUnauthorized }) => {
       const unite = article.Unite || '';
       
       // Charger l'historique des prix actifs
-      let prixFournitureHT = '';
-      let prixPoseHT = '';
+      let typePrix = 'FOURNITURE';
+      let prixHT = '';
       let dateDebutApplication = new Date().toISOString().split('T')[0];
       
       try {
         const prixHistorique = await getArticlePrixHistorique(id);
-        if (prixHistorique && Array.isArray(prixHistorique)) {
-          // Trouver les prix actifs pour Fourniture et Pose
-          const prixFournitureActif = prixHistorique.find(
-            p => p.TypePrix === 'FOURNITURE' && p.EstActif === true
-          );
-          const prixPoseActif = prixHistorique.find(
-            p => p.TypePrix === 'POSE' && p.EstActif === true
-          );
-          
-          if (prixFournitureActif) {
-            prixFournitureHT = prixFournitureActif.PrixHT != null ? String(prixFournitureActif.PrixHT) : '';
-          }
-          if (prixPoseActif) {
-            prixPoseHT = prixPoseActif.PrixHT != null ? String(prixPoseActif.PrixHT) : '';
-          }
-          
-          // Utiliser la date de début la plus récente
-          const dates = [prixFournitureActif?.DateDebutApplication, prixPoseActif?.DateDebutApplication]
-            .filter(Boolean)
-            .map(d => new Date(d));
-          if (dates.length > 0) {
-            dateDebutApplication = new Date(Math.max(...dates)).toISOString().split('T')[0];
+        if (prixHistorique && Array.isArray(prixHistorique) && prixHistorique.length > 0) {
+          // Prendre le premier prix actif disponible
+          const prixActif = prixHistorique.find(p => p.EstActif === true);
+          if (prixActif) {
+            typePrix = prixActif.TypePrix || 'FOURNITURE';
+            prixHT = prixActif.PrixHT != null ? String(prixActif.PrixHT) : '';
+            dateDebutApplication = prixActif.DateDebutApplication ? 
+              new Date(prixActif.DateDebutApplication).toISOString().split('T')[0] : 
+              new Date().toISOString().split('T')[0];
           }
         }
       } catch (priceError) {
@@ -388,8 +393,8 @@ const ArticlesList = ({ user, onUnauthorized }) => {
         Couleur: article.Couleur || '',
         Caracteristiques: article.Caracteristiques || '',
         // Article Prix Historique fields - charger les prix actifs
-        PrixFournitureHT: prixFournitureHT,
-        PrixPoseHT: prixPoseHT,
+        TypePrix: typePrix,
+        PrixHT: prixHT,
         DateDebutApplication: dateDebutApplication,
         DateFinApplication: '',
       });
@@ -513,8 +518,6 @@ const ArticlesList = ({ user, onUnauthorized }) => {
         Couleur: trimValue(form.Couleur),
         Caracteristiques: trimValue(form.Caracteristiques),
         // Include price fields for ArticlePrixHistorique handling in backend
-        PrixFournitureHT: form.PrixFournitureHT,
-        PrixPoseHT: form.PrixPoseHT,
         DateDebutApplication: form.DateDebutApplication,
         DateFinApplication: form.DateFinApplication,
       };
@@ -527,12 +530,12 @@ const ArticlesList = ({ user, onUnauthorized }) => {
         articleResult = await createArticle(payload);
         alertSuccess('Succès', 'Article créé avec succès.');
         
-        // Handle Article Prix Historique for fourniture if values are provided (only for new articles)
-        if (form.PrixFournitureHT || form.PrixPoseHT) {
+        // Handle Article Prix Historique based on TypePrix if values are provided (only for new articles)
+        if (form.PrixHT) {
           try {
             const prixPayload = {
-              TypePrix: 'FOURNITURE',
-              PrixHT: parseDecimal(form.PrixFournitureHT),
+              TypePrix: form.TypePrix || 'FOURNITURE',
+              PrixHT: parseDecimal(form.PrixHT),
               TauxTVA: parseDecimal(globalTVA) || 0,
               DateDebutApplication: form.DateDebutApplication || new Date().toISOString().split('T')[0],
               DateFinApplication: form.DateFinApplication || null,
@@ -545,30 +548,7 @@ const ArticlesList = ({ user, onUnauthorized }) => {
               await createArticlePrixHistorique(articleId, prixPayload);
             }
           } catch (priceError) {
-            // Error creating price history for fourniture
-            // We don't stop the main operation if price history fails
-          }
-        }
-
-        // Handle Article Prix Historique for pose if values are provided (only for new articles)
-        if (form.PrixFournitureHT || form.PrixPoseHT) {
-          try {
-            const prixPayload = {
-              TypePrix: 'POSE',
-              PrixHT: parseDecimal(form.PrixPoseHT),
-              TauxTVA: parseDecimal(globalTVA) || 0,
-              DateDebutApplication: form.DateDebutApplication || new Date().toISOString().split('T')[0],
-              DateFinApplication: form.DateFinApplication || null,
-              EstActif: true,
-            };
-
-            // Only create price history if PrixHT is provided
-            if (prixPayload.PrixHT !== null) {
-              const articleId = articleResult.IdArticle;
-              await createArticlePrixHistorique(articleId, prixPayload);
-            }
-          } catch (priceError) {
-            // Error creating price history for pose
+            // Error creating price history
             // We don't stop the main operation if price history fails
           }
         }
@@ -985,33 +965,36 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                 Historique des Prix <span className="text-xs font-normal text-gray-400">(optionnel)</span>
               </h3>
               
+              {/* Type de Prix Selector */}
+              <div className="mb-3">
+                <label className="block text-xs font-medium dark:text-gray-400 text-gray-600 mb-1">
+                  Type de Prix
+                </label>
+                <select
+                  name="TypePrix"
+                  value={form.TypePrix || 'FOURNITURE'}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
+                >
+                  <option value="FOURNITURE">Fourniture</option>
+                  <option value="POSE">Pose</option>
+                  <option value="PRESTATION">Prestation</option>
+                  <option value="CAUTIONNEMENT">Cautionnement</option>
+                  <option value="SERVICE">Service</option>
+                </select>
+              </div>
+              
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
-                {/* Prix HT Fourniture */}
+                {/* Prix HT - Dynamic based on TypePrix */}
                 <div>
                   <label className="block text-xs font-medium dark:text-gray-400 text-gray-600 mb-1 text-center">
-                    Prix HT Fourniture
+                    {getTypePrixLabel(form.TypePrix || 'FOURNITURE')} HT
                   </label>
                   <input
                     type="number"
                     step="0.01"
-                    name="PrixFournitureHT"
-                    value={form.PrixFournitureHT}
-                    onChange={handleChange}
-                    placeholder="0.00"
-                    className="w-full px-2 py-1.5 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all text-center"
-                  />
-                </div>
-                
-                {/* Prix HT Pose */}
-                <div>
-                  <label className="block text-xs font-medium dark:text-gray-400 text-gray-600 mb-1 text-center">
-                    Prix HT Pose
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    name="PrixPoseHT"
-                    value={form.PrixPoseHT}
+                    name="PrixHT"
+                    value={form.PrixHT || ''}
                     onChange={handleChange}
                     placeholder="0.00"
                     className="w-full px-2 py-1.5 text-sm rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all text-center"
@@ -1041,6 +1024,9 @@ const ArticlesList = ({ user, onUnauthorized }) => {
                     <span className="font-bold text-primary-500">{globalTVA}%</span>
                   </div>
                 </div>
+                
+                {/* Empty div to maintain grid structure */}
+                <div></div>
               </div>
               
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
