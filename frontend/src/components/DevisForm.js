@@ -1538,6 +1538,24 @@ const DevisForm = ({ user }) => {
                               Téléphone Centre: <span className="font-medium">{centreInfo.TelephonePrincipal}</span>
                             </p>
                           )}
+                          {/* Informations bancaires */}
+                          {(centreInfo.NumerocompteBancaire || centreInfo.NumeroComptePostal) && (
+                            <div className="mt-1">
+                              <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                                Coordonnées bancaires :
+                              </p>
+                              {centreInfo.NumerocompteBancaire && (
+                                <p className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+                                  Compte bancaire: <span className="font-medium">{centreInfo.NumerocompteBancaire}</span>
+                                </p>
+                              )}
+                              {centreInfo.NumeroComptePostal && (
+                                <p className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+                                  Compte postal: <span className="font-medium">{centreInfo.NumeroComptePostal}</span>
+                                </p>
+                              )}
+                            </div>
+                          )}
                         </div>
                       )}
                       {agenceInfo && (
