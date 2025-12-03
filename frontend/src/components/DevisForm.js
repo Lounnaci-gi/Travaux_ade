@@ -1223,7 +1223,9 @@ const DevisForm = ({ user }) => {
                           >
                             <option value="FOURNITURE">F</option>
                             <option value="POSE">P</option>
-                            <option value="BOTH">F+P</option>
+                            <option value="PRESTATION">Pr</option>
+                            <option value="CAUTIONNEMENT">C</option>
+                            <option value="SERVICE">S</option>
                           </select>
                         </div>
                         
@@ -1629,7 +1631,9 @@ const DevisForm = ({ user }) => {
                                   <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                     {article.typePrix === 'FOURNITURE' && 'Fourniture'}
                                     {article.typePrix === 'POSE' && 'Pose'}
-                                    {article.typePrix === 'BOTH' && 'Fourniture + Pose'}
+                                    {article.typePrix === 'PRESTATION' && 'Prestation'}
+                                    {article.typePrix === 'CAUTIONNEMENT' && 'Cautionnement'}
+                                    {article.typePrix === 'SERVICE' && 'Service'}
                                   </div>
                                 </td>
                                 <td className="px-2 py-3 whitespace-nowrap text-sm text-center text-gray-900 dark:text-white w-1/12">

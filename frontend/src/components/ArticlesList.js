@@ -171,7 +171,8 @@ const ArticlesList = ({ user, onUnauthorized }) => {
         setArticles(articlesList || []);
         setFamilles(famillesList || []);
       } catch (e) {
-        // Error loading data
+        console.error('Error loading articles or families:', e);
+        setError('Erreur lors du chargement des données. Veuillez réessayer.');
       } finally {
         setLoading(false);
       }

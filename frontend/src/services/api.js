@@ -10,235 +10,460 @@ const api = axios.create({
 });
 
 export const getTravaux = async () => {
-  const response = await api.get('/travaux');
-  return response.data;
+  try {
+    const response = await api.get('/travaux');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching travaux:', error);
+    throw error;
+  }
 };
 
 export const getTravauxById = async (id) => {
-  const response = await api.get(`/travaux/${id}`);
-  return response.data;
+  try {
+    const response = await api.get(`/travaux/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching travaux with id ${id}:`, error);
+    throw error;
+  }
 };
 
 export const getTravauxHistorique = async (id) => {
-  const response = await api.get(`/travaux/${id}/historique`);
-  return response.data;
+  try {
+    const response = await api.get(`/travaux/${id}/historique`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching travaux historique for id ${id}:`, error);
+    throw error;
+  }
 };
 
 export const getStats = async () => {
-  const response = await api.get('/stats');
-  return response.data;
+  try {
+    const response = await api.get('/stats');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching stats:', error);
+    throw error;
+  }
 };
 
 // Referentiels pour formulaire Demande
 export const getClients = async (search = '') => {
-  const response = await api.get('/clients', {
-    params: { search }
-  });
-  return response.data;
+  try {
+    const response = await api.get('/clients', {
+      params: { search }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching clients:', error);
+    throw error;
+  }
 };
 
 export const getClientById = async (id) => {
-  const response = await api.get(`/clients/${id}`);
-  return response.data;
+  try {
+    const response = await api.get(`/clients/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching client with id ${id}:`, error);
+    throw error;
+  }
 };
 
 export const getClientTypes = async () => {
-  const response = await api.get('/clients/types');
-  return response.data;
+  try {
+    const response = await api.get('/clients/types');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching client types:', error);
+    throw error;
+  }
 };
 
 export const createClientType = async (payload) => {
-  const response = await api.post('/clients/types', payload);
-  return response.data;
+  try {
+    const response = await api.post('/clients/types', payload);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating client type:', error);
+    throw error;
+  }
 };
 
 export const updateClientType = async (id, payload) => {
-  const response = await api.put(`/clients/types/${id}`, payload);
-  return response.data;
+  try {
+    const response = await api.put(`/clients/types/${id}`, payload);
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating client type with id ${id}:`, error);
+    throw error;
+  }
 };
 
 export const createClient = async (payload) => {
-  const response = await api.post('/clients', payload);
-  return response.data;
+  try {
+    const response = await api.post('/clients', payload);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating client:', error);
+    throw error;
+  }
 };
 
 // Hiérarchie géographique
 export const getUnites = async () => {
-  const response = await api.get('/unites');
-  return response.data;
+  try {
+    const response = await api.get('/unites');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching unites:', error);
+    throw error;
+  }
 };
 
 export const getUniteById = async (id) => {
-  const response = await api.get(`/unites/${id}`);
-  return response.data;
+  try {
+    const response = await api.get(`/unites/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching unite with id ${id}:`, error);
+    throw error;
+  }
 };
 
 export const createUnite = async (payload) => {
-  const response = await api.post('/unites', payload);
-  return response.data;
+  try {
+    const response = await api.post('/unites', payload);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating unite:', error);
+    throw error;
+  }
 };
 
 export const updateUnite = async (id, payload) => {
-  const response = await api.put(`/unites/${id}`, payload);
-  return response.data;
+  try {
+    const response = await api.put(`/unites/${id}`, payload);
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating unite with id ${id}:`, error);
+    throw error;
+  }
 };
 
 export const getCentres = async () => {
-  const response = await api.get('/centres');
-  return response.data;
+  try {
+    const response = await api.get('/centres');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching centres:', error);
+    throw error;
+  }
 };
 
 export const getCentreById = async (id) => {
-  const response = await api.get(`/centres/${id}`);
-  return response.data;
+  try {
+    const response = await api.get(`/centres/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching centre with id ${id}:`, error);
+    throw error;
+  }
 };
 
 export const createCentre = async (payload) => {
-  const response = await api.post('/centres', payload);
-  return response.data;
+  try {
+    const response = await api.post('/centres', payload);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating centre:', error);
+    throw error;
+  }
 };
 
 export const updateCentre = async (id, payload) => {
-  const response = await api.put(`/centres/${id}`, payload);
-  return response.data;
+  try {
+    const response = await api.put(`/centres/${id}`, payload);
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating centre with id ${id}:`, error);
+    throw error;
+  }
 };
 
 export const getAgences = async () => {
-  const response = await api.get('/agences');
-  return response.data;
+  try {
+    const response = await api.get('/agences');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching agences:', error);
+    throw error;
+  }
 };
 
 export const getAgenceById = async (id) => {
-  const response = await api.get(`/agences/${id}`);
-  return response.data;
+  try {
+    const response = await api.get(`/agences/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching agence with id ${id}:`, error);
+    throw error;
+  }
 };
 
 export const createAgence = async (payload) => {
-  const response = await api.post('/agences', payload);
-  return response.data;
+  try {
+    const response = await api.post('/agences', payload);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating agence:', error);
+    throw error;
+  }
 };
 
 export const updateAgence = async (id, payload) => {
-  const response = await api.put(`/agences/${id}`, payload);
-  return response.data;
+  try {
+    const response = await api.put(`/agences/${id}`, payload);
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating agence with id ${id}:`, error);
+    throw error;
+  }
 };
 
 // Utilisateurs et rôles
 export const getRoles = async () => {
-  const response = await api.get('/roles');
-  return response.data;
+  try {
+    const response = await api.get('/roles');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching roles:', error);
+    throw error;
+  }
 };
 
 export const createRole = async (payload) => {
-  const response = await api.post('/roles', payload);
-  return response.data;
+  try {
+    const response = await api.post('/roles', payload);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating role:', error);
+    throw error;
+  }
 };
 
 export const updateRole = async (id, payload) => {
-  const response = await api.put(`/roles/${id}`, payload);
-  return response.data;
+  try {
+    const response = await api.put(`/roles/${id}`, payload);
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating role with id ${id}:`, error);
+    throw error;
+  }
 };
 
 export const deleteRole = async (id) => {
-  const response = await api.delete(`/roles/${id}`);
-  return response.data;
+  try {
+    const response = await api.delete(`/roles/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error deleting role with id ${id}:`, error);
+    throw error;
+  }
 };
 
 export const getUtilisateurs = async () => {
-  const response = await api.get('/utilisateurs');
-  return response.data;
+  try {
+    const response = await api.get('/utilisateurs');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching utilisateurs:', error);
+    throw error;
+  }
 };
 
 export const createUtilisateur = async (payload) => {
-  const response = await api.post('/utilisateurs', payload);
-  return response.data;
+  try {
+    const response = await api.post('/utilisateurs', payload);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating utilisateur:', error);
+    throw error;
+  }
 };
 
 export const updateUtilisateur = async (id, payload) => {
-  const response = await api.put(`/utilisateurs/${id}`, payload);
-  return response.data;
+  try {
+    const response = await api.put(`/utilisateurs/${id}`, payload);
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating utilisateur with id ${id}:`, error);
+    throw error;
+  }
 };
 
 export const deleteUtilisateur = async (id) => {
-  const response = await api.delete(`/utilisateurs/${id}`);
-  return response.data;
+  try {
+    const response = await api.delete(`/utilisateurs/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error deleting utilisateur with id ${id}:`, error);
+    throw error;
+  }
 };
 
 export const getDemandeTypes = async () => {
-  const response = await api.get('/demandes/types');
-  return response.data;
+  try {
+    const response = await api.get('/demandes/types');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching demande types:', error);
+    throw error;
+  }
 };
 
 export const createDemandeType = async (payload) => {
-  const response = await api.post('/demandes/types', payload);
-  return response.data;
+  try {
+    const response = await api.post('/demandes/types', payload);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating demande type:', error);
+    throw error;
+  }
 };
 
 export const updateDemandeType = async (id, payload) => {
-  const response = await api.put(`/demandes/types/${id}`, payload);
-  return response.data;
+  try {
+    const response = await api.put(`/demandes/types/${id}`, payload);
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating demande type with id ${id}:`, error);
+    throw error;
+  }
 };
 
 export const getDemandeTypesDiagnostic = async () => {
-  const response = await api.get('/demandes/types/diagnostic');
-  return response.data;
+  try {
+    const response = await api.get('/demandes/types/diagnostic');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching demande types diagnostic:', error);
+    throw error;
+  }
 };
 
 export const testDemandeTypesAuthorizations = async () => {
-  const response = await api.get('/demandes/types/test-authorizations');
-  return response.data;
+  try {
+    const response = await api.get('/demandes/types/test-authorizations');
+    return response.data;
+  } catch (error) {
+    console.error('Error testing demande types authorizations:', error);
+    throw error;
+  }
 };
 
 export const createDemande = async (payload) => {
-  const response = await api.post('/demandes', payload);
-  return response.data;
+  try {
+    const response = await api.post('/demandes', payload);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating demande:', error);
+    throw error;
+  }
 };
 
 export const getDemandes = async () => {
-  const response = await api.get('/demandes');
-  return response.data;
+  try {
+    const response = await api.get('/demandes');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching demandes:', error);
+    throw error;
+  }
 };
 
 export const getPendingDemandesCount = async () => {
-  const response = await api.get('/demandes/pending-count');
-  return response.data;
+  try {
+    const response = await api.get('/demandes/pending-count');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching pending demandes count:', error);
+    throw error;
+  }
 };
 
 // Configuration Globale
 export const getConfigurations = async () => {
-  const response = await api.get('/configurations');
-  return response.data;
+  try {
+    const response = await api.get('/configurations');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching configurations:', error);
+    throw error;
+  }
 };
 
 export const getConfigurationByKey = async (key) => {
-  const response = await api.get(`/configurations/${key}`);
-  return response.data;
+  try {
+    const response = await api.get(`/configurations/${key}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching configuration with key ${key}:`, error);
+    throw error;
+  }
 };
 
 export const getTVADefault = async () => {
-  const response = await api.get('/configurations/public/tva');
-  return response.data;
+  try {
+    const response = await api.get('/configurations/public/tva');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching TVA default:', error);
+    throw error;
+  }
 };
 
 export const updateConfiguration = async (key, payload) => {
-  const response = await api.put(`/configurations/${key}`, payload);
-  return response.data;
+  try {
+    const response = await api.put(`/configurations/${key}`, payload);
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating configuration with key ${key}:`, error);
+    throw error;
+  }
 };
 
 export const validateDemande = async (demandeId, typeValidation) => {
-  const response = await api.post(`/demandes/${demandeId}/validate`, { typeValidation });
-  return response.data;
+  try {
+    const response = await api.post(`/demandes/${demandeId}/validate`, { typeValidation });
+    return response.data;
+  } catch (error) {
+    console.error(`Error validating demande with id ${demandeId}:`, error);
+    throw error;
+  }
 };
 
 export const getDemande = async (id) => {
-  const response = await api.get(`/demandes/${id}`);
-  return response.data;
+  try {
+    const response = await api.get(`/demandes/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching demande with id ${id}:`, error);
+    throw error;
+  }
 };
 
 // Authentication
 export const login = async (credentials) => {
-  const response = await api.post('/auth/login', credentials);
-  return response.data;
+  try {
+    const response = await api.post('/auth/login', credentials);
+    return response.data;
+  } catch (error) {
+    console.error('Error logging in:', error);
+    throw error;
+  }
 };
 
 export const logout = async () => {
@@ -298,115 +523,225 @@ api.interceptors.response.use(
 
 // Devis
 export const getDevis = async (id) => {
-  const response = await api.get(`/devis/${id}`);
-  return response.data;
+  try {
+    const response = await api.get(`/devis/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching devis with id ${id}:`, error);
+    throw error;
+  }
 };
 
 export const getDevisList = async () => {
-  const response = await api.get('/devis');
-  return response.data;
+  try {
+    const response = await api.get('/devis');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching devis list:', error);
+    throw error;
+  }
 };
 
 export const createDevis = async (payload) => {
-  const response = await api.post('/devis', payload);
-  return response.data;
+  try {
+    const response = await api.post('/devis', payload);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating devis:', error);
+    throw error;
+  }
 };
 
 export const updateDevis = async (id, payload) => {
-  const response = await api.put(`/devis/${id}`, payload);
-  return response.data;
+  try {
+    const response = await api.put(`/devis/${id}`, payload);
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating devis with id ${id}:`, error);
+    throw error;
+  }
 };
 
 export const deleteDevis = async (id) => {
-  const response = await api.delete(`/devis/${id}`);
-  return response.data;
+  try {
+    const response = await api.delete(`/devis/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error deleting devis with id ${id}:`, error);
+    throw error;
+  }
 };
 
 export const getDevisTypes = async () => {
-  const response = await api.get('/devis/types');
-  return response.data;
+  try {
+    const response = await api.get('/devis/types');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching devis types:', error);
+    throw error;
+  }
 };
 
 export const createDevisType = async (payload) => {
-  const response = await api.post('/devis/types', payload);
-  return response.data;
+  try {
+    const response = await api.post('/devis/types', payload);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating devis type:', error);
+    throw error;
+  }
 };
 
 export const updateDevisType = async (id, payload) => {
-  const response = await api.put(`/devis/types/${id}`, payload);
-  return response.data;
+  try {
+    const response = await api.put(`/devis/types/${id}`, payload);
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating devis type with id ${id}:`, error);
+    throw error;
+  }
 };
 
 export const deleteDevisType = async (id) => {
-  const response = await api.delete(`/devis/types/${id}`);
-  return response.data;
+  try {
+    const response = await api.delete(`/devis/types/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error deleting devis type with id ${id}:`, error);
+    throw error;
+  }
 };
 
 export const getNextDevisNumber = async (idDemande) => {
-  const response = await api.get(`/devis/next-number/${idDemande}`);
-  return response.data;
+  try {
+    const response = await api.get(`/devis/next-number/${idDemande}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching next devis number for demande id ${idDemande}:`, error);
+    throw error;
+  }
 };
 
 export const validateDevis = async (devisId, typeValidation) => {
-  const response = await api.post(`/devis/${devisId}/validate`, { typeValidation });
-  return response.data;
+  try {
+    const response = await api.post(`/devis/${devisId}/validate`, { typeValidation });
+    return response.data;
+  } catch (error) {
+    console.error(`Error validating devis with id ${devisId}:`, error);
+    throw error;
+  }
 };
 
 // Articles
 export const getArticles = async () => {
-  const response = await api.get('/articles');
-  return response.data;
+  try {
+    const response = await api.get('/articles');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching articles:', error);
+    throw error;
+  }
 };
 
 export const getFamilles = async () => {
-  const response = await api.get('/familles');
-  return response.data;
+  try {
+    const response = await api.get('/familles');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching families:', error);
+    throw error;
+  }
 };
 
 export const getArticleById = async (id) => {
-  const response = await api.get(`/articles/${id}`);
-  return response.data;
+  try {
+    const response = await api.get(`/articles/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching article with id ${id}:`, error);
+    throw error;
+  }
 };
 
 export const createArticle = async (payload) => {
-  const response = await api.post('/articles', payload);
-  return response.data;
+  try {
+    const response = await api.post('/articles', payload);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating article:', error);
+    throw error;
+  }
 };
 
 export const updateArticle = async (id, payload) => {
-  const response = await api.put(`/articles/${id}`, payload);
-  return response.data;
+  try {
+    const response = await api.put(`/articles/${id}`, payload);
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating article with id ${id}:`, error);
+    throw error;
+  }
 };
 
 export const getArticleFamilles = async () => {
-  const response = await api.get('/articles/familles');
-  return response.data;
+  try {
+    const response = await api.get('/articles/familles');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching article families:', error);
+    throw error;
+  }
 };
 
 export const createArticleFamille = async (payload) => {
-  const response = await api.post('/articles/familles', payload);
-  return response.data;
+  try {
+    const response = await api.post('/articles/familles', payload);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating article family:', error);
+    throw error;
+  }
 };
 
 // Article Prix Historique
 export const getArticlePrixHistorique = async (id) => {
-  const response = await api.get(`/articles/${id}/prix-historique`);
-  return response.data;
+  try {
+    const response = await api.get(`/articles/${id}/prix-historique`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching article price history for id ${id}:`, error);
+    throw error;
+  }
 };
 
 export const createArticlePrixHistorique = async (id, payload) => {
-  const response = await api.post(`/articles/${id}/prix-historique`, payload);
-  return response.data;
+  try {
+    const response = await api.post(`/articles/${id}/prix-historique`, payload);
+    return response.data;
+  } catch (error) {
+    console.error(`Error creating article price history for id ${id}:`, error);
+    throw error;
+  }
 };
 
 export const updateArticlePrixHistorique = async (id, payload) => {
-  const response = await api.put(`/articles/prix-historique/${id}`, payload);
-  return response.data;
+  try {
+    const response = await api.put(`/articles/prix-historique/${id}`, payload);
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating article price history with id ${id}:`, error);
+    throw error;
+  }
 };
 
 export const deleteArticlePrixHistorique = async (id) => {
-  const response = await api.delete(`/articles/prix-historique/${id}`);
-  return response.data;
+  try {
+    const response = await api.delete(`/articles/prix-historique/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error deleting article price history with id ${id}:`, error);
+    throw error;
+  }
 };
 
 export default api;
