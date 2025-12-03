@@ -856,12 +856,10 @@ app.put('/api/clients/types/:id', verifyToken, async (req, res) => {
         UPDATE ClientType SET
           LibelleType = @LibelleType,
           Description = @Description,
-          Actif = @Actif,
-          DateModification = GETDATE()
+          Actif = @Actif
         OUTPUT INSERTED.*
         WHERE IdClientType = @id
       `);
-
     if (update.recordset.length === 0) {
       return res.status(404).json({ error: 'Type de client introuvable' });
     }
@@ -4540,7 +4538,16 @@ app.get('/api/articles', async (req, res) => {
         pp.PrixHT AS PrixPoseHT,
         pp.TauxTVA AS TauxTVAPose,
         pp.DateDebutApplication AS DateDebutPose,
-        COALESCE(pf.TauxTVA, pp.TauxTVA) AS TauxTVA
+        ps.PrixHT AS PrixServiceHT,
+        ps.TauxTVA AS TauxTVAService,
+        ps.DateDebutApplication AS DateDebutService,
+        pr.PrixHT AS PrixPrestationHT,
+        pr.TauxTVA AS TauxTVAPrestation,
+        pr.DateDebutApplication AS DateDebutPrestation,
+        pc.PrixHT AS PrixCautionnementHT,
+        pc.TauxTVA AS TauxTVACautionnement,
+        pc.DateDebutApplication AS DateDebutCautionnement,
+        COALESCE(pf.TauxTVA, pp.TauxTVA, ps.TauxTVA, pr.TauxTVA, pc.TauxTVA) AS TauxTVA
       FROM Article a
       LEFT JOIN ArticleFamille f ON a.IdFamille = f.IdFamille
       LEFT JOIN (
@@ -4569,6 +4576,45 @@ app.get('/api/articles', async (req, res) => {
           AND DateDebutApplication <= GETDATE()
           AND (DateFinApplication IS NULL OR DateFinApplication >= GETDATE())
       ) pp ON a.IdArticle = pp.IdArticle AND pp.rn = 1
+      LEFT JOIN (
+        SELECT 
+          IdArticle, 
+          PrixHT, 
+          TauxTVA, 
+          DateDebutApplication,
+          ROW_NUMBER() OVER (PARTITION BY IdArticle ORDER BY DateDebutApplication DESC) as rn
+        FROM ArticlePrixHistorique 
+        WHERE TypePrix = 'SERVICE' 
+          AND EstActif = 1
+          AND DateDebutApplication <= GETDATE()
+          AND (DateFinApplication IS NULL OR DateFinApplication >= GETDATE())
+      ) ps ON a.IdArticle = ps.IdArticle AND ps.rn = 1
+      LEFT JOIN (
+        SELECT 
+          IdArticle, 
+          PrixHT, 
+          TauxTVA, 
+          DateDebutApplication,
+          ROW_NUMBER() OVER (PARTITION BY IdArticle ORDER BY DateDebutApplication DESC) as rn
+        FROM ArticlePrixHistorique 
+        WHERE TypePrix = 'PRESTATION' 
+          AND EstActif = 1
+          AND DateDebutApplication <= GETDATE()
+          AND (DateFinApplication IS NULL OR DateFinApplication >= GETDATE())
+      ) pr ON a.IdArticle = pr.IdArticle AND pr.rn = 1
+      LEFT JOIN (
+        SELECT 
+          IdArticle, 
+          PrixHT, 
+          TauxTVA, 
+          DateDebutApplication,
+          ROW_NUMBER() OVER (PARTITION BY IdArticle ORDER BY DateDebutApplication DESC) as rn
+        FROM ArticlePrixHistorique 
+        WHERE TypePrix = 'CAUTIONNEMENT' 
+          AND EstActif = 1
+          AND DateDebutApplication <= GETDATE()
+          AND (DateFinApplication IS NULL OR DateFinApplication >= GETDATE())
+      ) pc ON a.IdArticle = pc.IdArticle AND pc.rn = 1
       WHERE a.Actif = 1
       ORDER BY f.LibelleFamille, a.Designation
     `);

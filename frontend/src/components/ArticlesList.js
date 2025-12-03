@@ -23,6 +23,22 @@ const ArticlesList = ({ user, onUnauthorized }) => {
     }
   };
 
+  // Helper function to get abbreviated label for TypePrix in table
+  const getTypePrixAbbreviation = (typePrix) => {
+    switch (typePrix) {
+      case 'SERVICE':
+        return 'S';
+      case 'PRESTATION':
+        return 'PRE';
+      case 'FOURNITURE':
+        return 'F';
+      case 'POSE':
+        return 'P';
+      default:
+        return 'Prix';
+    }
+  };
+
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -70,6 +86,8 @@ const ArticlesList = ({ user, onUnauthorized }) => {
   const [showHoverCard, setShowHoverCard] = useState(false);
   const [hideTimeout, setHideTimeout] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10); // Default to 10 items per page
 
   // Liste des unités de mesure prédéfinies
   const unitesMesure = [
@@ -283,6 +301,22 @@ const ArticlesList = ({ user, onUnauthorized }) => {
       (article.Description && article.Description.toLowerCase().includes(searchLower))
     );
   });
+
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredArticles.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredArticles.length / itemsPerPage);
+
+  // Function to change page
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  // Function to change items per page
+  const handleItemsPerPageChange = (e) => {
+    const newItemsPerPage = parseInt(e.target.value);
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1); // Reset to first page when changing items per page
+  };
 
   // Gérer la sélection d'une famille
   const handleFamilleSelect = (familleId, libelleFamille) => {
@@ -1185,172 +1219,273 @@ const ArticlesList = ({ user, onUnauthorized }) => {
               <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary-600"></div>
             </div>
           ) : (
-            <div className="overflow-x-auto relative">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b dark:border-white/10 border-gray-200 bg-gray-50 dark:bg-gray-800/50">
-                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900 rounded-tl-lg">Code</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Désignation</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Famille</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Unité</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Prix HT</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Date Application</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900 rounded-tr-lg">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredArticles.length === 0 ? (
-                    <tr>
-                      <td colSpan="7" className="py-8 text-center text-gray-400">
-                        <div className="flex flex-col items-center justify-center">
-                          <svg className="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                          </svg>
-                          <p className="text-lg font-medium">Aucun article trouvé</p>
-                          <p className="text-sm mt-1">Aucun article ne correspond à votre recherche</p>
-                        </div>
-                      </td>
+            <>
+              <div className="overflow-x-auto relative">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b dark:border-white/10 border-gray-200 bg-gray-50 dark:bg-gray-800/50">
+                      <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900 rounded-tl-lg">Code</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Désignation</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Famille</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Unité</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Prix HT</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900">Date Application</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold dark:text-white text-gray-900 rounded-tr-lg">Actions</th>
                     </tr>
-                  ) : (
-                    filteredArticles.map((article) => (
-                      <tr
-                        key={article.IdArticle}
-                        className="hover:bg-gray-50 dark:hover:bg-gray-700/50 border-b dark:border-white/10 border-gray-200 transition-colors"
-                        onMouseEnter={(e) => {
-                          // Do nothing on hover - card should not appear
-                          e.stopPropagation();
-                        }}
-                        onMouseLeave={() => {
-                          // Do nothing on leave
-                        }}
-                      >
-                        <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700 font-mono">
-                          <span className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs font-mono">
-                            {article.CodeArticle}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700 font-medium">
-                          {article.Designation}
-                        </td>
-                        <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">
-                          <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full text-xs">
-                            {article.LibelleFamille || '—'}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">
-                          {article.Unite}
-                        </td>
-                        <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">
-                          <div className="space-y-1">
-                            {article.PrixFournitureHT != null && (
-                              <div className="flex items-center justify-center">
-                                <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">F:</span>
-                                <span className="font-semibold">{parseFloat(article.PrixFournitureHT).toFixed(2)}</span>
-                              </div>
-                            )}
-                            {article.PrixPoseHT != null && (
-                              <div className="flex items-center justify-center">
-                                <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">P:</span>
-                                <span className="font-semibold">{parseFloat(article.PrixPoseHT).toFixed(2)}</span>
-                              </div>
-                            )}
-                            {article.PrixFournitureHT == null && article.PrixPoseHT == null && (
-                              <span className="text-gray-400 flex justify-center">—</span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">
-                          {article.DateDebutFourniture || article.DateDebutPose 
-                            ? new Date(article.DateDebutFourniture || article.DateDebutPose).toLocaleDateString('fr-FR') 
-                            : '—'}
-                        </td>
-                        <td className="py-3 px-4 actions-cell">
-                          <div className="flex space-x-2">
-                            <button
-                              onClick={() => handleEdit(article.IdArticle)}
-                              className="text-primary-500 hover:text-primary-600 p-1.5 rounded-lg hover:bg-primary-500/10 transition-colors"
-                              title="Modifier"
-                            >
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                              </svg>
-                            </button>
-                            <button
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                // Show the hover card when clicking the eye icon
-                                try {
-                                  // Get button position before async call
-                                  const buttonRect = e.currentTarget.getBoundingClientRect();
-                                  const viewportWidth = window.innerWidth;
-                                  const viewportHeight = window.innerHeight;
-                                  
-                                  console.log('Loading article details for ID:', article.IdArticle);
-                                  // Validate the article ID
-                                  if (!article.IdArticle) {
-                                    throw new Error('ID d\'article invalide');
-                                  }
-                                  
-                                  // Load article details
-                                  setLoadingHoverDetails(true);
-                                  const details = await getArticleById(article.IdArticle);
-                                  console.log('Article details loaded:', details);
-                                  setHoveredArticleDetails(details);
-                                  
-                                  // Position the card near the button
-                                  const cardWidth = 320;
-                                  const cardHeight = 400;
-                                  
-                                  let x = buttonRect.right + 10;
-                                  let y = buttonRect.top + window.scrollY;
-                                  
-                                  if (x + cardWidth > viewportWidth - 10) {
-                                    x = buttonRect.left - cardWidth - 10;
-                                    if (x < 10) {
-                                      x = Math.max(10, viewportWidth - cardWidth - 10);
-                                    }
-                                  }
-                                  
-                                  if (y + cardHeight > viewportHeight - 10) {
-                                    y = Math.max(10, viewportHeight - cardHeight - 10);
-                                  }
-                                  
-                                  if (y < 10) {
-                                    y = 10;
-                                  }
-                                  
-                                  const finalX = Math.max(10, x);
-                                  const finalY = Math.max(10, y);
-                                  
-                                  setHoverPosition({ x: finalX, y: finalY });
-                                  setHoveredArticle(article);
-                                  setShowHoverCard(true);
-                                } catch (error) {
-                                  // Error loading article details
-                                  setHoveredArticleDetails(null);
-                                  console.error('Error loading article details:', error);
-                                  const errorMessage = error.response?.data?.error || error.message || 'Impossible de charger les détails de l\'article.';
-                                  alertError('Erreur', errorMessage);
-                                } finally {
-                                  setLoadingHoverDetails(false);
-                                }
-                              }}
-                              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 p-1.5 rounded-lg hover:bg-gray-500/10 transition-colors view-details-btn"
-                              title="Voir détails"
-                            >
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                              </svg>
-                            </button>
+                  </thead>
+                  <tbody>
+                    {currentItems.length === 0 ? (
+                      <tr>
+                        <td colSpan="7" className="py-8 text-center text-gray-400">
+                          <div className="flex flex-col items-center justify-center">
+                            <svg className="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                            </svg>
+                            <p className="text-lg font-medium">Aucun article trouvé</p>
+                            <p className="text-sm mt-1">Aucun article ne correspond à votre recherche</p>
                           </div>
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    ) : (
+                      currentItems.map((article) => (
+                        <tr
+                          key={article.IdArticle}
+                          className="hover:bg-gray-50 dark:hover:bg-gray-700/50 border-b dark:border-white/10 border-gray-200 transition-colors"
+                          onMouseEnter={(e) => {
+                            // Do nothing on hover - card should not appear
+                            e.stopPropagation();
+                          }}
+                          onMouseLeave={() => {
+                            // Do nothing on leave
+                          }}
+                        >
+                          <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700 font-mono">
+                            <span className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs font-mono">
+                              {article.CodeArticle}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700 font-medium">
+                            {article.Designation}
+                          </td>
+                          <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">
+                            <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full text-xs">
+                              {article.LibelleFamille || '—'}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">
+                            {article.Unite}
+                          </td>
+                          <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">
+                            <div className="space-y-1">
+                              {article.PrixFournitureHT != null && (
+                                <div className="flex items-center justify-center">
+                                  <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">{getTypePrixAbbreviation('FOURNITURE')}:</span>
+                                  <span className="font-semibold">{parseFloat(article.PrixFournitureHT).toFixed(2)}</span>
+                                </div>
+                              )}
+                              {article.PrixPoseHT != null && (
+                                <div className="flex items-center justify-center">
+                                  <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">{getTypePrixAbbreviation('POSE')}:</span>
+                                  <span className="font-semibold">{parseFloat(article.PrixPoseHT).toFixed(2)}</span>
+                                </div>
+                              )}
+                              {article.PrixServiceHT != null && (
+                                <div className="flex items-center justify-center">
+                                  <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">{getTypePrixAbbreviation('SERVICE')}:</span>
+                                  <span className="font-semibold">{parseFloat(article.PrixServiceHT).toFixed(2)}</span>
+                                </div>
+                              )}
+                              {article.PrixPrestationHT != null && (
+                                <div className="flex items-center justify-center">
+                                  <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">{getTypePrixAbbreviation('PRESTATION')}:</span>
+                                  <span className="font-semibold">{parseFloat(article.PrixPrestationHT).toFixed(2)}</span>
+                                </div>
+                              )}
+                              {article.PrixCautionnementHT != null && (
+                                <div className="flex items-center justify-center">
+                                  <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">{getTypePrixAbbreviation('CAUTIONNEMENT')}:</span>
+                                  <span className="font-semibold">{parseFloat(article.PrixCautionnementHT).toFixed(2)}</span>
+                                </div>
+                              )}
+                              {article.PrixFournitureHT == null && article.PrixPoseHT == null && article.PrixServiceHT == null && article.PrixPrestationHT == null && article.PrixCautionnementHT == null && (
+                                <span className="text-gray-400 flex justify-center">—</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">
+                            {[article.DateDebutFourniture, article.DateDebutPose, article.DateDebutService, article.DateDebutPrestation, article.DateDebutCautionnement]
+                              .filter(date => date)
+                              .map((date, index) => (
+                                <div key={index} className="text-center">
+                                  {new Date(date).toLocaleDateString('fr-FR')}
+                                </div>
+                              ))
+                              .reduce((acc, curr, idx) => acc === null ? [curr] : [...acc, <br key={`br-${idx}`} />, curr], null) || '—'}
+                          </td>
+                          <td className="py-3 px-4 actions-cell">
+                            <div className="flex space-x-2">
+                              <button
+                                onClick={() => handleEdit(article.IdArticle)}
+                                className="text-primary-500 hover:text-primary-600 p-1.5 rounded-lg hover:bg-primary-500/10 transition-colors"
+                                title="Modifier"
+                              >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  // Show the hover card when clicking the eye icon
+                                  try {
+                                    // Get button position before async call
+                                    const buttonRect = e.currentTarget.getBoundingClientRect();
+                                    const viewportWidth = window.innerWidth;
+                                    const viewportHeight = window.innerHeight;
+                                    
+                                    console.log('Loading article details for ID:', article.IdArticle);
+                                    // Validate the article ID
+                                    if (!article.IdArticle) {
+                                      throw new Error('ID d\'article invalide');
+                                    }
+                                    
+                                    // Load article details
+                                    setLoadingHoverDetails(true);
+                                    const details = await getArticleById(article.IdArticle);
+                                    console.log('Article details loaded:', details);
+                                    setHoveredArticleDetails(details);
+                                    
+                                    // Position the card near the button
+                                    const cardWidth = 320;
+                                    const cardHeight = 400;
+                                    
+                                    let x = buttonRect.right + 10;
+                                    let y = buttonRect.top + window.scrollY;
+                                    
+                                    if (x + cardWidth > viewportWidth - 10) {
+                                      x = buttonRect.left - cardWidth - 10;
+                                      if (x < 10) {
+                                        x = Math.max(10, viewportWidth - cardWidth - 10);
+                                      }
+                                    }
+                                    
+                                    if (y + cardHeight > viewportHeight - 10) {
+                                      y = Math.max(10, viewportHeight - cardHeight - 10);
+                                    }
+                                    
+                                    if (y < 10) {
+                                      y = 10;
+                                    }
+                                    
+                                    const finalX = Math.max(10, x);
+                                    const finalY = Math.max(10, y);
+                                    
+                                    setHoverPosition({ x: finalX, y: finalY });
+                                    setHoveredArticle(article);
+                                    setShowHoverCard(true);
+                                  } catch (error) {
+                                    // Error loading article details
+                                    setHoveredArticleDetails(null);
+                                    console.error('Error loading article details:', error);
+                                    const errorMessage = error.response?.data?.error || error.message || 'Impossible de charger les détails de l\'article.';
+                                    alertError('Erreur', errorMessage);
+                                  } finally {
+                                    setLoadingHoverDetails(false);
+                                  }
+                                }}
+                                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 p-1.5 rounded-lg hover:bg-gray-500/10 transition-colors view-details-btn"
+                                title="Voir détails"
+                              >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              
+              {/* Pagination Controls */}
+              {filteredArticles.length > 0 && (
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div className="flex items-center mb-4 md:mb-0">
+                    <span className="text-sm text-gray-700 dark:text-gray-300 mr-2">Articles par page:</span>
+                    <select 
+                      value={itemsPerPage}
+                      onChange={handleItemsPerPageChange}
+                      className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm"
+                    >
+                      <option value={5}>5</option>
+                      <option value={10}>10</option>
+                      <option value={20}>20</option>
+                      <option value={50}>50</option>
+                    </select>
+                    <span className="text-sm text-gray-700 dark:text-gray-300 ml-4">
+                      Affichage de {indexOfFirstItem + 1} à {Math.min(indexOfLastItem, filteredArticles.length)} sur {filteredArticles.length} articles
+                    </span>
+                  </div>
+                  
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => paginate(1)}
+                      disabled={currentPage === 1}
+                      className={`px-3 py-1 rounded-md text-sm ${currentPage === 1 ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed' : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'}`}
+                    >
+                      Première
+                    </button>
+                    
+                    <button
+                      onClick={() => paginate(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className={`px-3 py-1 rounded-md text-sm ${currentPage === 1 ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed' : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'}`}
+                    >
+                      Précédente
+                    </button>
+                    
+                    {/* Page numbers */}
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let startPage = Math.max(1, currentPage - 2);
+                      let endPage = Math.min(totalPages, startPage + 4);
+                      
+                      if (endPage - startPage < 4) {
+                        startPage = Math.max(1, endPage - 4);
+                      }
+                      
+                      return startPage + i;
+                    }).map(number => (
+                      <button
+                        key={number}
+                        onClick={() => paginate(number)}
+                        className={`px-3 py-1 rounded-md text-sm ${currentPage === number ? 'bg-primary-500 text-white' : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'}`}
+                      >
+                        {number}
+                      </button>
+                    ))}
+                    
+                    <button
+                      onClick={() => paginate(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className={`px-3 py-1 rounded-md text-sm ${currentPage === totalPages ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed' : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'}`}
+                    >
+                      Suivante
+                    </button>
+                    
+                    <button
+                      onClick={() => paginate(totalPages)}
+                      disabled={currentPage === totalPages}
+                      className={`px-3 py-1 rounded-md text-sm ${currentPage === totalPages ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed' : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'}`}
+                    >
+                      Dernière
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
 
