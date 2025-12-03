@@ -360,17 +360,38 @@ const DevisForm = ({ user }) => {
       if (selectedArticle) {
         updatedArticles[index].designation = selectedArticle.Designation;
         updatedArticles[index].unite = selectedArticle.Unite;
-        // Set default price based on typePrix selection
-        if (updatedArticles[index].typePrix === 'FOURNITURE' && selectedArticle.PrixFournitureHT) {
+        
+        // Check if both Fourniture and Pose prices are available
+        const hasFourniture = selectedArticle.PrixFournitureHT !== undefined && selectedArticle.PrixFournitureHT !== null;
+        const hasPose = selectedArticle.PrixPoseHT !== undefined && selectedArticle.PrixPoseHT !== null;
+        
+        // Set default price based on available prices
+        if (hasFourniture && hasPose) {
+          // Special case: both Fourniture and Pose available - default to BOTH
+          updatedArticles[index].typePrix = 'BOTH';
+          updatedArticles[index].prixUnitaireHT = selectedArticle.PrixFournitureHT + selectedArticle.PrixPoseHT;
+          // For TVA, we'll use the fourniture TVA as default
+          updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVAFourniture || globalTVA;
+        } else if (hasFourniture) {
+          updatedArticles[index].typePrix = 'FOURNITURE';
           updatedArticles[index].prixUnitaireHT = selectedArticle.PrixFournitureHT;
           updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVAFourniture || globalTVA;
-        } else if (updatedArticles[index].typePrix === 'POSE' && selectedArticle.PrixPoseHT) {
+        } else if (hasPose) {
+          updatedArticles[index].typePrix = 'POSE';
           updatedArticles[index].prixUnitaireHT = selectedArticle.PrixPoseHT;
           updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVAPose || globalTVA;
-        } else if (updatedArticles[index].typePrix === 'BOTH') {
-          // For BOTH, we'll use fourniture price as default
-          updatedArticles[index].prixUnitaireHT = selectedArticle.PrixFournitureHT || selectedArticle.PrixPoseHT || '';
-          updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVAFourniture || selectedArticle.TauxTVAPose || globalTVA;
+        } else if (selectedArticle.PrixServiceHT !== undefined && selectedArticle.PrixServiceHT !== null) {
+          updatedArticles[index].typePrix = 'SERVICE';
+          updatedArticles[index].prixUnitaireHT = selectedArticle.PrixServiceHT;
+          updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVAService || globalTVA;
+        } else if (selectedArticle.PrixPrestationHT !== undefined && selectedArticle.PrixPrestationHT !== null) {
+          updatedArticles[index].typePrix = 'PRESTATION';
+          updatedArticles[index].prixUnitaireHT = selectedArticle.PrixPrestationHT;
+          updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVAPrestation || globalTVA;
+        } else if (selectedArticle.PrixCautionnementHT !== undefined && selectedArticle.PrixCautionnementHT !== null) {
+          updatedArticles[index].typePrix = 'CAUTIONNEMENT';
+          updatedArticles[index].prixUnitaireHT = selectedArticle.PrixCautionnementHT;
+          updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVACautionnement || globalTVA;
         } else {
           updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVA || globalTVA;
         }
@@ -381,21 +402,51 @@ const DevisForm = ({ user }) => {
     if (field === 'typePrix') {
       const selectedArticle = availableArticles.find(a => a.IdArticle === updatedArticles[index].idArticle);
       if (selectedArticle) {
-        if (value === 'FOURNITURE' && selectedArticle.PrixFournitureHT) {
-          updatedArticles[index].prixUnitaireHT = selectedArticle.PrixFournitureHT;
-          updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVAFourniture || globalTVA;
-        } else if (value === 'POSE' && selectedArticle.PrixPoseHT) {
-          updatedArticles[index].prixUnitaireHT = selectedArticle.PrixPoseHT;
-          updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVAPose || globalTVA;
-        } else if (value === 'BOTH') {
-          // For BOTH, we'll sum the prices
-          const fourniturePrice = parseFloat(selectedArticle.PrixFournitureHT) || 0;
-          const posePrice = parseFloat(selectedArticle.PrixPoseHT) || 0;
-          updatedArticles[index].prixUnitaireHT = (fourniturePrice + posePrice).toString();
-          updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVAFourniture || selectedArticle.TauxTVAPose || globalTVA;
-        } else {
-          updatedArticles[index].prixUnitaireHT = '';
-          updatedArticles[index].tauxTVAApplique = globalTVA;
+        // Check if both Fourniture and Pose prices are available
+        const hasFourniture = selectedArticle.PrixFournitureHT !== undefined && selectedArticle.PrixFournitureHT !== null;
+        const hasPose = selectedArticle.PrixPoseHT !== undefined && selectedArticle.PrixPoseHT !== null;
+        
+        switch (value) {
+          case 'BOTH':
+            if (hasFourniture && hasPose) {
+              updatedArticles[index].prixUnitaireHT = selectedArticle.PrixFournitureHT + selectedArticle.PrixPoseHT;
+              // For TVA, we'll use the fourniture TVA as default
+              updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVAFourniture || globalTVA;
+            }
+            break;
+          case 'FOURNITURE':
+            if (selectedArticle.PrixFournitureHT !== undefined && selectedArticle.PrixFournitureHT !== null) {
+              updatedArticles[index].prixUnitaireHT = selectedArticle.PrixFournitureHT;
+              updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVAFourniture || globalTVA;
+            }
+            break;
+          case 'POSE':
+            if (selectedArticle.PrixPoseHT !== undefined && selectedArticle.PrixPoseHT !== null) {
+              updatedArticles[index].prixUnitaireHT = selectedArticle.PrixPoseHT;
+              updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVAPose || globalTVA;
+            }
+            break;
+          case 'SERVICE':
+            if (selectedArticle.PrixServiceHT !== undefined && selectedArticle.PrixServiceHT !== null) {
+              updatedArticles[index].prixUnitaireHT = selectedArticle.PrixServiceHT;
+              updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVAService || globalTVA;
+            }
+            break;
+          case 'PRESTATION':
+            if (selectedArticle.PrixPrestationHT !== undefined && selectedArticle.PrixPrestationHT !== null) {
+              updatedArticles[index].prixUnitaireHT = selectedArticle.PrixPrestationHT;
+              updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVAPrestation || globalTVA;
+            }
+            break;
+          case 'CAUTIONNEMENT':
+            if (selectedArticle.PrixCautionnementHT !== undefined && selectedArticle.PrixCautionnementHT !== null) {
+              updatedArticles[index].prixUnitaireHT = selectedArticle.PrixCautionnementHT;
+              updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVACautionnement || globalTVA;
+            }
+            break;
+          default:
+            updatedArticles[index].prixUnitaireHT = '';
+            updatedArticles[index].tauxTVAApplique = globalTVA;
         }
       }
     }
@@ -410,7 +461,6 @@ const DevisForm = ({ user }) => {
       setArticleSearch(prev => ({ ...prev, [index]: '' }));
     }
   };
-
   // New function to handle quick article addition
   // eslint-disable-next-line no-unused-vars
   const handleQuickAddArticle = (index, articleCode) => {
@@ -445,30 +495,52 @@ const DevisForm = ({ user }) => {
     const selectedArticle = availableArticles.find(a => a.IdArticle === articleId);
     if (selectedArticle) {
       const updatedArticles = [...formData.articles];
+      
+      // Determine the best typePrix based on available prices
+      let bestTypePrix = updatedArticles[index].typePrix || 'FOURNITURE';
+      let prixUnitaireHT = '';
+      let tauxTVAApplique = globalTVA;
+      
+      // Check available prices and select the most appropriate one
+      const hasFourniture = selectedArticle.PrixFournitureHT !== undefined && selectedArticle.PrixFournitureHT !== null;
+      const hasPose = selectedArticle.PrixPoseHT !== undefined && selectedArticle.PrixPoseHT !== null;
+      
+      if (hasFourniture && hasPose) {
+        // Special case: both Fourniture and Pose available - use BOTH
+        bestTypePrix = 'BOTH';
+        prixUnitaireHT = selectedArticle.PrixFournitureHT + selectedArticle.PrixPoseHT;
+        // For TVA, we'll use the fourniture TVA as default
+        tauxTVAApplique = selectedArticle.TauxTVAFourniture || globalTVA;
+      } else if (hasFourniture) {
+        bestTypePrix = 'FOURNITURE';
+        prixUnitaireHT = selectedArticle.PrixFournitureHT;
+        tauxTVAApplique = selectedArticle.TauxTVAFourniture || globalTVA;
+      } else if (hasPose) {
+        bestTypePrix = 'POSE';
+        prixUnitaireHT = selectedArticle.PrixPoseHT;
+        tauxTVAApplique = selectedArticle.TauxTVAPose || globalTVA;
+      } else if (selectedArticle.PrixServiceHT !== undefined && selectedArticle.PrixServiceHT !== null) {
+        bestTypePrix = 'SERVICE';
+        prixUnitaireHT = selectedArticle.PrixServiceHT;
+        tauxTVAApplique = selectedArticle.TauxTVAService || globalTVA;
+      } else if (selectedArticle.PrixPrestationHT !== undefined && selectedArticle.PrixPrestationHT !== null) {
+        bestTypePrix = 'PRESTATION';
+        prixUnitaireHT = selectedArticle.PrixPrestationHT;
+        tauxTVAApplique = selectedArticle.TauxTVAPrestation || globalTVA;
+      } else if (selectedArticle.PrixCautionnementHT !== undefined && selectedArticle.PrixCautionnementHT !== null) {
+        bestTypePrix = 'CAUTIONNEMENT';
+        prixUnitaireHT = selectedArticle.PrixCautionnementHT;
+        tauxTVAApplique = selectedArticle.TauxTVACautionnement || globalTVA;
+      }      
       updatedArticles[index] = {
         ...updatedArticles[index],
         idArticle: articleId,
         designation: selectedArticle.Designation,
-        unite: selectedArticle.Unite
+        unite: selectedArticle.Unite,
+        typePrix: bestTypePrix,
+        prixUnitaireHT: prixUnitaireHT,
+        tauxTVAApplique: tauxTVAApplique
       };
-      
-      // Set price based on current typePrix selection
-      if (updatedArticles[index].typePrix === 'FOURNITURE' && selectedArticle.PrixFournitureHT) {
-        updatedArticles[index].prixUnitaireHT = selectedArticle.PrixFournitureHT;
-        updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVAFourniture || globalTVA;
-      } else if (updatedArticles[index].typePrix === 'POSE' && selectedArticle.PrixPoseHT) {
-        updatedArticles[index].prixUnitaireHT = selectedArticle.PrixPoseHT;
-        updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVAPose || globalTVA;
-      } else if (updatedArticles[index].typePrix === 'BOTH') {
-        // For BOTH, we'll sum the prices
-        const fourniturePrice = parseFloat(selectedArticle.PrixFournitureHT) || 0;
-        const posePrice = parseFloat(selectedArticle.PrixPoseHT) || 0;
-        updatedArticles[index].prixUnitaireHT = (fourniturePrice + posePrice).toString();
-        updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVAFourniture || selectedArticle.TauxTVAPose || globalTVA;
-      } else {
-        // Set TVA if available, otherwise use global TVA
-        updatedArticles[index].tauxTVAApplique = selectedArticle.TauxTVA || globalTVA;
-      }
       
       setFormData(prev => ({
         ...prev,
@@ -479,7 +551,6 @@ const DevisForm = ({ user }) => {
       setArticleSearch(prev => ({ ...prev, [index]: selectedArticle.Designation }));
     }
   };
-
   const addArticle = () => {
     setFormData(prev => ({
       ...prev,
@@ -1223,6 +1294,7 @@ const DevisForm = ({ user }) => {
                           >
                             <option value="FOURNITURE">F</option>
                             <option value="POSE">P</option>
+                            <option value="BOTH">F+P</option>
                             <option value="PRESTATION">Pr</option>
                             <option value="CAUTIONNEMENT">C</option>
                             <option value="SERVICE">S</option>
@@ -1580,44 +1652,45 @@ const DevisForm = ({ user }) => {
                         return acc;
                       }, {});
                       
-                      // Sort families alphabetically
-                      const sortedFamilies = Object.keys(groupedArticles).sort();
+                      // Define the specific order of families
+                      const familyOrder = [
+                        'TRAVAUX DE TERRASSEMENT & VOIRIE',
+                        'CANALISATIONS (TUBES PEHD)',
+                        'PIÈCES SPÉCIALES',
+                        'DIVERS & PRESTATIONS',
+                        'Comptage',
+                        'Cautionnement pour Branchement'
+                      ];
                       
-                      // Function to convert number to Roman numerals
-                      const toRoman = (num) => {
-                        const romanNumerals = [
-                          { value: 1000, numeral: 'M' },
-                          { value: 900, numeral: 'CM' },
-                          { value: 500, numeral: 'D' },
-                          { value: 400, numeral: 'CD' },
-                          { value: 100, numeral: 'C' },
-                          { value: 90, numeral: 'XC' },
-                          { value: 50, numeral: 'L' },
-                          { value: 40, numeral: 'XL' },
-                          { value: 10, numeral: 'X' },
-                          { value: 9, numeral: 'IX' },
-                          { value: 5, numeral: 'V' },
-                          { value: 4, numeral: 'IV' },
-                          { value: 1, numeral: 'I' }
-                        ];
-                        
-                        let result = '';
-                        for (const { value, numeral } of romanNumerals) {
-                          while (num >= value) {
-                            result += numeral;
-                            num -= value;
-                          }
+                      // Get all families that have articles
+                      const familiesWithArticles = Object.keys(groupedArticles);
+                      
+                      // Sort families according to the specific order, putting any others at the end
+                      const sortedFamilies = [
+                        ...familyOrder.filter(family => familiesWithArticles.includes(family)),
+                        ...familiesWithArticles.filter(family => !familyOrder.includes(family))
+                      ];
+                      
+                      // Function to get Roman numeral for family index
+                      const getFamilyRomanNumeral = (familyName) => {
+                        const indexInOrder = familyOrder.indexOf(familyName);
+                        if (indexInOrder !== -1) {
+                          // Use the predefined order
+                          const romanNumerals = ['I', 'II', 'III', 'IV', 'V', 'VI'];
+                          return romanNumerals[indexInOrder] || '';
+                        } else {
+                          // For families not in the predefined order, we won't show numbering
+                          return '';
                         }
-                        return result;
                       };
                       
                       // Render articles grouped by family with family headers as separators
-                      return sortedFamilies.map((family, familyIndex) => (
+                      return sortedFamilies.map((family) => (
                         <React.Fragment key={family}>
                           {/* Family Header as separator */}
                           <tr className="bg-gray-100 dark:bg-gray-700">
                             <td colSpan="6" className="px-4 py-2 text-sm font-bold text-gray-700 dark:text-gray-300">
-                              {toRoman(familyIndex + 1)}. {family}
+                              {getFamilyRomanNumeral(family)}{getFamilyRomanNumeral(family) ? '-': ''}{family}
                             </td>
                           </tr>
                           
@@ -1631,6 +1704,7 @@ const DevisForm = ({ user }) => {
                                   <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                     {article.typePrix === 'FOURNITURE' && 'Fourniture'}
                                     {article.typePrix === 'POSE' && 'Pose'}
+                                    {article.typePrix === 'BOTH' && 'Fourniture + Pose'}
                                     {article.typePrix === 'PRESTATION' && 'Prestation'}
                                     {article.typePrix === 'CAUTIONNEMENT' && 'Cautionnement'}
                                     {article.typePrix === 'SERVICE' && 'Service'}
