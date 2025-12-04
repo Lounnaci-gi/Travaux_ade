@@ -974,10 +974,10 @@ const DevisForm = ({ user }) => {
         
         {/* Sélecteurs en haut à droite - Numéro de Demande, Client, Type de Demande */}
         {activeTab !== 'preview' && (
-          <div className="w-80 space-y-3">
+          <div className="w-80 space-y-3 text-right">
             {/* Numéro de Demande */}
             <div className="relative" ref={dropdownRef}>
-              <label htmlFor="idDemande" className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">
+              <label htmlFor="idDemande" className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1 text-right">
                 Numéro de Demande *
               </label>
               <div className="relative">
@@ -1026,16 +1026,16 @@ const DevisForm = ({ user }) => {
             {/* Client Information in a bordered div on the right */}
             {demande && (
               <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg p-2 bg-white dark:bg-gray-800 shadow-sm">
-                <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-1 pb-1 border-b border-gray-200 dark:border-gray-700">
+                <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-1 pb-1 border-b border-gray-200 dark:border-gray-700 text-right">
                   Informations Client
                 </h3>
                 
                 {/* Client Name */}
                 <div className="mb-0.5">
-                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-0">
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-0 text-right">
                     Nom Complet
                   </label>
-                  <p className="text-xs text-gray-900 dark:text-white font-medium">
+                  <p className="text-xs text-gray-900 dark:text-white font-medium text-right">
                     {demande.ClientNom} {demande.ClientPrenom}
                   </p>
                 </div>
@@ -1043,10 +1043,10 @@ const DevisForm = ({ user }) => {
                 
                 {/* Client Residence Address */}
                 <div className="mb-0.5">
-                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-0">
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-0 text-right">
                     Adresse de Résidence
                   </label>
-                  <p className="text-xs text-gray-900 dark:text-white">
+                  <p className="text-xs text-gray-900 dark:text-white text-right">
                     {demande.AdresseResidence || 'Non spécifiée'}, {demande.CommuneResidence || 'Non spécifiée'}
                   </p>
                 </div>
@@ -1054,10 +1054,10 @@ const DevisForm = ({ user }) => {
                 {/* Client Contact Info - Telephone and Email */}
                 {demande.ClientTelephone && (
                   <div className="mb-0.5">
-                    <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-0">
+                    <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-0 text-right">
                       Téléphone
                     </label>
-                    <p className="text-xs text-gray-900 dark:text-white">
+                    <p className="text-xs text-gray-900 dark:text-white text-right">
                       {demande.ClientTelephone}
                     </p>
                   </div>
@@ -1065,10 +1065,10 @@ const DevisForm = ({ user }) => {
                 
                 {demande.ClientEmail && (
                   <div className="mb-0.5">
-                    <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-0">
+                    <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-0 text-right">
                       Email
                     </label>
-                    <p className="text-xs text-gray-900 dark:text-white">
+                    <p className="text-xs text-gray-900 dark:text-white text-right">
                       {demande.ClientEmail}
                     </p>
                   </div>
