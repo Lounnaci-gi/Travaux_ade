@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { getDemandes, getDevisTypes, getArticles, getFamilles, createDevis, getTVADefault, getAgenceById, getCentreById, getNextDevisNumber } from '../services/api';
 import { alertSuccess, alertError } from '../ui/alerts';
 import { formatNumberWithThousands } from '../utils/numberFormat';
@@ -195,10 +195,8 @@ const DevisForm = ({ user }) => {
   const [demandeSearch, setDemandeSearch] = useState('');
   const [filteredDemandes, setFilteredDemandes] = useState([]);
   const [showDemandeDropdown, setShowDemandeDropdown] = useState(false);
-  const [showDescription, setShowDescription] = useState(false);
   const [devisCode, setDevisCode] = useState(''); // New state for devis code
   const dropdownRef = useRef(null);
-
   // Load global TVA rate from ConfigurationGlobale
   useEffect(() => {
     const loadGlobalTVA = async () => {
@@ -1499,162 +1497,61 @@ const DevisForm = ({ user }) => {
       
       {/* Preview Tab Content */}
       {activeTab === 'preview' && (
-        <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <div className="border-b border-gray-200 dark:border-gray-700 pb-4 mb-6">
-          </div>
-          
-          {/* Devis Header */}
-          <div className="mb-8">
-            <div className="flex justify-between items-start">
-              <div>
-                {/* Center and Agency Information */}
-                {(centreInfo || agenceInfo) && (
-                  <div className="mt-4 p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700">
-                    <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">
-                      Informations Organisation
-                    </h3>
-                    <div className="space-y-0.5">
-                      {centreInfo && centreInfo.NomUnite && (
-                        <div>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Unité: <span className="font-medium">{centreInfo.NomUnite}</span>
-                          </p>
-                          {(centreInfo.AdresseUnite || centreInfo.CommuneUnite) && (
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                              {centreInfo.AdresseUnite}{centreInfo.AdresseUnite && centreInfo.CommuneUnite ? ', ' : ''}{centreInfo.CommuneUnite}
-                            </p>
-                          )}
-                        </div>
-                      )}
-
-
-                      {centreInfo && (
-                        <div>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Centre: <span className="font-medium">{centreInfo.NomCentre}</span>
-                          </p>
-                          {centreInfo.TelephonePrincipal && (
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                              Téléphone Centre: <span className="font-medium">{centreInfo.TelephonePrincipal}</span>
-                            </p>
-                          )}
-                          {/* Informations bancaires */}
-                          {(centreInfo.NomBanque || centreInfo.NumerocompteBancaire || centreInfo.NumeroComptePostal) && (
-                            <div className="mt-1">
-                              <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                                Coordonnées bancaires :
-                              </p>
-                              {centreInfo.NomBanque && (
-                                <p className="text-sm text-gray-600 dark:text-gray-400 ml-2">
-                                  Banque: <span className="font-medium">{centreInfo.NomBanque}</span>
-                                </p>
-                              )}
-                              {centreInfo.NumerocompteBancaire && (
-                                <p className="text-sm text-gray-600 dark:text-gray-400 ml-2">
-                                  Compte bancaire: <span className="font-medium">{centreInfo.NumerocompteBancaire}</span>
-                                </p>
-                              )}
-                              {centreInfo.NumeroComptePostal && (
-                                <p className="text-sm text-gray-600 dark:text-gray-400 ml-2">
-                                  Compte postal: <span className="font-medium">{centreInfo.NumeroComptePostal}</span>
-                                </p>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      {agenceInfo && (
-                        <div>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Agence commerciale: <span className="font-medium">{agenceInfo.NomAgence}</span>
-                          </p>
-                          {agenceInfo.TelephonePrincipal && (
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                              Téléphone Agence: <span className="font-medium">{agenceInfo.TelephonePrincipal}</span>
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    </div>
+        <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow p-6" style={{ fontFamily: 'Calibri, Arial, sans-serif', backgroundColor: '#f5f5f5', padding: '20px' }}>
+          <div className="container" style={{ maxWidth: '800px', margin: '0 auto', background: 'white', position: 'relative', overflow: 'hidden' }}>
+            <div className="background-design" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(135deg, rgba(200, 230, 200, 0.3) 0%, rgba(150, 200, 220, 0.2) 50%, rgba(180, 220, 180, 0.3) 100%)', clipPath: 'polygon(0 0, 45% 0, 35% 100%, 0 100%)', zIndex: 0 }}></div>
+            
+            <div className="content" style={{ position: 'relative', zIndex: 1, padding: '40px' }}>
+              <div className="header">
+                <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#5a8c5a', textTransform: 'uppercase', marginBottom: '20px', textAlign: 'center' }}>DEVIS</h1>
+                {/* Three-column layout for header information */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', lineHeight: 1.6, color: '#555', marginBottom: '20px' }}>
+                  {/* Left column - Enterprise information */}
+                  <div style={{ width: '33%', textAlign: 'left' }}>
+                    <p style={{ marginBottom: '3px' }}><strong>De:</strong></p>
+                    <p style={{ marginBottom: '3px' }}>{centreInfo?.NomCentre || 'ADE'}</p>
+                    <p style={{ marginBottom: '3px' }}>{centreInfo?.AdresseUnite || ''}</p>
+                    <p style={{ marginBottom: '3px' }}>{centreInfo?.CommuneUnite || ''}</p>
+                    <p style={{ marginBottom: '3px' }}>{centreInfo?.TelephonePrincipal || ''}</p>
+                    <p style={{ marginBottom: '3px' }}>{agenceInfo?.Email || ''}</p>
                   </div>
-                )}
-                
-                {/* DEVIS QUANTITATIF ET ESTIMATIF */}
-                <div className="mt-2">
-                  <p className="text-sm font-bold text-gray-800 dark:text-gray-200">
-                    DEVIS QUANTITATIF ET ESTIMATIF
-                  </p>
-                </div>
-                
-              </div>
-              
-              {/* Logo placed between Informations Organisation and Informations Client */}
-              <div className="flex items-center justify-center">
-                <img src="/ade.png" alt="Logo" className="w-16 h-16 object-contain" />
-              </div>
-              
-              {demande && (
-                <div>
-                  {/* Code devis and Date d'émission in a separate div */}
-                  <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg p-1 bg-white dark:bg-gray-800 shadow-sm text-left mb-4 w-96">
-                    {devisCode && (
-                      <p className="text-lg font-mono text-primary-600 dark:text-primary-400 mt-0">N° {devisCode}</p>
-                    )}
-                    <p className="text-gray-600 dark:text-gray-400 text-sm mt-0">
-                      Date d'émission: {new Date().toLocaleDateString('fr-FR')}
-                    </p>
+                  
+                  {/* Middle column - Devis information */}
+                  <div style={{ width: '33%', textAlign: 'center' }}>
+                    <p style={{ marginBottom: '3px' }}><strong>Numéro de devis:</strong> {devisCode || 'N/A'}</p>
+                    <p style={{ marginBottom: '3px' }}><strong>Date de création:</strong> {new Date().toLocaleDateString('fr-FR')}</p>
                     {demande && (
-                      <p className="text-gray-600 dark:text-gray-400 text-sm mt-0">
-                        Valable jusqu'au : {
-                          (() => {
-                            const baseDate = demande.DateDemande ? new Date(demande.DateDemande) : new Date();
-                            const validUntil = new Date(baseDate);
-                            validUntil.setDate(baseDate.getDate() + (demande.DelaiPaiementJours || 30));
-                            return validUntil.toLocaleDateString('fr-FR');
-                          })()
-                        }
-                      </p>
+                      <p style={{ marginBottom: '3px' }}><strong>Date d'expiration:</strong> {
+                        (() => {
+                          const baseDate = demande.DateDemande ? new Date(demande.DateDemande) : new Date();
+                          const validUntil = new Date(baseDate);
+                          validUntil.setDate(baseDate.getDate() + (demande.DelaiPaiementJours || 30));
+                          return validUntil.toLocaleDateString('fr-FR');
+                        })()
+                      }</p>
                     )}
                   </div>
                   
-                  {/* Client Information */}
-                  <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg p-1 bg-white dark:bg-gray-800 shadow-sm text-left w-96">
-                    <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-0.5 pb-1 border-b border-gray-200 dark:border-gray-700">
-                      Informations Client
-                    </h3>
-                    <p className="font-semibold text-gray-900 dark:text-white text-base">{demande.ClientNom} {demande.ClientPrenom}</p>
-                    <p className="text-gray-600 dark:text-gray-400 text-sm">{demande.AdresseResidence}, {demande.CommuneResidence}</p>
-                    {demande.ClientTelephone && (
-                      <p className="text-gray-600 dark:text-gray-400 text-sm">Tél: {demande.ClientTelephone}</p>
-                    )}
-                    {demande.ClientEmail && (
-                      <p className="text-gray-600 dark:text-gray-400 text-sm">Email: {demande.ClientEmail}</p>
+                  {/* Right column - Client information */}
+                  <div style={{ width: '33%', textAlign: 'right' }}>
+                    {demande && (
+                      <>
+                        <p style={{ marginBottom: '3px' }}><strong>À:</strong></p>
+                        <p style={{ marginBottom: '3px' }}>{demande.ClientNom} {demande.ClientPrenom}</p>
+                        <p style={{ marginBottom: '3px' }}>{demande.AdresseResidence}</p>
+                        <p style={{ marginBottom: '3px' }}>{demande.CommuneResidence}</p>
+                      </>
                     )}
                   </div>
                 </div>
-              )}
-            </div>
-            
-
-          </div>
-          
-          {/* Articles Table */}
-          {formData.articles.filter(article => article.idArticle && article.designation).length > 0 && (
-            <div className="mb-8">
-              {/* Table with single header for all articles */}
-              <div className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                  <thead className="bg-gray-50 dark:bg-gray-700">
-                    <tr>
-                      <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-4/12">Désignation</th>
-                      <th scope="col" className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/12">Qté</th>
-                      <th scope="col" className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/12">Unité</th>
-                      <th scope="col" className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/12">PU HT</th>
-                      <th scope="col" className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/12">P.TVA</th>
-                      <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-3/12">Total HT</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+              </div>              <div className="main-section" style={{ marginTop: '50px' }}>
+                <div className="section-title" style={{ backgroundColor: '#d4e8d4', padding: '8px 12px', fontWeight: 'bold', fontSize: '12px', color: '#333', marginBottom: '15px' }}>
+                  DESCRIPTION
+                </div>
+                
+                {/* Articles Table with Family Grouping */}
+                {formData.articles.filter(article => article.idArticle && article.designation).length > 0 && (
+                  <div>
                     {(() => {
                       // Group articles by family for preview
                       // Filter out empty articles (those without designation or idArticle)
@@ -1675,144 +1572,130 @@ const DevisForm = ({ user }) => {
                         return acc;
                       }, {});
                       
-                      // Define the specific order of families
-                      const familyOrder = [
-                        'TRAVAUX DE TERRASSEMENT & VOIRIE',
-                        'CANALISATIONS (TUBES PEHD)',
-                        'PIÈCES SPÉCIALES',
-                        'DIVERS & PRESTATIONS',
-                        'Comptage',
-                        'Cautionnement pour Branchement'
-                      ];
+                      // Get families in the order they appear in the devis
+                      const familiesInOrder = [];
+                      validArticles.forEach(article => {
+                        const availableArticle = availableArticles.find(a => a.IdArticle === article.idArticle);
+                        const family = availableArticle?.LibelleFamille || 'Sans famille';
+                        if (!familiesInOrder.includes(family)) {
+                          familiesInOrder.push(family);
+                        }
+                      });
                       
-                      // Get all families that have articles
-                      const familiesWithArticles = Object.keys(groupedArticles);
-                      
-                      // Sort families according to the specific order, putting any others at the end
-                      const sortedFamilies = [
-                        ...familyOrder.filter(family => familiesWithArticles.includes(family)),
-                        ...familiesWithArticles.filter(family => !familyOrder.includes(family))
-                      ];
-                      
-                      // Function to get Roman numeral for family index
+                      // Function to get Roman numeral for family index based on appearance order
                       const getFamilyRomanNumeral = (familyName) => {
-                        const indexInOrder = familyOrder.indexOf(familyName);
+                        const indexInOrder = familiesInOrder.indexOf(familyName);
                         if (indexInOrder !== -1) {
-                          // Use the predefined order
-                          const romanNumerals = ['I', 'II', 'III', 'IV', 'V', 'VI'];
+                          // Convert index to Roman numerals
+                          const romanNumerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
                           return romanNumerals[indexInOrder] || '';
                         } else {
-                          // For families not in the predefined order, we won't show numbering
+                          // For families not found, we won't show numbering
                           return '';
                         }
                       };
                       
+                      // Use the order of appearance
+                      const sortedFamilies = familiesInOrder;
+                      
                       // Render articles grouped by family with family headers as separators
-                      return sortedFamilies.map((family) => (
-                        <React.Fragment key={family}>
-                          {/* Family Header as separator */}
-                          <tr className="bg-gray-100 dark:bg-gray-700">
-                            <td colSpan="6" className="px-4 py-2 text-sm font-bold text-gray-700 dark:text-gray-300">
-                              {getFamilyRomanNumeral(family)}{getFamilyRomanNumeral(family) ? '-': ''}{family}
-                            </td>
-                          </tr>
-                          
-                          {/* Articles in this family */}
-                          {groupedArticles[family].map(({ article, index }) => {
-                            const articleTotals = calculateArticleTotals(article);
-                            return (
-                              <tr key={index}>
-                                <td className="px-4 py-3 whitespace-normal text-sm text-gray-900 dark:text-white w-4/12">
-                                  <div className="font-medium">{article.designation}</div>
-                                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                    {article.typePrix === 'FOURNITURE' && 'Fourniture'}
-                                    {article.typePrix === 'POSE' && 'Pose'}
-                                    {article.typePrix === 'BOTH' && 'Fourniture + Pose'}
-                                    {article.typePrix === 'PRESTATION' && 'Prestation'}
-                                    {article.typePrix === 'CAUTIONNEMENT' && 'Cautionnement'}
-                                    {article.typePrix === 'SERVICE' && 'Service'}
-                                  </div>
-                                </td>
-                                <td className="px-2 py-3 whitespace-nowrap text-sm text-center text-gray-900 dark:text-white w-1/12">
-                                  {article.quantite}
-                                </td>
-                                <td className="px-2 py-3 whitespace-nowrap text-sm text-center text-gray-900 dark:text-white w-1/12">
-                                  {article.unite || '-'}
-                                </td>
-                                <td className="px-2 py-3 whitespace-nowrap text-sm text-center text-gray-900 dark:text-white w-1/12">
-                                  {formatNumberWithThousands(parseFloat(article.prixUnitaireHT) || 0)}
-                                </td>
-                                <td className="px-2 py-3 whitespace-nowrap text-sm text-center text-gray-900 dark:text-white w-1/12">
-                                  {formatNumberWithThousands(((parseFloat(article.prixUnitaireHT) || 0) * (parseFloat(article.tauxTVAApplique) || 0) / 100))}
-                                </td>
-                                <td className="px-4 py-3 whitespace-nowrap text-sm text-right text-gray-900 dark:text-white font-medium w-3/12">
-                                  {articleTotals.montantHT}
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </React.Fragment>
-                      ));
+                      return (
+                        <div>
+                          {/* Global table header - shown only once */}
+                          <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '10px', fontSize: '11px' }}>
+                            <thead>
+                              <tr>
+                                <th style={{ backgroundColor: '#f0f0f0', padding: '10px', textAlign: 'left', fontWeight: 'bold', fontSize: '10px', color: '#555', textTransform: 'uppercase', borderBottom: '2px solid #ccc', width: '35%' }}>ARTICLE</th>
+                                <th style={{ backgroundColor: '#f0f0f0', padding: '10px', textAlign: 'left', fontWeight: 'bold', fontSize: '10px', color: '#555', textTransform: 'uppercase', borderBottom: '2px solid #ccc', width: '10%' }}>UNITE</th>
+                                <th style={{ backgroundColor: '#f0f0f0', padding: '10px', textAlign: 'left', fontWeight: 'bold', fontSize: '10px', color: '#555', textTransform: 'uppercase', borderBottom: '2px solid #ccc', width: '10%' }}>QUANTITÉ</th>
+                                <th style={{ backgroundColor: '#f0f0f0', padding: '10px', textAlign: 'left', fontWeight: 'bold', fontSize: '10px', color: '#555', textTransform: 'uppercase', borderBottom: '2px solid #ccc', width: '20%' }}>PRIX UNITAIRE HT</th>
+                                <th style={{ backgroundColor: '#f0f0f0', padding: '10px', textAlign: 'right', fontWeight: 'bold', fontSize: '10px', color: '#555', textTransform: 'uppercase', borderBottom: '2px solid #ccc', width: '25%' }}>MONTANT HT</th>                              </tr>                            </thead>
+                            <tbody>
+                              {sortedFamilies.map((family) => (
+                                <React.Fragment key={family}>
+                                  {/* Family Header */}
+                                  <tr>
+                                    <td colSpan="5" style={{ backgroundColor: '#d4e8d4', padding: '8px 12px', fontWeight: 'bold', fontSize: '12px', color: '#333', marginTop: '10px' }}>
+                                      {getFamilyRomanNumeral(family)}{getFamilyRomanNumeral(family) ? ' - ': ''}{family}
+                                    </td>
+                                  </tr>                                  {/* Family Articles */}
+                                  {groupedArticles[family].map(({ article, index }) => {
+                                    const articleTotals = calculateArticleTotals(article);
+                                    return (
+                                      <tr key={index}>
+                                        <td style={{ padding: '10px', borderBottom: '1px solid #e0e0e0' }}>
+                                          <div>{article.designation}</div>
+                                          <div style={{ fontSize: '10px', color: '#666', marginTop: '3px' }}>
+                                            {article.typePrix === 'FOURNITURE' && 'Fourniture'}
+                                            {article.typePrix === 'POSE' && 'Pose'}
+                                            {article.typePrix === 'BOTH' && 'Fourniture + Pose'}
+                                            {article.typePrix === 'PRESTATION' && 'Prestation'}
+                                            {article.typePrix === 'CAUTIONNEMENT' && 'Cautionnement'}
+                                            {article.typePrix === 'SERVICE' && 'Service'}
+                                          </div>
+                                        </td>
+                                        <td style={{ padding: '10px', borderBottom: '1px solid #e0e0e0' }}>{article.unite}</td>
+                                        <td style={{ padding: '10px', borderBottom: '1px solid #e0e0e0' }}>{article.quantite}</td>
+                                        <td style={{ padding: '10px', borderBottom: '1px solid #e0e0e0' }}>{formatNumberWithThousands(parseFloat(article.prixUnitaireHT) || 0)} DZD</td>
+                                        <td style={{ padding: '10px', borderBottom: '1px solid #e0e0e0', textAlign: 'right' }}>{articleTotals.montantHT} DZD</td>                                      </tr>
+                                    );
+                                  })}
+                                </React.Fragment>
+                              ))}
+                            </tbody>
+                          </table>                        </div>
+                      );
                     })()}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-          
-          {/* Totals */}
-          {formData.articles.filter(article => article.idArticle && article.designation).length > 0 && (
-            <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
-              <div className="flex justify-end">
-                <div className="w-80 bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-300">Total HT:</span>
-                      <span className="text-sm font-medium text-gray-900 dark:text-white">{totals.totalHT} DZD</span>
+                  </div>
+                )}
+                {/* Totals */}
+                {formData.articles.filter(article => article.idArticle && article.designation).length > 0 && (
+                  <div className="totals-section" style={{ marginTop: '20px', textAlign: 'left' }}>
+                    <div className="total-row" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px', fontSize: '12px' }}>
+                      <div className="total-label" style={{ width: '150px', fontWeight: 'bold', textAlign: 'left', marginRight: '20px' }}>Total HT</div>
+                      <div className="total-value" style={{ width: '120px', textAlign: 'right' }}>{totals.totalHT} DZD</div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-300">Total TVA:</span>
-                      <span className="text-sm font-medium text-gray-900 dark:text-white">{totals.totalTVA} DZD</span>
+                    <div className="total-row" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px', fontSize: '12px' }}>
+                      <div className="total-label" style={{ width: '150px', fontWeight: 'bold', textAlign: 'left', marginRight: '20px' }}>TVA</div>
+                      <div className="total-value" style={{ width: '120px', textAlign: 'right' }}>{totals.totalTVA} DZD</div>
                     </div>
-                    <div className="flex justify-between pt-2 border-t border-gray-200 dark:border-gray-600 mt-2">
-                      <span className="text-lg font-semibold text-gray-900 dark:text-white">Total TTC:</span>
-                      <span className="text-lg font-bold text-primary-600 dark:text-primary-400">{totals.totalTTC} DZD</span>
+                    <div className="total-row final-total" style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px', paddingTop: '10px', borderTop: '2px solid #333', fontSize: '12px' }}>
+                      <div className="total-label" style={{ width: '150px', fontWeight: 'bold', textAlign: 'left', marginRight: '20px', fontSize: '14px' }}>TOTAL TTC</div>
+                      <div className="total-value" style={{ width: '120px', textAlign: 'right', fontSize: '14px', fontWeight: 'bold' }}>{totals.totalTTC} DZD</div>
                     </div>
                   </div>
+                )}              </div>
+
+              {/* Total in words */}
+              {formData.articles.filter(article => article.idArticle && article.designation).length > 0 && (
+                <div style={{ marginTop: '20px', textAlign: 'left', fontSize: '12px' }}>
+                  <p>Arrêté ce présent devis à la somme de : <strong>{convertNumberToWords(parseFloat(totals.totalTTC.replace(/\s/g, '').replace(',', '.')))}</strong></p>
+                </div>
+              )}              {/* Comment */}
+              {formData.commentaire && (
+                <div style={{ marginTop: '30px', padding: '15px', border: '1px solid #ddd', borderRadius: '5px', backgroundColor: '#f9f9f9' }}>
+                  <h3 style={{ fontWeight: 'bold', marginBottom: '10px' }}>Commentaires:</h3>
+                  <p style={{ whiteSpace: 'pre-wrap' }}>{formData.commentaire}</p>
+                </div>
+              )}
+
+              <div className="footer" style={{ marginTop: '40px', paddingTop: '20px', borderTop: '1px solid #ddd' }}>
+                <div className="footer-info" style={{ fontSize: '10px', lineHeight: 1.6, color: '#666' }}>
+                  <p style={{ marginBottom: '3px' }}><strong>Coordonnées bancaires:</strong></p>
+                  <p style={{ marginBottom: '3px' }}>IBAN: {centreInfo?.NumerocompteBancaire || ''}</p>
+                  <p style={{ marginBottom: '3px' }}>BIC: {centreInfo?.CodeBIC || ''}</p>
+                  <p style={{ marginTop: '10px', marginBottom: '3px' }}>SIRET: {centreInfo?.SIRET || ''}</p>
+                  <p style={{ marginBottom: '3px' }}>TVA: {centreInfo?.NumeroTVA || ''}</p>
                 </div>
               </div>
-            </div>
-          )}
-          
-          {/* Total TTC in letters - Separate div */}
-          {formData.articles.filter(article => article.idArticle && article.designation).length > 0 && (
-            <div className="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Arrêté ce présent devis à la somme de : <span className="font-medium text-gray-900 dark:text-white">{convertNumberToWords(parseFloat(totals.totalTTC.replace(/\s/g, '').replace(',', '.')))}</span>
-                </p>
+
+              <div className="conditions" style={{ marginTop: '30px', backgroundColor: '#f9f9f9', padding: '15px', fontSize: '10px', lineHeight: 1.5, color: '#666' }}>
+                <h3 style={{ fontSize: '11px', marginBottom: '8px', color: '#5a8c5a' }}>CONDITIONS DE PAIEMENT</h3>
+                <p style={{ marginBottom: '3px' }}>Acompte de 30% à la commande. Solde à réception de facture.</p>
+                <p style={{ marginBottom: '3px' }}>Délai de paiement: 30 jours à réception de facture.</p>
+                <p style={{ marginBottom: '3px' }}>En cas de retard de paiement, une pénalité de 3 fois le taux d'intérêt légal sera appliquée.</p>
               </div>
             </div>
-          )}
-          
-          {/* Comment */}
-          {formData.commentaire && (
-            <div className="mt-8">
-              <div className="border-l-4 border-primary-500 pl-4 py-1">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">Commentaires:</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{formData.commentaire}</p>
-              </div>
-            </div>
-          )}
-          
-          {/* Footer */}
-          <div className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-700 text-center">
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Ce devis est établi en double exemplaire, l'un restant chez le client, l'autre chez le prestataire.
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Toute modification de ce devis devra faire l'objet d'un avenant écrit.
-            </p>
           </div>
         </div>
       )}
@@ -1821,3 +1704,5 @@ const DevisForm = ({ user }) => {
 };
 
 export default DevisForm;
+
+
