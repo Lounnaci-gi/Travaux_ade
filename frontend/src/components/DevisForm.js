@@ -1643,8 +1643,12 @@ const DevisForm = ({ user }) => {
               <div className="footer" style={{ marginTop: '40px', paddingTop: '20px', borderTop: '1px solid #ddd' }}>
                 <div className="footer-info" style={{ fontSize: '10px', lineHeight: 1.6, color: '#666' }}>
                   <p style={{ marginBottom: '3px' }}><strong>Coordonnées bancaires:</strong></p>
+                  <p style={{ marginBottom: '3px' }}>Banque: {centreInfo?.NomBanque || ''}</p>
                   <p style={{ marginBottom: '3px' }}>IBAN: {centreInfo?.NumerocompteBancaire || ''}</p>
-                  <p style={{ marginBottom: '3px' }}>BIC: {centreInfo?.CodeBIC || ''}</p>
+                  <p style={{ marginBottom: '3px' }}>Compte postal: {centreInfo?.NumeroComptePostal || ''}</p>
+                  <p style={{ marginTop: '10px', marginBottom: '3px' }}>N° Identifiant Fiscal: {centreInfo?.NumeroIdentifiantFiscal || ''}</p>
+                  <p style={{ marginBottom: '3px' }}>N° Identification Statistique: {centreInfo?.NumeroIdentificationStatistique || ''}</p>
+                  <p style={{ marginBottom: '3px' }}>N° Registre Commerce: {centreInfo?.NumeroRegistreCommerce || ''}</p>
                   <p style={{ marginTop: '10px', marginBottom: '3px' }}>SIRET: {centreInfo?.SIRET || ''}</p>
                   <p style={{ marginBottom: '3px' }}>TVA: {centreInfo?.NumeroTVA || ''}</p>
                 </div>
