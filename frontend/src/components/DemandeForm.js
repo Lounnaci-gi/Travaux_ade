@@ -59,8 +59,6 @@ const DemandeForm = ({ user, onCreated }) => {
   const [clientTypes, setClientTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  // eslint-disable-next-line no-unused-vars
-  const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [selectedClient, setSelectedClient] = useState(null);
 
@@ -522,7 +520,6 @@ const DemandeForm = ({ user, onCreated }) => {
     const load = async () => {
       try {
         setLoading(true);
-        setError('');
         // Loading demand types...
         
         // Charger tous les référentiels en parallèle sans bloquer le formulaire en cas d'erreur
@@ -622,7 +619,6 @@ const DemandeForm = ({ user, onCreated }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
-    setError('');
     setSuccess('');
     if (name === 'idClient') {
       setSelectedClient(null);
@@ -639,7 +635,6 @@ const DemandeForm = ({ user, onCreated }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setSuccess('');
     
     // Demander confirmation avant d'enregistrer
@@ -680,7 +675,7 @@ const DemandeForm = ({ user, onCreated }) => {
             'adresseBranchement': 'Adresse de branchement'
           };
           const missingLabels = missing.map(f => fieldLabels[f] || f).join(', ');
-          setError(`Veuillez renseigner tous les champs obligatoires du client. Champs manquants : ${missingLabels}`);
+          alertError('Erreur', `Veuillez renseigner tous les champs obligatoires du client. Champs manquants : ${missingLabels}`);
           return;
         }
       }
