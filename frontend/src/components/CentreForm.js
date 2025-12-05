@@ -11,6 +11,8 @@ const CentreForm = ({ user, onUnauthorized }) => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [editingId, setEditingId] = useState(null);
+  const [activeTab, setActiveTab] = useState('form'); // Nouvel état pour gérer les onglets
+  const [selectedCentre, setSelectedCentre] = useState(null); // État pour le centre sélectionné dans l'aperçu
   const [form, setForm] = useState({
     IdUnite: '',
     NomCentre: '',
@@ -88,6 +90,7 @@ const CentreForm = ({ user, onUnauthorized }) => {
     setEditingId(null);
     setError('');
     setSuccess('');
+    setActiveTab('form'); // Retour à l'onglet formulaire
   };
 
   const handleSubmit = async (e) => {
@@ -194,6 +197,7 @@ const CentreForm = ({ user, onUnauthorized }) => {
       setEditingId(id);
       setError('');
       setSuccess('');
+      setActiveTab('form'); // Aller à l'onglet formulaire lors de l'édition
       // Scroll to form
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (e) {
@@ -214,6 +218,12 @@ const CentreForm = ({ user, onUnauthorized }) => {
     window.print();
   };
 
+  // Fonction pour gérer le clic sur un centre dans la liste (affichage dans l'onglet aperçu)
+  const handleViewDetails = (centre) => {
+    setSelectedCentre(centre);
+    setActiveTab('preview');
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -232,72 +242,104 @@ const CentreForm = ({ user, onUnauthorized }) => {
           <p className="dark:text-gray-400 text-gray-600">Créer et gérer les centres</p>
         </div>
 
-        {/* Formulaire de création */}
-        <div className="glass-card p-6 space-y-6 mb-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold dark:text-white text-gray-900">
-              {editingId ? 'Modifier le Centre' : 'Créer un nouveau Centre'}
-            </h2>
-            {editingId && (
+        {/* Onglets */}
+        <div className="mb-6 border-b border-gray-200 dark:border-gray-700">
+          <ul className="flex flex-wrap -mb-px">
+            <li className="mr-2">
               <button
-                onClick={resetForm}
-                className="px-4 py-2 rounded-lg bg-gray-500 hover:bg-gray-600 text-white transition-colors"
+                onClick={() => setActiveTab('form')}
+                className={`inline-block py-2 px-4 text-sm font-medium text-center rounded-t-lg ${
+                  activeTab === 'form'
+                    ? 'text-primary-600 border-b-2 border-primary-600 dark:text-primary-500 dark:border-primary-500'
+                    : 'text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                }`}
               >
-                Annuler
+                {editingId ? 'Modifier le Centre' : 'Créer un nouveau Centre'}
               </button>
-            )}
-          </div>
-          <form onSubmit={handleSubmit}>
-            {error && (
-              <div className="p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-300 text-sm mb-4">{error}</div>
-            )}
-            {success && (
-              <div className="p-3 rounded-lg bg-green-500/20 border border-green-500/50 text-green-300 text-sm mb-4">{success}</div>
-            )}
+            </li>
+            <li className="mr-2">
+              <button
+                onClick={() => setActiveTab('preview')}
+                className={`inline-block py-2 px-4 text-sm font-medium text-center rounded-t-lg ${
+                  activeTab === 'preview'
+                    ? 'text-primary-600 border-b-2 border-primary-600 dark:text-primary-500 dark:border-primary-500'
+                    : 'text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                }`}
+              >
+                Aperçu
+              </button>
+            </li>
+          </ul>
+        </div>
 
-            <div className="mb-4 p-3 rounded-lg bg-primary-500/10 border border-primary-500/30">
-              <p className="text-sm text-primary-300 dark:text-primary-400">
-                <strong>Note:</strong> Les champs marqués d'un <span className="text-red-400">*</span> sont obligatoires. Le code centre sera généré automatiquement.
-              </p>
+        {/* Contenu des onglets */}
+        {activeTab === 'form' ? (
+          /* Formulaire de création */
+          <div className="glass-card p-6 space-y-6 mb-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold dark:text-white text-gray-900">
+                {editingId ? 'Modifier le Centre' : 'Créer un nouveau Centre'}
+              </h2>
+              {editingId && (
+                <button
+                  onClick={resetForm}
+                  className="px-4 py-2 rounded-lg bg-gray-500 hover:bg-gray-600 text-white transition-colors"
+                >
+                  Annuler
+                </button>
+              )}
             </div>
+            <form onSubmit={handleSubmit}>
+              {error && (
+                <div className="p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-300 text-sm mb-4">{error}</div>
+              )}
+              {success && (
+                <div className="p-3 rounded-lg bg-green-500/20 border border-green-500/50 text-green-300 text-sm mb-4">{success}</div>
+              )}
 
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold mb-4 dark:text-white text-gray-900">Informations générales</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="mb-4 p-3 rounded-lg bg-primary-500/10 border border-primary-500/30">
+                <p className="text-sm text-primary-300 dark:text-primary-400">
+                  <strong>Note:</strong> Les champs marqués d'un <span className="text-red-400">*</span> sont obligatoires. Le code centre sera généré automatiquement.
+                </p>
+              </div>
+
+              <div className="space-y-6">
                 <div>
-                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Unité <span className="text-red-400">*</span></label>
-                  <select name="IdUnite" value={form.IdUnite} onChange={handleChange} className="select-field w-full px-4 py-3" required>
-                    <option value="">Sélectionner une unité</option>
-                    {unites.map((u) => (
-                      <option key={u.IdUnite} value={u.IdUnite} className="text-black">{u.CodeUnite} - {u.NomUnite}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Nom Centre <span className="text-red-400">*</span></label>
-                  <input name="NomCentre" value={form.NomCentre} onChange={handleChange} maxLength={100} placeholder="Ex: Centre Casablanca" className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" required />
-                </div>
-                <div>
-                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Préfixe Centre <span className="text-red-400">*</span></label>
-                  <input name="PrefixeCentre" value={form.PrefixeCentre} onChange={handleChange} maxLength={5} placeholder="Ex: CAS" className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" required />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Adresse <span className="text-red-400">*</span></label>
-                  <input name="Adresse" value={form.Adresse} onChange={handleChange} maxLength={200} placeholder="Ex: 123 Avenue principale" className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" required />
-                </div>
-                <div>
-                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Commune <span className="text-red-400">*</span></label>
-                  <input name="Commune" value={form.Commune} onChange={handleChange} maxLength={60} placeholder="Ex: Casablanca" className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" required />
-                </div>
-                <div>
-                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Code Postal <span className="text-red-400">*</span></label>
-                  <input name="CodePostal" value={form.CodePostal} onChange={handleChange} maxLength={5} placeholder="Ex: 20000" className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" required />
-                </div>
-                <div>
-                  <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Téléphone Principal <span className="text-red-400">*</span></label>
-                  <input name="TelephonePrincipal" value={form.TelephonePrincipal} onChange={handleChange} maxLength={10} placeholder="Ex: 0522123456" className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" required />
-                </div>
+                  <h3 className="text-lg font-semibold mb-4 dark:text-white text-gray-900">Informations générales</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Unité <span className="text-red-400">*</span></label>
+                    <select name="IdUnite" value={form.IdUnite} onChange={handleChange} className="select-field w-full px-4 py-3" required>
+                      <option value="">Sélectionner une unité</option>
+                      {unites.map((u) => (
+                        <option key={u.IdUnite} value={u.IdUnite} className="text-black">{u.CodeUnite} - {u.NomUnite}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Nom Centre <span className="text-red-400">*</span></label>
+                    <input name="NomCentre" value={form.NomCentre} onChange={handleChange} maxLength={100} placeholder="Ex: Centre Casablanca" className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" required />
+                  </div>
+                  <div>
+                    <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Préfixe Centre <span className="text-red-400">*</span></label>
+                    <input name="PrefixeCentre" value={form.PrefixeCentre} onChange={handleChange} maxLength={5} placeholder="Ex: CAS" className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" required />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Adresse <span className="text-red-400">*</span></label>
+                    <input name="Adresse" value={form.Adresse} onChange={handleChange} maxLength={200} placeholder="Ex: 123 Avenue principale" className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" required />
+                  </div>
+                  <div>
+                    <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Commune <span className="text-red-400">*</span></label>
+                    <input name="Commune" value={form.Commune} onChange={handleChange} maxLength={60} placeholder="Ex: Casablanca" className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" required />
+                  </div>
+                  <div>
+                    <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Code Postal <span className="text-red-400">*</span></label>
+                    <input name="CodePostal" value={form.CodePostal} onChange={handleChange} maxLength={5} placeholder="Ex: 20000" className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" required />
+                  </div>
+                  <div>
+                    <label className="block text-sm dark:text-gray-300 text-gray-700 mb-2">Téléphone Principal <span className="text-red-400">*</span></label>
+                    <input name="TelephonePrincipal" value={form.TelephonePrincipal} onChange={handleChange} maxLength={10} placeholder="Ex: 0522123456" className="w-full px-4 py-3 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900" required />
+                  </div>
                 </div>
               </div>
 
@@ -345,6 +387,109 @@ const CentreForm = ({ user, onUnauthorized }) => {
             </div>
           </form>
         </div>
+        ) : (
+          /* Onglet Aperçu */
+          <div className="glass-card p-6 mb-6">
+            <h2 className="text-xl font-semibold dark:text-white text-gray-900 mb-4">Aperçu du Centre</h2>
+            
+            {selectedCentre ? (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-4 dark:text-white text-gray-900">Informations générales</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm dark:text-gray-400 text-gray-600 mb-1">Code Centre</label>
+                      <p className="dark:text-white text-gray-900 font-medium">{selectedCentre.CodeCentre}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm dark:text-gray-400 text-gray-600 mb-1">Nom Centre</label>
+                      <p className="dark:text-white text-gray-900 font-medium">{selectedCentre.NomCentre}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm dark:text-gray-400 text-gray-600 mb-1">Préfixe Centre</label>
+                      <p className="dark:text-white text-gray-900 font-medium">{selectedCentre.PrefixeCentre || '—'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm dark:text-gray-400 text-gray-600 mb-1">Unité</label>
+                      <p className="dark:text-white text-gray-900 font-medium">{selectedCentre.NomUnite || '—'}</p>
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm dark:text-gray-400 text-gray-600 mb-1">Adresse</label>
+                      <p className="dark:text-white text-gray-900 font-medium">{selectedCentre.Adresse || '—'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm dark:text-gray-400 text-gray-600 mb-1">Commune</label>
+                      <p className="dark:text-white text-gray-900 font-medium">{selectedCentre.Commune || '—'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm dark:text-gray-400 text-gray-600 mb-1">Code Postal</label>
+                      <p className="dark:text-white text-gray-900 font-medium">{selectedCentre.CodePostal || '—'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-white/10 dark:border-white/10 border-gray-200/50 pt-4">
+                  <h3 className="text-lg font-semibold mb-4 dark:text-white text-gray-900">Coordonnées</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm dark:text-gray-400 text-gray-600 mb-1">Téléphone Principal</label>
+                      <p className="dark:text-white text-gray-900 font-medium">{selectedCentre.TelephonePrincipal || '—'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm dark:text-gray-400 text-gray-600 mb-1">Téléphone Secondaire</label>
+                      <p className="dark:text-white text-gray-900 font-medium">{selectedCentre.TelephoneSecondaire || '—'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm dark:text-gray-400 text-gray-600 mb-1">Fax</label>
+                      <p className="dark:text-white text-gray-900 font-medium">{selectedCentre.Fax || '—'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm dark:text-gray-400 text-gray-600 mb-1">Email</label>
+                      <p className="dark:text-white text-gray-900 font-medium">{selectedCentre.Email || '—'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-white/10 dark:border-white/10 border-gray-200/50 pt-4">
+                  <h3 className="text-lg font-semibold mb-4 dark:text-white text-gray-900">Coordonnées bancaires</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm dark:text-gray-400 text-gray-600 mb-1">Nom de la Banque</label>
+                      <p className="dark:text-white text-gray-900 font-medium">{selectedCentre.NomBanque || '—'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm dark:text-gray-400 text-gray-600 mb-1">N° Compte Bancaire</label>
+                      <p className="dark:text-white text-gray-900 font-medium">{selectedCentre.NumerocompteBancaire || '—'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm dark:text-gray-400 text-gray-600 mb-1">N° Compte Postal</label>
+                      <p className="dark:text-white text-gray-900 font-medium">{selectedCentre.NumeroComptePostal || '—'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-4">
+                  <button
+                    onClick={() => handleEdit(selectedCentre.IdCentre)}
+                    className="px-4 py-2 rounded-lg bg-primary-500 hover:bg-primary-600 text-white transition-colors mr-2"
+                  >
+                    Modifier
+                  </button>
+                  <button
+                    onClick={() => handlePrint(selectedCentre)}
+                    className="px-4 py-2 rounded-lg bg-green-500 hover:bg-green-600 text-white transition-colors"
+                  >
+                    Imprimer
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-400">
+                <p>Sélectionnez un centre dans la liste pour voir l'aperçu</p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Liste des centres */}
         <div className="glass-card p-6">
@@ -392,6 +537,16 @@ const CentreForm = ({ user, onUnauthorized }) => {
                       <td className="py-3 px-4 text-sm dark:text-gray-300 text-gray-700">{centre.NumeroComptePostal || '—'}</td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleViewDetails(centre)}
+                            className="p-2 rounded-lg hover:bg-blue-500/20 text-blue-400 hover:text-blue-300 transition-colors"
+                            title="Aperçu"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                          </button>
                           <button
                             onClick={() => handleEdit(centre.IdCentre)}
                             className="p-2 rounded-lg hover:bg-primary-500/20 text-primary-400 hover:text-primary-300 transition-colors"

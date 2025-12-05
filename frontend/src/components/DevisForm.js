@@ -3,6 +3,119 @@ import { getDemandes, getDevisTypes, getArticles, getFamilles, createDevis, getT
 import { alertSuccess, alertError } from '../ui/alerts';
 import { formatNumberWithThousands } from '../utils/numberFormat';
 
+// Fonction pour convertir les nombres en mots (en français)
+const convertNumberToWords = (number) => {
+  // Gérer les nombres avec décimales
+  const integerPart = Math.floor(number);
+  const decimalPart = Math.round((number - integerPart) * 100);
+  
+  if (integerPart === 0 && decimalPart === 0) return 'zéro';
+  
+  const units = ['', 'un', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf'];
+  const teens = ['dix', 'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize', 'dix-sept', 'dix-huit', 'dix-neuf'];
+  const tens = ['', '', 'vingt', 'trente', 'quarante', 'cinquante', 'soixante', 'soixante-dix', 'quatre-vingt', 'quatre-vingt-dix'];
+  
+  const convertLessThanThousand = (num) => {
+    let result = '';
+    
+    // Centaines
+    const hundreds = Math.floor(num / 100);
+    if (hundreds > 0) {
+      if (hundreds === 1) {
+        result += 'cent';
+      } else {
+        result += units[hundreds] + ' cent';
+        if (num % 100 !== 0) result += ' ';
+      }
+    }
+    
+    // Dizaines et unités
+    const remainder = num % 100;
+    if (remainder === 0) return result.trim();
+    
+    if (remainder < 10) {
+      result += units[remainder];
+    } else if (remainder < 20) {
+      result += teens[remainder - 10];
+    } else {
+      const tensDigit = Math.floor(remainder / 10);
+      const unitsDigit = remainder % 10;
+      
+      if (tensDigit === 7 || tensDigit === 9) {
+        // Soixante-dix et quatre-vingt-dix
+        result += tens[tensDigit - 1];
+        if (unitsDigit === 1) {
+          result += ' et onze';
+        } else {
+          result += '-' + teens[unitsDigit];
+        }
+      } else if (tensDigit === 8 && unitsDigit === 0) {
+        // Quatre-vingt
+        result += 'quatre-vingts';
+      } else {
+        result += tens[tensDigit];
+        if (unitsDigit > 0) {
+          if (tensDigit === 2 || tensDigit === 3 || tensDigit === 4 || tensDigit === 5 || tensDigit === 6) {
+            result += '-';
+          } else if (tensDigit === 8) {
+            result += '-';
+          }
+          if (tensDigit !== 2 || unitsDigit !== 1) {
+            result += units[unitsDigit];
+          }
+        }
+      }
+    }
+    
+    return result.trim();
+  };
+  
+  if (number < 0) return 'moins ' + convertNumberToWords(-number);
+  
+  const billions = Math.floor(integerPart / 1000000000);
+  const millions = Math.floor((integerPart % 1000000000) / 1000000);
+  const thousands = Math.floor((integerPart % 1000000) / 1000);
+  const remainder = integerPart % 1000;
+  
+  let result = '';
+  
+  if (billions > 0) {
+    if (billions === 1) {
+      result += 'un milliard ';
+    } else {
+      result += convertLessThanThousand(billions) + ' milliards ';
+    }
+  }
+  
+  if (millions > 0) {
+    if (millions === 1) {
+      result += 'un million ';
+    } else {
+      result += convertLessThanThousand(millions) + ' millions ';
+    }
+  }
+  
+  if (thousands > 0) {
+    if (thousands === 1) {
+      result += 'mille ';
+    } else {
+      result += convertLessThanThousand(thousands) + ' mille ';
+    }
+  }
+  
+  if (remainder > 0) {
+    result += convertLessThanThousand(remainder);
+  }
+  
+  // Ajouter les centimes si nécessaire
+  if (decimalPart > 0) {
+    if (result) result += ' '; // Ajouter un espace si on a déjà une partie entière
+    result += convertLessThanThousand(decimalPart) + ' centime' + (decimalPart > 1 ? 's' : '');
+  }
+  
+  return result.trim() || 'zéro';
+};
+
 const DevisForm = ({ user }) => {
   const [globalTVA, setGlobalTVA] = useState('00');
   const [activeTab, setActiveTab] = useState('form');
@@ -1514,7 +1627,10 @@ const DevisForm = ({ user }) => {
               {/* Total in words */}
               {formData.articles.filter(article => article.idArticle && article.designation).length > 0 && (
                 <div style={{ marginTop: '20px', textAlign: 'left', fontSize: '12px' }}>
-                  <p>Arrêté ce présent devis à la somme de : <strong>{parseFloat(totals.totalTTC.replace(/\s/g, '').replace(',', '.')).toFixed(2)} DZD</strong></p>
+                  <p>Arrêté ce présent devis à la somme de : <strong>{(() => {
+                                      const totalNumeric = parseFloat(totals.totalTTC.replace(/\s/g, '').replace(',', '.'));
+                                      return convertNumberToWords(totalNumeric);
+                                    })()} dinars algériens</strong></p>
                 </div>
               )}              {/* Comment */}
               {formData.commentaire && (
