@@ -1499,7 +1499,7 @@ const DevisForm = ({ user }) => {
       {activeTab === 'preview' && (
         <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow p-6" style={{ fontFamily: 'Calibri, Arial, sans-serif', backgroundColor: '#f5f5f5', padding: '20px' }}>
           <div className="container" style={{ maxWidth: '800px', margin: '0 auto', background: 'white', position: 'relative', overflow: 'hidden' }}>
-            <div className="background-design" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(135deg, rgba(200, 230, 200, 0.3) 0%, rgba(150, 200, 220, 0.2) 50%, rgba(180, 220, 180, 0.3) 100%)', clipPath: 'polygon(0 0, 45% 0, 35% 100%, 0 100%)', zIndex: 0 }}></div>
+            <div className="background-design" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(135deg, rgba(173, 216, 230, 0.3) 0%, rgba(135, 206, 250, 0.2) 50%, rgba(176, 224, 230, 0.3) 100%)', clipPath: 'polygon(0 0, 45% 0, 35% 100%, 0 100%)', zIndex: 0 }}></div>
             
             <div className="content" style={{ position: 'relative', zIndex: 1, padding: '40px' }}>
               <div className="header">
@@ -1545,7 +1545,7 @@ const DevisForm = ({ user }) => {
                   </div>
                 </div>
               </div>              <div className="main-section" style={{ marginTop: '50px' }}>
-                <div className="section-title" style={{ backgroundColor: '#d4e8d4', padding: '8px 12px', fontWeight: 'bold', fontSize: '12px', color: '#333', marginBottom: '15px' }}>
+                <div className="section-title" style={{ backgroundColor: '#d0e8f2', padding: '8px 12px', fontWeight: 'bold', fontSize: '12px', color: '#333', marginBottom: '15px' }}>
                   DESCRIPTION
                 </div>
                 
@@ -1605,17 +1605,17 @@ const DevisForm = ({ user }) => {
                           <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '10px', fontSize: '11px' }}>
                             <thead>
                               <tr>
-                                <th style={{ backgroundColor: '#f0f0f0', padding: '10px', textAlign: 'left', fontWeight: 'bold', fontSize: '10px', color: '#555', textTransform: 'uppercase', borderBottom: '2px solid #ccc', width: '35%' }}>ARTICLE</th>
-                                <th style={{ backgroundColor: '#f0f0f0', padding: '10px', textAlign: 'left', fontWeight: 'bold', fontSize: '10px', color: '#555', textTransform: 'uppercase', borderBottom: '2px solid #ccc', width: '10%' }}>UNITE</th>
-                                <th style={{ backgroundColor: '#f0f0f0', padding: '10px', textAlign: 'left', fontWeight: 'bold', fontSize: '10px', color: '#555', textTransform: 'uppercase', borderBottom: '2px solid #ccc', width: '10%' }}>QUANTITÉ</th>
-                                <th style={{ backgroundColor: '#f0f0f0', padding: '10px', textAlign: 'left', fontWeight: 'bold', fontSize: '10px', color: '#555', textTransform: 'uppercase', borderBottom: '2px solid #ccc', width: '20%' }}>PRIX UNITAIRE HT</th>
-                                <th style={{ backgroundColor: '#f0f0f0', padding: '10px', textAlign: 'right', fontWeight: 'bold', fontSize: '10px', color: '#555', textTransform: 'uppercase', borderBottom: '2px solid #ccc', width: '25%' }}>MONTANT HT</th>                              </tr>                            </thead>
+                                <th style={{ backgroundColor: '#e6f3fa', padding: '10px', textAlign: 'left', fontWeight: 'bold', fontSize: '10px', color: '#555', textTransform: 'uppercase', borderBottom: '2px solid #ccc', width: '35%' }}>ARTICLE</th>
+                                <th style={{ backgroundColor: '#e6f3fa', padding: '10px', textAlign: 'left', fontWeight: 'bold', fontSize: '10px', color: '#555', textTransform: 'uppercase', borderBottom: '2px solid #ccc', width: '10%' }}>UNITE</th>
+                                <th style={{ backgroundColor: '#e6f3fa', padding: '10px', textAlign: 'left', fontWeight: 'bold', fontSize: '10px', color: '#555', textTransform: 'uppercase', borderBottom: '2px solid #ccc', width: '10%' }}>QUANTITÉ</th>
+                                <th style={{ backgroundColor: '#e6f3fa', padding: '10px', textAlign: 'left', fontWeight: 'bold', fontSize: '10px', color: '#555', textTransform: 'uppercase', borderBottom: '2px solid #ccc', width: '20%' }}>PRIX UNITAIRE HT</th>
+                                <th style={{ backgroundColor: '#e6f3fa', padding: '10px', textAlign: 'right', fontWeight: 'bold', fontSize: '10px', color: '#555', textTransform: 'uppercase', borderBottom: '2px solid #ccc', width: '25%' }}>MONTANT HT</th>                              </tr>                            </thead>
                             <tbody>
                               {sortedFamilies.map((family) => (
                                 <React.Fragment key={family}>
                                   {/* Family Header */}
                                   <tr>
-                                    <td colSpan="5" style={{ backgroundColor: '#d4e8d4', padding: '8px 12px', fontWeight: 'bold', fontSize: '12px', color: '#333', marginTop: '10px' }}>
+                                    <td colSpan="5" style={{ backgroundColor: '#d0e8f2', padding: '8px 12px', fontWeight: 'bold', fontSize: '12px', color: '#333', marginTop: '10px' }}>
                                       {getFamilyRomanNumeral(family)}{getFamilyRomanNumeral(family) ? ' - ': ''}{family}
                                     </td>
                                   </tr>                                  {/* Family Articles */}
