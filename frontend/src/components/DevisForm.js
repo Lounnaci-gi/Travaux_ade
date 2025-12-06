@@ -1490,7 +1490,7 @@ const DevisForm = ({ user }) => {
             
             <div className="content" style={{ position: 'relative', zIndex: 1, padding: '40px' }}>
               <div className="header">
-                <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#5a8c5a', textTransform: 'uppercase', marginBottom: '20px', textAlign: 'center' }}>DEVIS</h1>
+                <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1e90ff', textTransform: 'uppercase', marginBottom: '20px', textAlign: 'left' }}>DEVIS</h1>
                 {/* Three-column layout for header information */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', lineHeight: 1.6, color: '#555', marginBottom: '20px' }}>
                   {/* Left column - Enterprise information */}
@@ -1504,7 +1504,7 @@ const DevisForm = ({ user }) => {
                   
                   {/* Middle column - Devis information */}
                   <div style={{ width: '33%', textAlign: 'left' }}>
-                    <p style={{ marginBottom: '3px', fontWeight: 'bold', color: '#1e90ff' }}><strong>Numéro de devis:</strong> {devisCode || 'N/A'}</p>
+                    <p style={{ marginBottom: '3px', fontWeight: 'bold', color: '#1e90ff' }}><strong>{devisCode || 'N/A'}</strong> </p>
                     <p style={{ marginBottom: '3px' }}><strong>Date de création:</strong> {new Date().toLocaleDateString('fr-FR')}</p>
                     {demande && (
                       <p style={{ marginBottom: '3px' }}><strong>Date d'expiration:</strong> {
