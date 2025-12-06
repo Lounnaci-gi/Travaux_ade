@@ -34,10 +34,13 @@ const convertNumberToWords = (number) => {
     if (remainder === 0) return result.trim();
     
     if (remainder < 10) {
+      if (result) result += ' ';
       result += units[remainder];
     } else if (remainder < 20) {
+      if (result) result += ' ';
       result += teens[remainder - 10];
     } else {
+      if (result) result += ' ';
       const tensDigit = Math.floor(remainder / 10);
       const unitsDigit = remainder % 10;
       
@@ -55,14 +58,13 @@ const convertNumberToWords = (number) => {
       } else {
         result += tens[tensDigit];
         if (unitsDigit > 0) {
-          if (tensDigit === 2 || tensDigit === 3 || tensDigit === 4 || tensDigit === 5 || tensDigit === 6) {
+          // Ajout d'un trait d'union entre la dizaine et l'unité
+          if ((tensDigit >= 2 && tensDigit <= 6) || tensDigit === 8) {
             result += '-';
-          } else if (tensDigit === 8) {
-            result += '-';
+          } else {
+            result += ' ';
           }
-          if (tensDigit !== 2 || unitsDigit !== 1) {
-            result += units[unitsDigit];
-          }
+          result += units[unitsDigit];
         }
       }
     }
@@ -1502,7 +1504,7 @@ const DevisForm = ({ user }) => {
                   
                   {/* Middle column - Devis information */}
                   <div style={{ width: '33%', textAlign: 'left' }}>
-                    <p style={{ marginBottom: '3px' }}><strong>Numéro de devis:</strong> {devisCode || 'N/A'}</p>
+                    <p style={{ marginBottom: '3px', fontWeight: 'bold', color: '#1e90ff' }}><strong>Numéro de devis:</strong> {devisCode || 'N/A'}</p>
                     <p style={{ marginBottom: '3px' }}><strong>Date de création:</strong> {new Date().toLocaleDateString('fr-FR')}</p>
                     {demande && (
                       <p style={{ marginBottom: '3px' }}><strong>Date d'expiration:</strong> {
