@@ -3,6 +3,8 @@ import { getDemandes, getDevisTypes, getArticles, getFamilles, createDevis, getT
 import { alertSuccess, alertError } from '../ui/alerts';
 import { formatNumberWithThousands } from '../utils/numberFormat';
 import { isPreviewAccessAllowed } from '../utils/previewAccess';
+import { jsPDF } from "jspdf";
+import html2canvas from 'html2canvas';
 // Fonction pour convertir les nombres en mots (en français)
 const convertNumberToWords = (number) => {
   // Gérer les nombres avec décimales
@@ -130,6 +132,48 @@ const convertNumberToWords = (number) => {
 const DevisForm = ({ user }) => {
   const [globalTVA, setGlobalTVA] = useState('00');
   const [activeTab, setActiveTab] = useState('form');
+  
+  // Fonction pour générer le PDF de l'aperçu
+  const generatePDF = () => {
+    const input = document.getElementById('devis-preview');
+    
+    if (!input) {
+      alertError('Erreur', 'Impossible de générer le PDF');
+      return;
+    }
+    
+    html2canvas(input, { 
+      scale: 2,
+      useCORS: true,
+      logging: false
+    }).then((canvas) => {
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgWidth = 210; 
+      const pageHeight = 297;  
+      const imgHeight = canvas.height * imgWidth / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+      
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+      
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+      
+      const fileName = `devis_${devisCode || 'sans-code'}_${new Date().toISOString().slice(0, 10)}.pdf`;
+      pdf.save(fileName);
+      
+      alertSuccess('Succès', 'Le PDF a été généré avec succès');
+    }).catch((error) => {
+      console.error('Erreur lors de la génération du PDF:', error);
+      alertError('Erreur', 'Impossible de générer le PDF');
+    });
+  };
   
   // State for center and agency information
   const [centreInfo, setCentreInfo] = useState(null);
@@ -857,7 +901,19 @@ const DevisForm = ({ user }) => {
                 title={!isPreviewAccessAllowed(formData, demande) ? "Veuillez sélectionner une demande et ajouter au moins un article pour accéder à l'aperçu" : ""}
               >
                 Aperçu
-              </button>            </nav>
+              </button>
+              {activeTab === 'preview' && isPreviewAccessAllowed(formData, demande) && (
+                <button
+                  onClick={generatePDF}
+                  className="ml-auto inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <svg className="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                  </svg>
+                  Export PDF
+                </button>
+              )}
+            </nav>
           </div>
           {/* Devis Code, Type de Demande, and Date Display - Same div */}
           {devisCode && demande && activeTab !== 'preview' && (
@@ -1485,7 +1541,7 @@ const DevisForm = ({ user }) => {
             </div>
           </div>
         ) : (
-        <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow p-6" style={{ fontFamily: 'Calibri, Arial, sans-serif', backgroundColor: '#f5f5f5', padding: '20px' }}>          <div className="container" style={{ maxWidth: '800px', margin: '0 auto', background: 'white', position: 'relative', overflow: 'hidden' }}>
+        <div id="devis-preview" className="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow p-6" style={{ fontFamily: 'Calibri, Arial, sans-serif', backgroundColor: '#f5f5f5', padding: '20px' }}>          <div className="container" style={{ maxWidth: '800px', margin: '0 auto', background: 'white', position: 'relative', overflow: 'hidden' }}>
             <div className="background-design" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(135deg, rgba(173, 216, 230, 0.3) 0%, rgba(135, 206, 250, 0.2) 50%, rgba(176, 224, 230, 0.3) 100%)', clipPath: 'polygon(0 0, 45% 0, 35% 100%, 0 100%)', zIndex: 0 }}></div>
             
             <div className="content" style={{ position: 'relative', zIndex: 1, padding: '40px' }}>
@@ -1641,7 +1697,7 @@ const DevisForm = ({ user }) => {
                       <div className="total-value" style={{ width: '120px', textAlign: 'right' }}>{totals.totalHT} DZD</div>
                     </div>
                     <div className="total-row" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px', fontSize: '12px' }}>
-                      <div className="total-label" style={{ width: '150px', fontWeight: 'bold', textAlign: 'left', marginRight: '20px' }}>TVA</div>
+                      <div className="total-label" style={{ width: '150px', fontWeight: 'bold', textAlign: 'left', marginRight: '20px' }}>TVA {globalTVA}%</div>
                       <div className="total-value" style={{ width: '120px', textAlign: 'right' }}>{totals.totalTVA} DZD</div>
                     </div>
                     <div className="total-row final-total" style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px', paddingTop: '10px', borderTop: '2px solid #333', fontSize: '12px' }}>
