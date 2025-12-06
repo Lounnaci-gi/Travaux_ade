@@ -60,8 +60,8 @@ const DemandeForm = ({ user, onCreated }) => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState('');
+  const [error, setError] = useState('');
   const [selectedClient, setSelectedClient] = useState(null);
-
   // Add state for client search functionality
   const [clientSearch, setClientSearch] = useState('');
   const [showClientDropdown, setShowClientDropdown] = useState(false);
@@ -620,6 +620,7 @@ const DemandeForm = ({ user, onCreated }) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
     setSuccess('');
+    setError('');
     if (name === 'idClient') {
       setSelectedClient(null);
       // Si un client existant est sélectionné, désactiver le mode création
@@ -632,7 +633,6 @@ const DemandeForm = ({ user, onCreated }) => {
       }
     }
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSuccess('');
@@ -773,12 +773,16 @@ const DemandeForm = ({ user, onCreated }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="glass-card p-4 space-y-4">
+          {error && (
+            <div className="p-2 rounded-lg bg-red-500/20 border border-red-500/50 text-red-300 text-sm">
+              {error}
+            </div>
+          )}
           {success && (
             <div className="p-2 rounded-lg bg-green-500/20 border border-green-500/50 text-green-300 text-sm">
               {success}
             </div>
           )}
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-xs dark:text-gray-300 text-gray-700 mb-1">Type de demande *</label>

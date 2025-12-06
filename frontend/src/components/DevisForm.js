@@ -121,8 +121,7 @@ const convertNumberToWords = (number) => {
   } else if (integerPart > 0) {
     // S'il y a une partie entière mais pas de décimale, ajouter "dinars algériens"
     result += ' dinars algériens';
-  }
-  
+  }  
   return result.trim() || 'zéro';
 };
 
@@ -1640,8 +1639,7 @@ const DevisForm = ({ user }) => {
                   <p>Arrêté ce présent devis à la somme de : <strong>{(() => {
                                       const totalNumeric = parseFloat(totals.totalTTC.replace(/\s/g, '').replace(',', '.'));
                                       return convertNumberToWords(totalNumeric);
-                                    })()} dinars algériens</strong></p>
-                </div>
+                                    })()}</strong></p>                </div>
               )}              {/* Comment */}
               {formData.commentaire && (
                 <div style={{ marginTop: '30px', padding: '15px', border: '1px solid #ddd', borderRadius: '5px', backgroundColor: '#f9f9f9' }}>
