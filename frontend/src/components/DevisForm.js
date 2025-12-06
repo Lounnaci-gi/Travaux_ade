@@ -2,7 +2,7 @@
 import { getDemandes, getDevisTypes, getArticles, getFamilles, createDevis, getTVADefault, getAgenceById, getCentreById, getNextDevisNumber } from '../services/api';
 import { alertSuccess, alertError } from '../ui/alerts';
 import { formatNumberWithThousands } from '../utils/numberFormat';
-
+import { isPreviewAccessAllowed } from '../utils/previewAccess';
 // Fonction pour convertir les nombres en mots (en français)
 const convertNumberToWords = (number) => {
   // Gérer les nombres avec décimales
@@ -840,16 +840,22 @@ const DevisForm = ({ user }) => {
                 Edition
               </button>
               <button
-                onClick={() => setActiveTab('preview')}
+                onClick={() => {
+                  if (isPreviewAccessAllowed(formData, demande)) {
+                    setActiveTab('preview');
+                  }
+                }}
                 className={`py-1 px-2 border-b-2 font-medium text-sm ${
                   activeTab === 'preview'
                     ? 'border-primary-500 text-primary-600 dark:text-primary-400'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                    : isPreviewAccessAllowed(formData, demande)
+                    ? 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                    : 'border-transparent text-gray-400 dark:text-gray-500 cursor-not-allowed opacity-50'
                 }`}
+                title={!isPreviewAccessAllowed(formData, demande) ? "Veuillez sélectionner une demande et ajouter au moins un article pour accéder à l'aperçu" : ""}
               >
                 Aperçu
-              </button>
-            </nav>
+              </button>            </nav>
           </div>
           {/* Devis Code, Type de Demande, and Date Display - Same div */}
           {devisCode && demande && activeTab !== 'preview' && (
@@ -1464,8 +1470,20 @@ const DevisForm = ({ user }) => {
       
       {/* Preview Tab Content */}
       {activeTab === 'preview' && (
-        <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow p-6" style={{ fontFamily: 'Calibri, Arial, sans-serif', backgroundColor: '#f5f5f5', padding: '20px' }}>
-          <div className="container" style={{ maxWidth: '800px', margin: '0 auto', background: 'white', position: 'relative', overflow: 'hidden' }}>
+        !isPreviewAccessAllowed(formData, demande) ? (
+          <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow p-6 text-center">
+            <div className="text-gray-500 dark:text-gray-400">
+              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">Accès refusé</h3>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                Veuillez sélectionner une demande et ajouter au moins un article pour accéder à l'aperçu.
+              </p>
+            </div>
+          </div>
+        ) : (
+        <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow p-6" style={{ fontFamily: 'Calibri, Arial, sans-serif', backgroundColor: '#f5f5f5', padding: '20px' }}>          <div className="container" style={{ maxWidth: '800px', margin: '0 auto', background: 'white', position: 'relative', overflow: 'hidden' }}>
             <div className="background-design" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(135deg, rgba(173, 216, 230, 0.3) 0%, rgba(135, 206, 250, 0.2) 50%, rgba(176, 224, 230, 0.3) 100%)', clipPath: 'polygon(0 0, 45% 0, 35% 100%, 0 100%)', zIndex: 0 }}></div>
             
             <div className="content" style={{ position: 'relative', zIndex: 1, padding: '40px' }}>
@@ -1475,7 +1493,6 @@ const DevisForm = ({ user }) => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', lineHeight: 1.6, color: '#555', marginBottom: '20px' }}>
                   {/* Left column - Enterprise information */}
                   <div style={{ width: '33%', textAlign: 'left' }}>
-                    <p style={{ marginBottom: '3px' }}><strong>De:</strong></p>
                     <p style={{ marginBottom: '3px' }}>{centreInfo?.NomCentre || 'ADE'}</p>
                     <p style={{ marginBottom: '3px' }}>{centreInfo?.AdresseUnite || ''}</p>
                     <p style={{ marginBottom: '3px' }}>{centreInfo?.CommuneUnite || ''}</p>
@@ -1502,8 +1519,7 @@ const DevisForm = ({ user }) => {
                   {/* Right column - Client information */}
                   <div style={{ width: '33%', textAlign: 'left' }}>
                     {demande && (
-                      <>
-                        <p style={{ marginBottom: '3px' }}><strong>À:</strong></p>
+                      <>                       
                         <p style={{ marginBottom: '3px' }}>{demande.ClientNom} {demande.ClientPrenom}</p>
                         <p style={{ marginBottom: '3px' }}>{demande.AdresseResidence}</p>
                         <p style={{ marginBottom: '3px' }}>{demande.CommuneResidence}</p>
@@ -1664,18 +1680,17 @@ const DevisForm = ({ user }) => {
 
               <div className="conditions" style={{ marginTop: '30px', backgroundColor: '#f9f9f9', padding: '15px', fontSize: '10px', lineHeight: 1.5, color: '#666' }}>
                 <h3 style={{ fontSize: '11px', marginBottom: '8px', color: '#5a8c5a' }}>CONDITIONS DE PAIEMENT</h3>
-                <p style={{ marginBottom: '3px' }}>Acompte de 30% à la commande. Solde à réception de facture.</p>
-                <p style={{ marginBottom: '3px' }}>Délai de paiement: 30 jours à réception de facture.</p>
-                <p style={{ marginBottom: '3px' }}>En cas de retard de paiement, une pénalité de 3 fois le taux d'intérêt légal sera appliquée.</p>
+                <p style={{ marginBottom: '3px' }}>Délai de paiement: 30 jours à réception de devis.</p>
+                <p style={{ marginBottom: '3px' }}>Tout dépassement du délai de paiement entraînera la réévaluation du montant de la facture. Une majoration sera appliquée en fonction de l'évolution des prix ou de la TVA, formalisée par une facture rectificative ou un devis complémentaire soumis à acceptation.</p>
               </div>
             </div>
           </div>
         </div>
-      )}
+      )
+    )}
     </div>
   );
 };
 
 export default DevisForm;
-
 
