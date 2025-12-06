@@ -1545,7 +1545,8 @@ const DevisForm = ({ user }) => {
             <div className="background-design" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(135deg, rgba(173, 216, 230, 0.3) 0%, rgba(135, 206, 250, 0.2) 50%, rgba(176, 224, 230, 0.3) 100%)', clipPath: 'polygon(0 0, 45% 0, 35% 100%, 0 100%)', zIndex: 0 }}></div>
             
             <div className="content" style={{ position: 'relative', zIndex: 1, padding: '40px' }}>
-              <div className="header">
+              <div className="header" style={{ position: 'relative' }}>
+                <img src="/ade.png" alt="Logo ADE" style={{ position: 'absolute', top: '10px', right: '10px', height: '120px', opacity: 0.3, zIndex: -1 }} />
                 <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1e90ff', textTransform: 'uppercase', marginBottom: '20px', textAlign: 'left' }}>DEVIS</h1>
                 {/* Three-column layout for header information */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', lineHeight: 1.6, color: '#555', marginBottom: '20px' }}>
@@ -1730,9 +1731,8 @@ const DevisForm = ({ user }) => {
                   <p style={{ marginBottom: '3px' }}>Compte postal: {centreInfo?.NumeroComptePostal || ''}</p>
                   <p style={{ marginTop: '10px', marginBottom: '3px' }}>N° Identifiant Fiscal: {centreInfo?.NumeroIdentifiantFiscal || ''}</p>
                   <p style={{ marginBottom: '3px' }}>N° Identification Statistique: {centreInfo?.NumeroIdentificationStatistique || ''}</p>
-                  <p style={{ marginBottom: '3px' }}>N° Registre Commerce: {centreInfo?.NumeroRegistreCommerce || ''}</p>
-                  <p style={{ marginTop: '10px', marginBottom: '3px' }}>SIRET: {centreInfo?.SIRET || ''}</p>
-                  <p style={{ marginBottom: '3px' }}>TVA: {centreInfo?.NumeroTVA || ''}</p>
+                  <p style={{ marginBottom: '3px' }}>N° Registre Commerce: {centreInfo?.NumeroRegistreCommerce || ''}</p>                  
+                  <p style={{ marginBottom: '3px' }}>TVA: {globalTVA || ''}%</p>
                 </div>
               </div>
 
