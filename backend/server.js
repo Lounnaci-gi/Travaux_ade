@@ -1176,7 +1176,7 @@ app.get('/api/centres/:id', verifyToken, async (req, res) => {
           u.Commune AS CommuneUnite,
           c.Adresse, c.Commune, c.CodePostal,
           c.TelephonePrincipal, c.TelephoneSecondaire, c.Fax, c.Email,
-          c.NumerocompteBancaire, c.NumeroComptePostal,
+          c.NomBanque, c.NumerocompteBancaire, c.NumeroComptePostal,
           c.Actif, c.DateCreation, c.DateModification
         FROM Centre c
         LEFT JOIN Unite u ON c.IdUnite = u.IdUnite
@@ -1336,6 +1336,7 @@ app.put('/api/centres/:id', verifyToken, async (req, res) => {
       TelephoneSecondaire,
       Fax,
       Email,
+      NomBanque,
       NumerocompteBancaire,
       NumeroComptePostal
     } = req.body;
