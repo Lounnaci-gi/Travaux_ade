@@ -5,6 +5,7 @@ import { formatNumberWithThousands } from '../utils/numberFormat';
 import { isPreviewAccessAllowed } from '../utils/previewAccess';
 import { jsPDF } from "jspdf";
 import html2canvas from 'html2canvas';
+import { QRCodeCanvas } from 'qrcode.react';
 // Fonction pour convertir les nombres en mots (en français)
 const convertNumberToWords = (number) => {
   // Gérer les nombres avec décimales
@@ -205,6 +206,13 @@ const DevisForm = ({ user }) => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [demande, setDemande] = useState(null);
+  
+  // Fonction pour obtenir le nom du type de devis à partir de l'ID
+  const getDevisTypeName = (idTypeDevis) => {
+    if (!idTypeDevis || !devisTypes || devisTypes.length === 0) return '';
+    const type = devisTypes.find(t => t.IdTypeDevis === idTypeDevis);
+    return type ? type.LibelleTypeDevis : '';
+  };
   const [demandeSearch, setDemandeSearch] = useState('');
   const [filteredDemandes, setFilteredDemandes] = useState([]);
   const [showDemandeDropdown, setShowDemandeDropdown] = useState(false);
@@ -1546,7 +1554,7 @@ const DevisForm = ({ user }) => {
             
             <div className="content" style={{ position: 'relative', zIndex: 1, padding: '40px' }}>
               <div className="header" style={{ position: 'relative' }}>
-                <img src="/ade.png" alt="Logo ADE" style={{ position: 'absolute', top: '10px', right: '10px', height: '120px', opacity: 0.3, zIndex: -1 }} />
+                <img src="/ade.png" alt="Logo ADE" style={{ position: 'absolute', top: '10px', right: '10px', height: '132px', opacity: 0.3, zIndex: -1 }} />
                 <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1e90ff', textTransform: 'uppercase', marginBottom: '20px', textAlign: 'left' }}>DEVIS</h1>
                 {/* Three-column layout for header information */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', lineHeight: 1.6, color: '#555', marginBottom: '20px' }}>
@@ -1724,15 +1732,26 @@ const DevisForm = ({ user }) => {
               )}
 
               <div className="footer" style={{ marginTop: '40px', paddingTop: '20px', borderTop: '1px solid #ddd' }}>
-                <div className="footer-info" style={{ fontSize: '10px', lineHeight: 1.6, color: '#666' }}>
-                  <p style={{ marginBottom: '3px' }}><strong>Coordonnées bancaires:</strong></p>
-                  <p style={{ marginBottom: '3px' }}>Banque: {centreInfo?.NomBanque || ''}</p>
-                  <p style={{ marginBottom: '3px' }}>IBAN: {centreInfo?.NumerocompteBancaire || ''}</p>
-                  <p style={{ marginBottom: '3px' }}>Compte postal: {centreInfo?.NumeroComptePostal || ''}</p>
-                  <p style={{ marginTop: '10px', marginBottom: '3px' }}>N° Identifiant Fiscal: {centreInfo?.NumeroIdentifiantFiscal || ''}</p>
-                  <p style={{ marginBottom: '3px' }}>N° Identification Statistique: {centreInfo?.NumeroIdentificationStatistique || ''}</p>
-                  <p style={{ marginBottom: '3px' }}>N° Registre Commerce: {centreInfo?.NumeroRegistreCommerce || ''}</p>                  
-                  <p style={{ marginBottom: '3px' }}>TVA: {globalTVA || ''}%</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div className="footer-info" style={{ fontSize: '10px', lineHeight: 1.6, color: '#666' }}>
+                    <p style={{ marginBottom: '3px' }}><strong>Coordonnées bancaires:</strong></p>
+                    <p style={{ marginBottom: '3px' }}>Banque: {centreInfo?.NomBanque || ''}</p>
+                    <p style={{ marginBottom: '3px' }}>IBAN: {centreInfo?.NumerocompteBancaire || ''}</p>
+                    <p style={{ marginBottom: '3px' }}>Compte postal: {centreInfo?.NumeroComptePostal || ''}</p>
+                    <p style={{ marginTop: '10px', marginBottom: '3px' }}>N° Identifiant Fiscal: {centreInfo?.NumeroIdentifiantFiscal || ''}</p>
+                    <p style={{ marginBottom: '3px' }}>N° Identification Statistique: {centreInfo?.NumeroIdentificationStatistique || ''}</p>
+                    <p style={{ marginBottom: '3px' }}>N° Registre Commerce: {centreInfo?.NumeroRegistreCommerce || ''}</p>                  
+                    <p style={{ marginBottom: '3px' }}>TVA: {globalTVA || ''}%</p>
+                  </div>
+                  <div>
+                    <QRCodeCanvas 
+                      value={`Client: ${demande?.ClientNom || ''} ${demande?.ClientPrenom || ''}\nType: ${getDevisTypeName(formData.idTypeDevis) || ''}\nMontant: ${totals.totalTTC || '0,00'} DZD\nDate: ${new Date().toLocaleDateString('fr-FR')}`} 
+                      size={70} 
+                      bgColor="transparent" 
+                      fgColor="#000" 
+                      level="L" 
+                    />
+                  </div>
                 </div>
               </div>
 

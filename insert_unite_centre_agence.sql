@@ -1,43 +1,51 @@
--- ============================================================================
--- Script d'insertion des donnÈes de base - AquaConnect AlgÈrie
--- 3 UnitÈs, 8 Centres, 25 Agences Commerciales
+Ôªø-- ============================================================================
+-- Script d'insertion des donn√©es initiales - AquaConnect Alg√©rie
+-- Contenu:
+--   - 3 Unit√©s Territoriales
+--   - 8 Centres
+--   - 25 Agences Commerciales
+--   - 1 Utilisateur Administrateur
 -- ============================================================================
 
 USE AquaConnect_DB;
 GO
 
 -- ============================================================================
--- 1. INSERTION DES 3 UNIT…S PRINCIPALES
+-- 1. INSERTION DES 3 UNIT√âS PRINCIPALES
 -- ============================================================================
+
+PRINT '============================================================================';
+PRINT 'D√âBUT DES INSERTIONS - DONN√âES DE BASE';
+PRINT '============================================================================';
+PRINT '';
 
 INSERT INTO Unite (CodeUnite, NomUnite, Adresse, Commune, CodePostal, TelephonePrincipal, TelephoneSecondaire, Fax, Email, SiteWeb, 
                    NumeroIdentifiantFiscal, NumeroIdentificationStatistique, NumeroRegistreCommerce, NomBanque, NumerocompteBancaire, NumeroComptePostal, Actif)
 VALUES 
--- UNIT… 1: ALGER
-('UN-ALG', 'UnitÈ Territoriale d''Alger', '15 Rue Didouche Mourad', 'Alger Centre', '16000', 
+-- UNIT√â 1: ALGER
+('UN-ALG', 'Unit√© Territoriale d''Alger', '15 Rue Didouche Mourad', 'Alger Centre', '16000', 
  '0213456789', '0213456790', '0213456791', 'unite.alger@aquaconnect.dz', 'www.aquaconnect-alger.dz',
- '001616000123456789', '161600012345678', '16001234567B16', 'BNA - Banque Nationale d''AlgÈrie', '00200016123456789012', '40012345678', 1),
+ '001616000123456789', '161600012345678', '16001234567B16', 'BNA - Banque Nationale d''Alg√©rie', '00200016123456789012', '40012345678', 1),
 
--- UNIT… 2: ORAN
-('UN-ORA', 'UnitÈ Territoriale d''Oran', 'Boulevard de la Soummam', 'Oran Centre', '31000',
+-- UNIT√â 2: ORAN
+('UN-ORA', 'Unit√© Territoriale d''Oran', 'Boulevard de la Soummam', 'Oran Centre', '31000',
  '0413456789', '0413456790', '0413456791', 'unite.oran@aquaconnect.dz', 'www.aquaconnect-oran.dz',
- '003131000123456789', '311000012345678', '31001234567B31', 'BEA - Banque ExtÈrieure d''AlgÈrie', '00200031123456789012', '40087654321', 1),
+ '003131000123456789', '311000012345678', '31001234567B31', 'BEA - Banque Ext√©rieure d''Alg√©rie', '00200031123456789012', '40087654321', 1),
 
--- UNIT… 3: CONSTANTINE
-('UN-CST', 'UnitÈ Territoriale de Constantine', 'Avenue Aouati Mostefa', 'Constantine Centre', '25000',
+-- UNIT√â 3: CONSTANTINE
+('UN-CST', 'Unit√© Territoriale de Constantine', 'Avenue Aouati Mostefa', 'Constantine Centre', '25000',
  '0313456789', '0313456790', '0313456791', 'unite.constantine@aquaconnect.dz', 'www.aquaconnect-constantine.dz',
- '002525000123456789', '251000012345678', '25001234567B25', 'CPA - CrÈdit Populaire d''AlgÈrie', '00200025123456789012', '40011223344', 1);
+ '002525000123456789', '251000012345678', '25001234567B25', 'CPA - Cr√©dit Populaire d''Alg√©rie', '00200025123456789012', '40011223344', 1);
 
-
--- VÈrification
+-- V√©rification
 IF @@ROWCOUNT = 3
-    PRINT 'UNIT…S insÈrÈes avec succËs!'
+    PRINT '‚úÖ 3 UNIT√âS ins√©r√©es avec succ√®s!'
 ELSE
-    PRINT 'ERREUR: Les UnitÈs n''ont pas ÈtÈ insÈrÈes correctement!';
+    PRINT '‚ùå ERREUR: Les Unit√©s n''ont pas √©t√© ins√©r√©es correctement!';
 GO
 
 -- ============================================================================
--- 2. INSERTION DES 8 CENTRES (RÈpartis sur les 3 unitÈs)
+-- 2. INSERTION DES 8 CENTRES (R√©partis sur les 3 unit√©s)
 -- ============================================================================
 
 DECLARE @IdUniteAlger INT, @IdUniteOran INT, @IdUniteConstantine INT;
@@ -46,49 +54,48 @@ SELECT @IdUniteAlger = IdUnite FROM Unite WHERE CodeUnite = 'UN-ALG';
 SELECT @IdUniteOran = IdUnite FROM Unite WHERE CodeUnite = 'UN-ORA';
 SELECT @IdUniteConstantine = IdUnite FROM Unite WHERE CodeUnite = 'UN-CST';
 
--- VÈrification que les UnitÈs existent
+-- V√©rification que les Unit√©s existent
 IF @IdUniteAlger IS NULL OR @IdUniteOran IS NULL OR @IdUniteConstantine IS NULL
 BEGIN
-    PRINT 'ERREUR: Les UnitÈs n''ont pas ÈtÈ trouvÈes! ArrÍt du script.';
+    PRINT '‚ùå ERREUR: Les Unit√©s n''ont pas √©t√© trouv√©es! Arr√™t du script.';
     RETURN;
 END
 
 INSERT INTO Centre (IdUnite, CodeCentre, NomCentre, PrefixeCentre, Adresse, Commune, CodePostal, 
                     TelephonePrincipal, TelephoneSecondaire, Fax, Email, NomBanque, NumerocompteBancaire, NumeroComptePostal, Actif)
 VALUES 
--- CENTRES UNIT… ALGER (3 centres)
+-- CENTRES UNIT√â ALGER (3 centres)
 (@IdUniteAlger, 'CTR-ALC', 'Centre Alger Centre', 'ALC', 'Rue Larbi Ben M''hidi', 'Alger Centre', '16000', 
  '0213567890', '0213567891', '0213567892', 'centre.alger@aquaconnect.dz', 'BNA', '00200016223456789012', '40012345679', 1),
 
-(@IdUniteAlger, 'CTR-BIR', 'Centre Birtouta', 'BIR', 'Route Nationale N∞1', 'Birtouta', '16400',
+(@IdUniteAlger, 'CTR-BIR', 'Centre Birtouta', 'BIR', 'Route Nationale N¬∞1', 'Birtouta', '16400',
  '0213678901', '0213678902', '0213678903', 'centre.birtouta@aquaconnect.dz', 'BADR', '00200016323456789012', '40012345680', 1),
 
 (@IdUniteAlger, 'CTR-BLD', 'Centre Blida', 'BLD', 'Boulevard Larbi Tebessi', 'Blida', '09000',
  '0253456789', '0253456790', '0253456791', 'centre.blida@aquaconnect.dz', 'CPA', '00200009123456789012', '40012345681', 1),
 
--- CENTRES UNIT… ORAN (3 centres)
+-- CENTRES UNIT√â ORAN (3 centres)
 (@IdUniteOran, 'CTR-ORC', 'Centre Oran Centre', 'ORC', 'Rue du 1er Novembre', 'Oran', '31000',
  '0413567890', '0413567891', '0413567892', 'centre.oran@aquaconnect.dz', 'BEA', '00200031223456789012', '40087654322', 1),
 
-(@IdUniteOran, 'CTR-ESS', 'Centre Es-Senia', 'ESS', 'Route de l''AÈroport', 'Es Senia', '31100',
+(@IdUniteOran, 'CTR-ESS', 'Centre Es-Senia', 'ESS', 'Route de l''A√©roport', 'Es Senia', '31100',
  '0413678901', '0413678902', '0413678903', 'centre.essenia@aquaconnect.dz', 'BDL', '00200031323456789012', '40087654323', 1),
 
 (@IdUniteOran, 'CTR-MOS', 'Centre Mostaganem', 'MOS', 'Boulevard Benabdelmalek Ramdane', 'Mostaganem', '27000',
  '0453456789', '0453456790', '0453456791', 'centre.mostaganem@aquaconnect.dz', 'CNEP', '00200027123456789012', '40087654324', 1),
 
--- CENTRES UNIT… CONSTANTINE (2 centres)
+-- CENTRES UNIT√â CONSTANTINE (2 centres)
 (@IdUniteConstantine, 'CTR-CSC', 'Centre Constantine Centre', 'CSC', 'Boulevard Zighoud Youcef', 'Constantine', '25000',
  '0313567890', '0313567891', '0313567892', 'centre.constantine@aquaconnect.dz', 'CPA', '00200025223456789012', '40011223345', 1),
 
-(@IdUniteConstantine, 'CTR-ANN', 'Centre Annaba', 'ANN', 'Cours de la RÈvolution', 'Annaba', '23000',
+(@IdUniteConstantine, 'CTR-ANN', 'Centre Annaba', 'ANN', 'Cours de la R√©volution', 'Annaba', '23000',
  '0383456789', '0383456790', '0383456791', 'centre.annaba@aquaconnect.dz', 'BNA', '00200023123456789012', '40011223346', 1);
 
-
--- VÈrification
+-- V√©rification
 IF @@ROWCOUNT = 8
-    PRINT 'CENTRES insÈrÈs avec succËs!'
+    PRINT '‚úÖ 8 CENTRES ins√©r√©s avec succ√®s!'
 ELSE
-    PRINT 'ERREUR: Les Centres n''ont pas ÈtÈ insÈrÈs correctement!';
+    PRINT '‚ùå ERREUR: Les Centres n''ont pas √©t√© ins√©r√©s correctement!';
 GO
 
 -- ============================================================================
@@ -108,12 +115,12 @@ SELECT @IdCentreMOS = IdCentre FROM Centre WHERE CodeCentre = 'CTR-MOS';
 SELECT @IdCentreCSC = IdCentre FROM Centre WHERE CodeCentre = 'CTR-CSC';
 SELECT @IdCentreANN = IdCentre FROM Centre WHERE CodeCentre = 'CTR-ANN';
 
--- VÈrification que les Centres existent
+-- V√©rification que les Centres existent
 IF @IdCentreALC IS NULL OR @IdCentreBIR IS NULL OR @IdCentreBLD IS NULL OR
    @IdCentreORC IS NULL OR @IdCentreESS IS NULL OR @IdCentreMOS IS NULL OR
    @IdCentreCSC IS NULL OR @IdCentreANN IS NULL
 BEGIN
-    PRINT 'ERREUR: Les Centres n''ont pas ÈtÈ trouvÈs! ArrÍt du script.';
+    PRINT '‚ùå ERREUR: Les Centres n''ont pas √©t√© trouv√©s! Arr√™t du script.';
     RETURN;
 END
 
@@ -124,30 +131,30 @@ VALUES
 (@IdCentreALC, 'AG-BAB', 'Agence Bab El Oued', '25 Rue Tripoli', 'Bab El Oued', '16030',
  '0213789012', '0213789013', '0213789014', 'agence.babeloued@aquaconnect.dz', 1),
 
-(@IdCentreALC, 'AG-HYD', 'Agence Hydra', 'Rue des FrËres Bouadou', 'Hydra', '16035',
+(@IdCentreALC, 'AG-HYD', 'Agence Hydra', 'Rue des Fr√®res Bouadou', 'Hydra', '16035',
  '0213890123', '0213890124', '0213890125', 'agence.hydra@aquaconnect.dz', 1),
 
 (@IdCentreALC, 'AG-KOU', 'Agence Kouba', 'Rue Ali Khoja', 'Kouba', '16050',
  '0213901234', '0213901235', '0213901236', 'agence.kouba@aquaconnect.dz', 1),
 
-(@IdCentreALC, 'AG-CHE', 'Agence ChÈraga', 'Centre Commercial Ardis', 'ChÈraga', '16004',
+(@IdCentreALC, 'AG-CHE', 'Agence Ch√©raga', 'Centre Commercial Ardis', 'Ch√©raga', '16004',
  '0213012345', '0213012346', '0213012347', 'agence.cheraga@aquaconnect.dz', 1),
 
 -- AGENCES DU CENTRE BIRTOUTA (3 agences)
-(@IdCentreBIR, 'AG-ZER', 'Agence ZÈralda', 'Route Nationale N∞11', 'ZÈralda', '16113',
+(@IdCentreBIR, 'AG-ZER', 'Agence Z√©ralda', 'Route Nationale N¬∞11', 'Z√©ralda', '16113',
  '0213123456', '0213123457', '0213123458', 'agence.zeralda@aquaconnect.dz', 1),
 
-(@IdCentreBIR, 'AG-STF', 'Agence StaouÈli', 'Rue Principale', 'StaouÈli', '16112',
+(@IdCentreBIR, 'AG-STF', 'Agence Staou√©li', 'Rue Principale', 'Staou√©li', '16112',
  '0213234567', '0213234568', '0213234569', 'agence.staoueli@aquaconnect.dz', 1),
 
-(@IdCentreBIR, 'AG-DRA', 'Agence Draria', 'CitÈ 5 Juillet', 'Draria', '16093',
+(@IdCentreBIR, 'AG-DRA', 'Agence Draria', 'Cit√© 5 Juillet', 'Draria', '16093',
  '0213345678', '0213345679', '0213345680', 'agence.draria@aquaconnect.dz', 1),
 
 -- AGENCES DU CENTRE BLIDA (3 agences)
 (@IdCentreBLD, 'AG-BCT', 'Agence Blida Centre', 'Place du 1er Novembre', 'Blida', '09000',
  '0253567890', '0253567891', '0253567892', 'agence.blidacentre@aquaconnect.dz', 1),
 
-(@IdCentreBLD, 'AG-BOU', 'Agence Bouinan', 'Rue de la LibertÈ', 'Bouinan', '09100',
+(@IdCentreBLD, 'AG-BOU', 'Agence Bouinan', 'Rue de la Libert√©', 'Bouinan', '09100',
  '0253678901', '0253678902', '0253678903', 'agence.bouinan@aquaconnect.dz', 1),
 
 (@IdCentreBLD, 'AG-BOF', 'Agence Boufarik', 'Boulevard Abane Ramdane', 'Boufarik', '09055',
@@ -160,10 +167,10 @@ VALUES
 (@IdCentreORC, 'AG-HAM', 'Agence Hai Miramar', 'Boulevard de la Soummam', 'Oran', '31000',
  '0413890123', '0413890124', '0413890125', 'agence.miramar@aquaconnect.dz', 1),
 
-(@IdCentreORC, 'AG-MED', 'Agence MÈdina Jdida', 'Rue Larbi Ben M''hidi', 'MÈdina Jdida', '31010',
+(@IdCentreORC, 'AG-MED', 'Agence M√©dina Jdida', 'Rue Larbi Ben M''hidi', 'M√©dina Jdida', '31010',
  '0413901234', '0413901235', '0413901236', 'agence.medinajdida@aquaconnect.dz', 1),
 
-(@IdCentreORC, 'AG-BIR', 'Agence Bir El Djir', 'Route Nationale N∞2', 'Bir El Djir', '31130',
+(@IdCentreORC, 'AG-BIR', 'Agence Bir El Djir', 'Route Nationale N¬∞2', 'Bir El Djir', '31130',
  '0414012345', '0414012346', '0414012347', 'agence.bireldjir@aquaconnect.dz', 1),
 
 -- AGENCES DU CENTRE ES-SENIA (2 agences)
@@ -174,13 +181,13 @@ VALUES
  '0413234567', '0413234568', '0413234569', 'agence.arzew@aquaconnect.dz', 1),
 
 -- AGENCES DU CENTRE MOSTAGANEM (3 agences)
-(@IdCentreMOS, 'AG-MST', 'Agence Mostaganem Centre', 'Place de la RÈpublique', 'Mostaganem', '27000',
+(@IdCentreMOS, 'AG-MST', 'Agence Mostaganem Centre', 'Place de la R√©publique', 'Mostaganem', '27000',
  '0453567890', '0453567891', '0453567892', 'agence.mostaganem@aquaconnect.dz', 1),
 
 (@IdCentreMOS, 'AG-TIG', 'Agence Tigditt', 'Rue du Port', 'Tigditt', '27001',
  '0453678901', '0453678902', '0453678903', 'agence.tigditt@aquaconnect.dz', 1),
 
-(@IdCentreMOS, 'AG-REL', 'Agence Relizane', 'Avenue de l''IndÈpendance', 'Relizane', '48000',
+(@IdCentreMOS, 'AG-REL', 'Agence Relizane', 'Avenue de l''Ind√©pendance', 'Relizane', '48000',
  '0463456789', '0463456790', '0463456791', 'agence.relizane@aquaconnect.dz', 1),
 
 -- AGENCES DU CENTRE CONSTANTINE CENTRE (3 agences)
@@ -194,48 +201,113 @@ VALUES
  '0313901234', '0313901235', '0313901236', 'agence.hammabouziane@aquaconnect.dz', 1),
 
 -- AGENCES DU CENTRE ANNABA (3 agences)
-(@IdCentreANN, 'AG-ANC', 'Agence Annaba Centre', 'Cours de la RÈvolution', 'Annaba', '23000',
+(@IdCentreANN, 'AG-ANC', 'Agence Annaba Centre', 'Cours de la R√©volution', 'Annaba', '23000',
  '0383567890', '0383567891', '0383567892', 'agence.annabacentre@aquaconnect.dz', 1),
 
-(@IdCentreANN, 'AG-SER', 'Agence SeraÔdi', 'Route de SeraÔdi', 'SeraÔdi', '23100',
+(@IdCentreANN, 'AG-SER', 'Agence Sera√Ødi', 'Route de Sera√Ødi', 'Sera√Ødi', '23100',
  '0383678901', '0383678902', '0383678903', 'agence.seraidi@aquaconnect.dz', 1),
 
 (@IdCentreANN, 'AG-TAR', 'Agence El Taref', 'Boulevard de l''ALN', 'El Taref', '36000',
  '0383789012', '0383789013', '0383789014', 'agence.eltaref@aquaconnect.dz', 1);
 
-
--- VÈrification
+-- V√©rification
 IF @@ROWCOUNT = 25
-    PRINT 'AGENCES COMMERCIALES insÈrÈes avec succËs!'
+    PRINT '‚úÖ 25 AGENCES COMMERCIALES ins√©r√©es avec succ√®s!'
 ELSE
-    PRINT 'ERREUR: Les Agences n''ont pas ÈtÈ insÈrÈes correctement!';
+    PRINT '‚ùå ERREUR: Les Agences n''ont pas √©t√© ins√©r√©es correctement!';
 GO
 
 -- ============================================================================
--- V…RIFICATION DES DONN…ES INS…R…ES
+-- 4. CR√âATION DE L'UTILISATEUR ADMINISTRATEUR
 -- ============================================================================
 
+PRINT '';
 PRINT '============================================================================';
-PRINT 'R…SUM… DES INSERTIONS:';
+PRINT 'CR√âATION DE L''UTILISATEUR ADMINISTRATEUR';
 PRINT '============================================================================';
 
-DECLARE @NbUnites INT, @NbCentres INT, @NbAgences INT;
+-- V√©rifier si l'utilisateur existe d√©j√†
+IF NOT EXISTS (SELECT * FROM Utilisateur WHERE Email = 'admin' OR Matricule = 'UTI-0001')
+BEGIN
+    INSERT INTO Utilisateur (
+        Role,
+        Matricule,
+        Nom,
+        Prenom,
+        Email,
+        Telephone,
+        MotDePasse,
+        IdUnite,
+        IdCentre,
+        IdAgence,
+        Actif,
+        DateCreation
+    )
+    VALUES (
+        'ADMINISTRATEUR',           -- R√¥le directement dans la table
+        'UTI-0001',                 -- Matricule
+        'Administrateur',           -- Nom
+        'Syst√®me',                  -- Pr√©nom
+        'admin',                    -- Email
+        '0665847684',               -- T√©l√©phone
+        'admin123',                 -- Mot de passe par d√©faut (√Ä CHANGER en production!)
+        NULL,                       -- Pas d'unit√© sp√©cifique (acc√®s global)
+        NULL,                       -- Pas de centre sp√©cifique
+        NULL,                       -- Pas d'agence sp√©cifique
+        1,                          -- Actif
+        GETDATE()                   -- Date cr√©ation
+    );
+    
+    PRINT '‚úÖ Utilisateur Administrateur cr√©√© avec succ√®s!';
+    PRINT '';
+    PRINT 'üìß Email        : admin';
+    PRINT 'üîë Matricule    : UTI-0001';
+    PRINT 'üîí Mot de passe : admin123';
+    PRINT 'üë§ R√¥le         : ADMINISTRATEUR';
+    PRINT 'üì± T√©l√©phone    : 0665847684';
+    PRINT '';
+    PRINT '‚ö†Ô∏è  IMPORTANT: Changez le mot de passe apr√®s la premi√®re connexion!';
+END
+ELSE
+BEGIN
+    PRINT '‚ÑπÔ∏è  Utilisateur Administrateur existe d√©j√†';
+    PRINT 'üìß Email      : admin';
+    PRINT 'üîë Matricule  : UTI-0001';
+END
+GO
+
+-- ============================================================================
+-- 5. V√âRIFICATION DES DONN√âES INS√âR√âES
+-- ============================================================================
+
+PRINT '';
+PRINT '============================================================================';
+PRINT 'R√âSUM√â DES INSERTIONS';
+PRINT '============================================================================';
+
+DECLARE @NbUnites INT, @NbCentres INT, @NbAgences INT, @NbUtilisateurs INT;
 
 SELECT @NbUnites = COUNT(*) FROM Unite WHERE Actif = 1;
 SELECT @NbCentres = COUNT(*) FROM Centre WHERE Actif = 1;
 SELECT @NbAgences = COUNT(*) FROM AgenceCommerciale WHERE Actif = 1;
+SELECT @NbUtilisateurs = COUNT(*) FROM Utilisateur WHERE Actif = 1;
 
-PRINT 'Nombre d''UnitÈs insÈrÈes: ' + CAST(@NbUnites AS NVARCHAR);
-PRINT 'Nombre de Centres insÈrÈs: ' + CAST(@NbCentres AS NVARCHAR);
-PRINT 'Nombre d''Agences insÈrÈes: ' + CAST(@NbAgences AS NVARCHAR);
+PRINT 'üìä Nombre d''Unit√©s ins√©r√©es       : ' + CAST(@NbUnites AS NVARCHAR);
+PRINT 'üìä Nombre de Centres ins√©r√©s      : ' + CAST(@NbCentres AS NVARCHAR);
+PRINT 'üìä Nombre d''Agences ins√©r√©es      : ' + CAST(@NbAgences AS NVARCHAR);
+PRINT 'üìä Nombre d''Utilisateurs cr√©√©s    : ' + CAST(@NbUtilisateurs AS NVARCHAR);
+PRINT '============================================================================';
+PRINT '';
+
+-- D√©tail par Unit√©
+PRINT 'D√âTAIL PAR UNIT√â:';
 PRINT '============================================================================';
 
--- DÈtail par UnitÈ
 SELECT 
-    u.CodeUnite,
-    u.NomUnite,
-    COUNT(DISTINCT c.IdCentre) AS NbCentres,
-    COUNT(a.IdAgence) AS NbAgences
+    u.CodeUnite AS [Code Unit√©],
+    u.NomUnite AS [Nom Unit√©],
+    COUNT(DISTINCT c.IdCentre) AS [Nb Centres],
+    COUNT(a.IdAgence) AS [Nb Agences]
 FROM Unite u
 LEFT JOIN Centre c ON u.IdUnite = c.IdUnite
 LEFT JOIN AgenceCommerciale a ON c.IdCentre = a.IdCentre
@@ -245,7 +317,47 @@ ORDER BY u.CodeUnite;
 
 GO
 
+-- V√©rification de l'utilisateur administrateur
+PRINT '';
 PRINT '============================================================================';
-PRINT 'INSERTION TERMIN…E AVEC SUCC»S!';
+PRINT 'INFORMATIONS DE L''UTILISATEUR ADMINISTRATEUR';
+PRINT '============================================================================';
+
+SELECT 
+    u.IdUtilisateur AS [ID],
+    u.Matricule,
+    u.Nom + ' ' + u.Prenom AS [Nom Complet],
+    u.Email,
+    u.Telephone AS [T√©l√©phone],
+    u.Role AS [R√¥le],
+    CASE u.Role
+        WHEN 'ADMINISTRATEUR' THEN 'Administrateur Syst√®me'
+        WHEN 'CHEF_CENTRE' THEN 'Chef de Centre'
+        WHEN 'CHEF_AGENCE_COMMERCIALE' THEN 'Chef d''Agence Commerciale'
+        WHEN 'CHEF_SERVICE_JURIDIQUE' THEN 'Chef de Service Juridique'
+        WHEN 'CHEF_SECTION_RELATIONS_CLIENTELE' THEN 'Chef de Section Relations Client√®le'
+        WHEN 'CHEF_SERVICE_TECHNICO_COMMERCIAL' THEN 'Chef de Service Technico-Commercial'
+        WHEN 'UTILISATEUR_STANDARD' THEN 'Utilisateur Standard'
+    END AS [Libell√© R√¥le],
+    CASE WHEN u.Actif = 1 THEN 'Oui' ELSE 'Non' END AS [Actif],
+    u.DateCreation AS [Date Cr√©ation]
+FROM Utilisateur u
+WHERE u.Email = 'admin' OR u.Matricule = 'UTI-0001';
+
+GO
+
+PRINT '';
+PRINT '============================================================================';
+PRINT '‚úÖ INSERTION DE TOUTES LES DONN√âES TERMIN√âE AVEC SUCC√àS!';
+PRINT '============================================================================';
+PRINT '';
+PRINT 'üìù Liste des r√¥les disponibles dans le syst√®me:';
+PRINT '   1. ADMINISTRATEUR';
+PRINT '   2. CHEF_CENTRE';
+PRINT '   3. CHEF_AGENCE_COMMERCIALE';
+PRINT '   4. CHEF_SERVICE_JURIDIQUE';
+PRINT '   5. CHEF_SECTION_RELATIONS_CLIENTELE';
+PRINT '   6. CHEF_SERVICE_TECHNICO_COMMERCIAL';
+PRINT '   7. UTILISATEUR_STANDARD';
 PRINT '============================================================================';
 GO

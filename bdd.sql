@@ -1,6 +1,8 @@
 -- ====================================================================
--- AquaConnect_DB - Version 5.1
--- Modifications : TypePrix élargi (FOURNITURE, POSE, PRESTATION, CAUTIONNEMENT, SERVICE)
+-- AquaConnect_DB - Version 5.2
+-- Modifications : 
+--   - TypePrix élargi (FOURNITURE, POSE, PRESTATION, CAUTIONNEMENT, SERVICE)
+--   - TypeDevis remplacé par champ EstQuantitatifEstimatif (BIT)
 -- Tables & Index uniquement
 -- ====================================================================
 
@@ -39,7 +41,6 @@ IF OBJECT_ID('dbo.ModePaiement', 'U') IS NOT NULL DROP TABLE dbo.ModePaiement;
 
 IF OBJECT_ID('dbo.DevisArticle', 'U') IS NOT NULL DROP TABLE dbo.DevisArticle;
 IF OBJECT_ID('dbo.Devis', 'U') IS NOT NULL DROP TABLE dbo.Devis;
-IF OBJECT_ID('dbo.TypeDevis', 'U') IS NOT NULL DROP TABLE dbo.TypeDevis;
 
 IF OBJECT_ID('dbo.ArticlePrixHistorique', 'U') IS NOT NULL DROP TABLE dbo.ArticlePrixHistorique;
 IF OBJECT_ID('dbo.Article', 'U') IS NOT NULL DROP TABLE dbo.Article;
@@ -337,7 +338,7 @@ CREATE TABLE Article (
 );
 GO
 
--- 4.14 ArticlePrixHistorique (MODIFIÉE - TypePrix élargi)
+-- 4.14 ArticlePrixHistorique (TypePrix élargi)
 CREATE TABLE ArticlePrixHistorique (
     IdPrixHistorique INT IDENTITY(1,1) PRIMARY KEY,
     IdArticle INT NOT NULL,
@@ -354,25 +355,12 @@ CREATE TABLE ArticlePrixHistorique (
 );
 GO
 
--- 4.15 TypeDevis
-CREATE TABLE TypeDevis (
-    IdTypeDevis INT IDENTITY(1,1) PRIMARY KEY,
-    CodeTypeDevis NVARCHAR(20) NOT NULL UNIQUE,
-    LibelleTypeDevis NVARCHAR(100) NOT NULL,
-    ValidationChefServiceTechnicoCommercialRequise BIT NOT NULL DEFAULT 0,
-    ValidationChefCentreRequise BIT NOT NULL DEFAULT 0,
-    ValidationChefAgenceRequise BIT NOT NULL DEFAULT 0,
-    Actif BIT NOT NULL DEFAULT 1,
-    DateCreation DATETIME NOT NULL DEFAULT GETDATE()
-);
-GO
-
--- 4.16 Devis
+-- 4.15 Devis (MODIFIÉ - EstQuantitatifEstimatif au lieu de IdTypeDevis)
 CREATE TABLE Devis (
     IdDevis INT IDENTITY(1,1) PRIMARY KEY,
     NumeroDevis NVARCHAR(50) NOT NULL UNIQUE,
     IdDemande INT NOT NULL,
-    IdTypeDevis INT NOT NULL,
+    EstQuantitatifEstimatif BIT NOT NULL DEFAULT 0, -- 0 = Quantitatif simple, 1 = Quantitatif & Estimatif
     IdDevisParent INT NULL,
     IdUtilisateurCreation INT NOT NULL,
     DateCreation DATETIME NOT NULL DEFAULT GETDATE(),
@@ -390,7 +378,6 @@ CREATE TABLE Devis (
     Commentaire NVARCHAR(MAX),
     DateModification DATETIME,
     CONSTRAINT FK_Devis_DemandeTravaux FOREIGN KEY (IdDemande) REFERENCES DemandeTravaux(IdDemande),
-    CONSTRAINT FK_Devis_TypeDevis FOREIGN KEY (IdTypeDevis) REFERENCES TypeDevis(IdTypeDevis),
     CONSTRAINT FK_Devis_DevisParent FOREIGN KEY (IdDevisParent) REFERENCES Devis(IdDevis),
     CONSTRAINT FK_Devis_UtilisateurCreation FOREIGN KEY (IdUtilisateurCreation) REFERENCES Utilisateur(IdUtilisateur),
     CONSTRAINT FK_Devis_UtilisateurValidChefServiceTC FOREIGN KEY (IdUtilisateurValidationChefServiceTechnicoCommercial) REFERENCES Utilisateur(IdUtilisateur),
@@ -399,7 +386,7 @@ CREATE TABLE Devis (
 );
 GO
 
--- 4.17 DevisArticle
+-- 4.16 DevisArticle
 CREATE TABLE DevisArticle (
     IdDevisArticle INT IDENTITY(1,1) PRIMARY KEY,
     IdDevis INT NOT NULL,
@@ -419,7 +406,7 @@ CREATE TABLE DevisArticle (
 );
 GO
 
--- 4.18 ModePaiement
+-- 4.17 ModePaiement
 CREATE TABLE ModePaiement (
     IdModePaiement INT IDENTITY(1,1) PRIMARY KEY,
     CodeMode NVARCHAR(20) NOT NULL UNIQUE,
@@ -428,7 +415,7 @@ CREATE TABLE ModePaiement (
 );
 GO
 
--- 4.19 PaiementDevis
+-- 4.18 PaiementDevis
 CREATE TABLE PaiementDevis (
     IdPaiement INT IDENTITY(1,1) PRIMARY KEY,
     IdDevis INT NOT NULL,
@@ -447,7 +434,7 @@ CREATE TABLE PaiementDevis (
 );
 GO
 
--- 4.20 OrdreExecutionStatut
+-- 4.19 OrdreExecutionStatut
 CREATE TABLE OrdreExecutionStatut (
     IdOrdreStatut INT IDENTITY(1,1) PRIMARY KEY,
     CodeStatut NVARCHAR(50) NOT NULL UNIQUE,
@@ -456,7 +443,7 @@ CREATE TABLE OrdreExecutionStatut (
 );
 GO
 
--- 4.21 OrdreExecution
+-- 4.20 OrdreExecution
 CREATE TABLE OrdreExecution (
     IdOrdre INT IDENTITY(1,1) PRIMARY KEY,
     NumeroOrdre NVARCHAR(50) NOT NULL UNIQUE,
@@ -487,7 +474,7 @@ CREATE TABLE OrdreExecution (
 );
 GO
 
--- 4.22 OrdreExecutionHistorique
+-- 4.21 OrdreExecutionHistorique
 CREATE TABLE OrdreExecutionHistorique (
     IdHistorique INT IDENTITY(1,1) PRIMARY KEY,
     IdOrdre INT NOT NULL,
@@ -503,7 +490,6 @@ CREATE TABLE OrdreExecutionHistorique (
     CONSTRAINT FK_OrdreExecutionHistorique_Utilisateur FOREIGN KEY (IdUtilisateur) REFERENCES Utilisateur(IdUtilisateur)
 );
 GO
-
 /**************************************************************
   5) Indexes
 **************************************************************/
@@ -592,13 +578,8 @@ CREATE INDEX IX_ArticlePrixHistorique_Dates ON ArticlePrixHistorique(DateDebutAp
 CREATE INDEX IX_ArticlePrixHistorique_EstActif ON ArticlePrixHistorique(EstActif);
 CREATE INDEX IX_ArticlePrixHistorique_Utilisateur ON ArticlePrixHistorique(IdUtilisateurCreation);
 
--- Index TypeDevis
-CREATE INDEX IX_TypeDevis_CodeTypeDevis ON TypeDevis(CodeTypeDevis);
-CREATE INDEX IX_TypeDevis_Actif ON TypeDevis(Actif);
-
 -- Index Devis
 CREATE INDEX IX_Devis_Demande ON Devis(IdDemande);
-CREATE INDEX IX_Devis_TypeDevis ON Devis(IdTypeDevis);
 CREATE INDEX IX_Devis_DevisParent ON Devis(IdDevisParent);
 CREATE INDEX IX_Devis_UtilisateurCreation ON Devis(IdUtilisateurCreation);
 CREATE INDEX IX_Devis_DateCreation ON Devis(DateCreation DESC);
