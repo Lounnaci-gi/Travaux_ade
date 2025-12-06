@@ -1570,6 +1570,9 @@ const DevisForm = ({ user }) => {
                   {/* Middle column - Devis information */}
                   <div style={{ width: '33%', textAlign: 'left' }}>
                     <p style={{ marginBottom: '3px', fontWeight: 'bold', color: '#1e90ff' }}><strong>{devisCode || 'N/A'}</strong> </p>
+                    {demande && (
+                      <p style={{ marginBottom: '3px' }}><strong>Type de demande:</strong> {demande.TypeDemande || ''}</p>
+                    )}
                     <p style={{ marginBottom: '3px' }}><strong>Date de création:</strong> {new Date().toLocaleDateString('fr-FR')}</p>
                     {demande && (
                       <p style={{ marginBottom: '3px' }}><strong>Date d'expiration:</strong> {
