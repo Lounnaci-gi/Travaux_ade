@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { alertError } from '../ui/alerts';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
@@ -8,6 +9,38 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// Interceptor pour gérer les erreurs de réseau
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Si l'erreur est une erreur réseau (serveur non joignable)
+    if (!error.response && error.code !== 'ECONNABORTED') {
+      alertError(
+        'Serveur non joignable',
+        'Impossible de se connecter au serveur. Veuillez vérifier votre connexion internet ou réessayer plus tard.'
+      );
+    }
+    
+    // Si l'erreur est une erreur 401 avec le message "Session expirée", 
+    // déconnecter l'utilisateur et le rediriger vers la page de login
+    if (error.response && error.response.status === 401) {
+      const message = error.response.data?.error || '';
+      if (message.includes('Session expirée')) {
+        // Supprimer les données de session
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        
+        // Rediriger vers la page de login
+        if (typeof window !== 'undefined') {
+          window.location.href = '/'; // Redirige vers la racine qui affichera le login
+        }
+      }
+    }
+    
+    return Promise.reject(error);
+  }
+);
 
 export const getTravaux = async () => {
   try {
@@ -497,31 +530,6 @@ api.interceptors.request.use(
   }
 );
 
-// Interceptor pour gérer les erreurs d'authentification
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    // Si l'erreur est une erreur 401 avec le message "Session expirée", 
-    // déconnecter l'utilisateur et le rediriger vers la page de login
-    if (error.response && error.response.status === 401) {
-      const message = error.response.data?.error || '';
-      if (message.includes('Session expirée')) {
-        // Supprimer les données de session
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        
-        // Rediriger vers la page de login
-        if (typeof window !== 'undefined') {
-          window.location.href = '/'; // Redirige vers la racine qui affichera le login
-        }
-      }
-    }
-    
-    return Promise.reject(error);
-  }
-);
-
-// Devis
 export const getDevis = async (id) => {
   try {
     const response = await api.get(`/devis/${id}`);

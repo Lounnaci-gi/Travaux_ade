@@ -107,10 +107,20 @@ const convertNumberToWords = (number) => {
     result += convertLessThanThousand(remainder);
   }
   
-  // Ajouter les centimes si nécessaire
+  // Traiter la partie décimale correctement
   if (decimalPart > 0) {
-    if (result) result += ' '; // Ajouter un espace si on a déjà une partie entière
-    result += convertLessThanThousand(decimalPart) + ' centime' + (decimalPart > 1 ? 's' : '');
+    const decimalWords = convertLessThanThousand(decimalPart);
+    
+    if (integerPart > 0) {
+      // S'il y a une partie entière, ajouter "dinars algériens et" puis les centimes
+      result += ' dinars algériens et ' + decimalWords + ' centime' + (decimalPart > 1 ? 's' : '');
+    } else {
+      // S'il n'y a pas de partie entière, seulement les centimes
+      result = decimalWords + ' centime' + (decimalPart > 1 ? 's' : '');
+    }
+  } else if (integerPart > 0) {
+    // S'il y a une partie entière mais pas de décimale, ajouter "dinars algériens"
+    result += ' dinars algériens';
   }
   
   return result.trim() || 'zéro';
