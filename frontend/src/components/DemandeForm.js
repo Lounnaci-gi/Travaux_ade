@@ -516,6 +516,41 @@ const DemandeForm = ({ user, onCreated }) => {
     return canCreate;
   }, [user]);
 
+  // Fonction pour filtrer les agences selon l'utilisateur
+  const getFilteredAgences = useMemo(() => {
+    // Si l'utilisateur est administrateur, afficher toutes les agences
+    if (isAdmin(user)) {
+      return agences;
+    }
+
+    // Si l'utilisateur a une agence spécifique d'affectation
+    if (user?.idAgence) {
+      // Retourner uniquement l'agence affectée à l'utilisateur
+      return agences.filter(agence => 
+        agence.IdAgence === Number(user.idAgence)
+      );
+    }
+
+    // Si l'utilisateur a un centre d'affectation
+    if (user?.idCentre) {
+      // Retourner les agences du centre de l'utilisateur
+      return agences.filter(agence => 
+        agence.IdCentre === Number(user.idCentre)
+      );
+    }
+
+    // Si l'utilisateur a une unité d'affectation
+    if (user?.idUnite) {
+      // Retourner les agences de l'unité de l'utilisateur
+      return agences.filter(agence => 
+        agence.IdUnite === Number(user.idUnite)
+      );
+    }
+
+    // Par défaut, retourner toutes les agences (cas où l'utilisateur n'a pas d'affectation spécifique)
+    return agences;
+  }, [agences, user]);
+
   useEffect(() => {
     const load = async () => {
       try {
@@ -823,7 +858,7 @@ const DemandeForm = ({ user, onCreated }) => {
                   disabled={user?.idAgence && !isAdmin(user)}
                 >
                   <option value="">Sélectionner une agence</option>
-                  {agences.map((a) => (
+                  {getFilteredAgences.map((a) => (
                     <option key={a.IdAgence} value={a.IdAgence} className="text-black">
                       {a.CodeAgence} - {a.NomAgence}
                     </option>
@@ -832,6 +867,16 @@ const DemandeForm = ({ user, onCreated }) => {
                 {user?.idAgence && !isAdmin(user) && (
                   <p className="mt-1 text-xs text-gray-400">
                     L'agence est automatiquement définie selon votre affectation
+                  </p>
+                )}
+                {!user?.idAgence && user?.idCentre && (
+                  <p className="mt-1 text-xs text-gray-400">
+                    Liste des agences de votre centre
+                  </p>
+                )}
+                {!user?.idAgence && user?.idUnite && !user?.idCentre && (
+                  <p className="mt-1 text-xs text-gray-400">
+                    Liste des agences de votre unité
                   </p>
                 )}
               </div>

@@ -1,7 +1,8 @@
 -- Désactiver les contraintes si nécessaire (optionnel)
 -- ALTER TABLE Article NOCHECK CONSTRAINT FK_Article_ArticleFamille;
 -- ALTER TABLE ArticlePrixHistorique NOCHECK CONSTRAINT FK_ArticlePrixHistorique_Article;
-
+USE AquaConnect_DB;
+GO
 -- 1. Insérer les familles
 SET IDENTITY_INSERT ArticleFamille ON;
 INSERT INTO ArticleFamille (IdFamille, CodeFamille, LibelleFamille, Actif)
