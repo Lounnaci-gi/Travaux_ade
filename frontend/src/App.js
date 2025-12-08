@@ -130,7 +130,7 @@ function App() {
       case 'demandes-types':
         return <DemandeTypeForm user={user} onUnauthorized={() => setCurrentView('dashboard')} />;
       case 'demandes-create':
-        return <DemandeForm user={user} onCreated={() => setCurrentView('demandes-list')} />;
+        return <DemandeForm user={user} onCreated={() => setCurrentView('demandes-list')} onUnauthorized={() => setCurrentView('dashboard')} />;
       case 'clients-list':
         return <ClientsList />;
       case 'clients-types':

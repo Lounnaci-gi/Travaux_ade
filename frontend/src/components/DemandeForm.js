@@ -52,7 +52,7 @@ const printStyles = `
   }
 `;
 
-const DemandeForm = ({ user, onCreated }) => {
+const DemandeForm = ({ user, onCreated, onUnauthorized }) => {
   const [clients, setClients] = useState([]);
   const [agences, setAgences] = useState([]);
   const [types, setTypes] = useState([]);
@@ -62,6 +62,25 @@ const DemandeForm = ({ user, onCreated }) => {
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [selectedClient, setSelectedClient] = useState(null);
+  
+  // Vérifier si l'utilisateur a le droit d'accéder à cette page
+  useEffect(() => {
+    // Seuls les admins et certains rôles spécifiques peuvent accéder à cette page
+    const userRole = user?.role?.toLowerCase() || '';
+    const allowedRoles = [
+      'admin',
+      'administrateur',
+      'chef_agence_commerciale',
+      'chef_service_technico_commercial',
+      'utilisateur_standard'
+    ];
+    
+    const isAllowed = allowedRoles.some(role => userRole.includes(role));
+    
+    if (!isAllowed && onUnauthorized) {
+      onUnauthorized();
+    }
+  }, [user, onUnauthorized]);
   // Add state for client search functionality
   const [clientSearch, setClientSearch] = useState('');
   const [showClientDropdown, setShowClientDropdown] = useState(false);
