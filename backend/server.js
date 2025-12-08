@@ -2332,7 +2332,9 @@ app.post('/api/utilisateurs', verifyToken, async (req, res) => {
     }
 
     // Hachage du mot de passe
-    const hashedPassword = await bcrypt.hash(MotDePasse, 12);    // Si l'utilisateur authentifié est CHEF DE CENTRE, il ne peut créer
+    const hashedPassword = await bcrypt.hash(MotDePasse, 12);
+    
+    // Si l'utilisateur authentifié est CHEF DE CENTRE, il ne peut créer
     // des utilisateurs que dans son propre centre. On force IdCentre.
     const actorRoleRaw = (req.user?.role || '');
     const actorRoleLower = actorRoleRaw.toLowerCase();
@@ -2381,7 +2383,7 @@ app.post('/api/utilisateurs', verifyToken, async (req, res) => {
       .input('Prenom', sql.NVarChar(100), Prenom)
       .input('Email', sql.NVarChar(100), Email)
       .input('Telephone', sql.NVarChar(20), Telephone || null)
-      .input('MotDePasse', sql.NVarChar(255), MotDePasse)
+      .input('MotDePasse', sql.NVarChar(255), hashedPassword)
       .input('Actif', sql.Bit, Actif !== undefined ? Actif : 1)
       .query(`
         INSERT INTO Utilisateur (

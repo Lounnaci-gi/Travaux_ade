@@ -794,100 +794,132 @@ const DemandeForm = ({ user, onCreated }) => {
   }
 
   return (
-    <div className="min-h-screen p-2 pt-1">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-3 mt-0">
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <div>
-              <h1 className="text-2xl font-bold mb-1 bg-gradient-to-r from-primary-400 via-secondary-400 to-primary-300 bg-clip-text text-transparent">
-                Nouvelle Demande
-              </h1>
-              <p className="dark:text-gray-400 text-gray-600 text-sm">Enregistrer une nouvelle demande dans le système</p>
-            </div>
-          </div>
+    <div className="app-main">
+      <div className="container-obat">
+        <div className="mb-8 text-center">
+          <h1 className="section-title text-gradient mb-2">
+            Nouvelle Demande
+          </h1>
+          <p className="section-subtitle">Enregistrer une nouvelle demande dans le système</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="glass-card p-4 space-y-4">
-          {error && (
-            <div className="p-2 rounded-lg bg-red-500/20 border border-red-500/50 text-red-300 text-sm">
-              {error}
+        <div className="max-w-4xl mx-auto">
+          <div className="obat-card">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
+                Informations de la Demande
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Veuillez remplir les informations ci-dessous pour créer une nouvelle demande
+              </p>
             </div>
-          )}
-          {success && (
-            <div className="p-2 rounded-lg bg-green-500/20 border border-green-500/50 text-green-300 text-sm">
-              {success}
-            </div>
-          )}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-xs dark:text-gray-300 text-gray-700 mb-1">Type de demande *</label>
-              <select
-                name="idDemandeType"
-                value={form.idDemandeType}
-                onChange={handleChange}
-                className="select-field w-full px-3 py-2 text-sm"
-                required
-              >
-                <option value="">Sélectionner un type</option>
-                {types.map((t) => (
-                  <option key={t.IdDemandeType} value={t.IdDemandeType} className="text-black">
-                    {t.LibelleType}
-                  </option>
-                ))}
-              </select>
-              {types.length === 0 && (
-                <p className="mt-1 text-xs text-yellow-400">
-                  ⚠️ Aucun type de demande disponible. Veuillez contacter l'administrateur ou le chef de centre pour créer des types de travaux.
-                </p>
+
+            <form onSubmit={handleSubmit} className="p-6">
+              {error && (
+                <div className="mb-6 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                  <div className="flex items-center">
+                    <svg className="w-5 h-5 text-red-500 dark:text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>{error}</span>
+                  </div>
+                </div>
               )}
-            </div>
-            {form.idDemandeType && (
-              <div>
-                <label className="block text-xs dark:text-gray-300 text-gray-700 mb-1">
-                  Agence *
-                  {user?.idAgence && !isAdmin(user) && (
-                    <span className="ml-1 text-xs text-gray-400">(définie automatiquement)</span>
+              {success && (
+                <div className="mb-6 p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                  <div className="flex items-center">
+                    <svg className="w-5 h-5 text-green-500 dark:text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>{success}</span>
+                  </div>
+                </div>
+              )}
+              
+              {/* Section: Informations de base */}
+              <div className="form-section obat-card mb-6">
+                <h3 className="form-section-header">
+                  <svg className="form-section-icon text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="form-section-title">
+                    Informations de Base
+                  </span>
+                </h3>
+                <div className="form-section-grid form-section-grid-cols-2">
+                  <div>
+                    <label className="form-responsive-label">
+                      Type de demande <span className="text-red-400">*</span>
+                    </label>
+                    <select
+                      name="idDemandeType"
+                      value={form.idDemandeType}
+                      onChange={handleChange}
+                      className="select-field w-full px-3 py-2 text-sm"
+                      required
+                    >
+                      <option value="">Sélectionner un type</option>
+                      {types.map((t) => (
+                        <option key={t.IdDemandeType} value={t.IdDemandeType} className="text-black">
+                          {t.LibelleType}
+                        </option>
+                      ))}
+                    </select>
+                    {types.length === 0 && (
+                      <p className="mt-1 text-xs text-yellow-400">
+                        ⚠️ Aucun type de demande disponible. Veuillez contacter l'administrateur ou le chef de centre pour créer des types de travaux.
+                      </p>
+                    )}
+                  </div>
+                  
+                  {form.idDemandeType && (
+                    <div>
+                      <label className="form-responsive-label">
+                        Agence <span className="text-red-400">*</span>
+                        {user?.idAgence && !isAdmin(user) && (
+                          <span className="ml-1 text-xs text-gray-400">(définie automatiquement)</span>
+                        )}
+                      </label>
+                      <select
+                        name="idAgence"
+                        value={form.idAgence}
+                        onChange={handleChange}
+                        className="select-field w-full px-3 py-2 text-sm"
+                        required
+                        disabled={user?.idAgence && !isAdmin(user)}
+                      >
+                        <option value="">Sélectionner une agence</option>
+                        {getFilteredAgences.map((a) => (
+                          <option key={a.IdAgence} value={a.IdAgence} className="text-black">
+                            {a.CodeAgence} - {a.NomAgence}
+                          </option>
+                        ))}
+                      </select>
+                      {user?.idAgence && !isAdmin(user) && (
+                        <p className="mt-1 text-xs text-gray-400">
+                          L'agence est automatiquement définie selon votre affectation
+                        </p>
+                      )}
+                      {!user?.idAgence && user?.idCentre && (
+                        <p className="mt-1 text-xs text-gray-400">
+                          Liste des agences de votre centre
+                        </p>
+                      )}
+                      {!user?.idAgence && user?.idUnite && !user?.idCentre && (
+                        <p className="mt-1 text-xs text-gray-400">
+                          Liste des agences de votre unité
+                        </p>
+                      )}
+                    </div>
                   )}
-                </label>
-                <select
-                  name="idAgence"
-                  value={form.idAgence}
-                  onChange={handleChange}
-                  className="select-field w-full px-3 py-2 text-sm"
-                  required
-                  disabled={user?.idAgence && !isAdmin(user)}
-                >
-                  <option value="">Sélectionner une agence</option>
-                  {getFilteredAgences.map((a) => (
-                    <option key={a.IdAgence} value={a.IdAgence} className="text-black">
-                      {a.CodeAgence} - {a.NomAgence}
-                    </option>
-                  ))}
-                </select>
-                {user?.idAgence && !isAdmin(user) && (
-                  <p className="mt-1 text-xs text-gray-400">
-                    L'agence est automatiquement définie selon votre affectation
-                  </p>
-                )}
-                {!user?.idAgence && user?.idCentre && (
-                  <p className="mt-1 text-xs text-gray-400">
-                    Liste des agences de votre centre
-                  </p>
-                )}
-                {!user?.idAgence && user?.idUnite && !user?.idCentre && (
-                  <p className="mt-1 text-xs text-gray-400">
-                    Liste des agences de votre unité
-                  </p>
-                )}
+                </div>
               </div>
-            )}
-          </div>
 
           {form.idDemandeType && (
             <>
-              <div className="space-y-4 border-t border-white/10 dark:border-white/10 border-gray-200/50 pt-4">
+              <div className="space-y-4 border-t border-white/10 dark:border-white/10 border-gray-200/50 pt-4 obat-card">
                 <div>
-                  <label className="block text-xs dark:text-gray-300 text-gray-700 mb-1">Client</label>
+                  <label className="form-responsive-label">Client</label>
                   {!newClientMode ? (
                     <>
                       <div className="relative">
@@ -904,7 +936,7 @@ const DemandeForm = ({ user, onCreated }) => {
                             setTimeout(() => setShowClientDropdown(false), 150);
                           }}
                           placeholder="Rechercher un client (nom, prénom ou ID)"
-                          className="w-full px-3 py-2 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                          className="form-responsive-input"
                         />
                         {showClientDropdown && (
                           <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border dark:border-white/20 border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
@@ -932,7 +964,7 @@ const DemandeForm = ({ user, onCreated }) => {
                       <div className="mt-2">
                         <button
                           type="button"
-                          className="inline-flex items-center justify-center p-1.5 rounded-full bg-primary-500/20 border border-primary-400/40 text-primary-200 hover:bg-primary-500/30 hover:text-white transition-colors"
+                          className="btn btn-primary btn-icon"
                           title="Créer un nouveau client"
                           aria-label="Créer un nouveau client"
                           onClick={() => { setNewClientMode(true); setForm((p)=>({...p, idClient:''})); setSelectedClient(null); setClientSearch(''); }}
@@ -946,9 +978,9 @@ const DemandeForm = ({ user, onCreated }) => {
                     </>
                   ) : (
                     <>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="form-section-grid form-section-grid-cols-2">
                         <div>
-                          <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Type de client *</label>
+                          <label className="form-responsive-label">Type de client *</label>
                           <select
                             className="select-field w-full px-2 py-1.5 text-xs"
                             value={clientForm.idClientType}
@@ -961,7 +993,7 @@ const DemandeForm = ({ user, onCreated }) => {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Statut d'occupation *</label>
+                          <label className="form-responsive-label">Statut d'occupation *</label>
                           <select
                             className="select-field w-full px-2 py-1.5 text-xs"
                             value={clientForm.statutOccupation}
@@ -974,56 +1006,56 @@ const DemandeForm = ({ user, onCreated }) => {
                           </select>
                         </div>
                         <div className="md:col-span-2">
-                          <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Nom *</label>
-                          <input className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.nom} onChange={(e)=>setClientForm((p)=>({...p, nom:e.target.value}))} />
+                          <label className="form-responsive-label">Nom *</label>
+                          <input className="form-responsive-input text-xs" value={clientForm.nom} onChange={(e)=>setClientForm((p)=>({...p, nom:e.target.value}))} />
                         </div>
                         <div className="md:col-span-2">
-                          <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Prénom</label>
-                          <input className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.prenom} onChange={(e)=>setClientForm((p)=>({...p, prenom:e.target.value}))} />
+                          <label className="form-responsive-label">Prénom</label>
+                          <input className="form-responsive-input text-xs" value={clientForm.prenom} onChange={(e)=>setClientForm((p)=>({...p, prenom:e.target.value}))} />
                         </div>
                         <div className="md:col-span-2">
-                          <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Adresse de résidence *</label>
-                          <input className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.adresseResidence} onChange={(e)=>setClientForm((p)=>({...p, adresseResidence:e.target.value}))} />
+                          <label className="form-responsive-label">Adresse de résidence *</label>
+                          <input className="form-responsive-input text-xs" value={clientForm.adresseResidence} onChange={(e)=>setClientForm((p)=>({...p, adresseResidence:e.target.value}))} />
                         </div>
                         <div>
-                          <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Commune de résidence *</label>
-                          <input className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.communeResidence} onChange={(e)=>setClientForm((p)=>({...p, communeResidence:e.target.value}))} />
+                          <label className="form-responsive-label">Commune de résidence *</label>
+                          <input className="form-responsive-input text-xs" value={clientForm.communeResidence} onChange={(e)=>setClientForm((p)=>({...p, communeResidence:e.target.value}))} />
                         </div>
                         <div>
-                          <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Code postal de résidence *</label>
-                          <input className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.codePostalResidence} onChange={(e)=>setClientForm((p)=>({...p, codePostalResidence:e.target.value}))} maxLength={5} />
+                          <label className="form-responsive-label">Code postal de résidence *</label>
+                          <input className="form-responsive-input text-xs" value={clientForm.codePostalResidence} onChange={(e)=>setClientForm((p)=>({...p, codePostalResidence:e.target.value}))} maxLength={5} />
                         </div>
                         {isBranchementType() && (
                           <>
                             <div className="md:col-span-2">
-                              <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Adresse de branchement *</label>
-                              <input className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.adresseBranchement} onChange={(e)=>setClientForm((p)=>({...p, adresseBranchement:e.target.value}))} />
+                              <label className="form-responsive-label">Adresse de branchement *</label>
+                              <input className="form-responsive-input text-xs" value={clientForm.adresseBranchement} onChange={(e)=>setClientForm((p)=>({...p, adresseBranchement:e.target.value}))} />
                             </div>
                             <div>
-                              <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Commune de branchement</label>
-                              <input className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.communeBranchement} onChange={(e)=>setClientForm((p)=>({...p, communeBranchement:e.target.value}))} />
+                              <label className="form-responsive-label">Commune de branchement</label>
+                              <input className="form-responsive-input text-xs" value={clientForm.communeBranchement} onChange={(e)=>setClientForm((p)=>({...p, communeBranchement:e.target.value}))} />
                             </div>
                             <div>
-                              <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Code postal de branchement</label>
-                              <input className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.codePostalBranchement} onChange={(e)=>setClientForm((p)=>({...p, codePostalBranchement:e.target.value}))} maxLength={5} />
+                              <label className="form-responsive-label">Code postal de branchement</label>
+                              <input className="form-responsive-input text-xs" value={clientForm.codePostalBranchement} onChange={(e)=>setClientForm((p)=>({...p, codePostalBranchement:e.target.value}))} maxLength={5} />
                             </div>
                           </>
                         )}
                         <div>
-                          <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Téléphone principal</label>
-                          <input className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.telephonePrincipal} onChange={(e)=>setClientForm((p)=>({...p, telephonePrincipal:e.target.value}))} maxLength={10} />
+                          <label className="form-responsive-label">Téléphone principal</label>
+                          <input className="form-responsive-input text-xs" value={clientForm.telephonePrincipal} onChange={(e)=>setClientForm((p)=>({...p, telephonePrincipal:e.target.value}))} maxLength={10} />
                         </div>
                         <div>
-                          <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Téléphone secondaire</label>
-                          <input className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.telephoneSecondaire} onChange={(e)=>setClientForm((p)=>({...p, telephoneSecondaire:e.target.value}))} maxLength={10} />
+                          <label className="form-responsive-label">Téléphone secondaire</label>
+                          <input className="form-responsive-input text-xs" value={clientForm.telephoneSecondaire} onChange={(e)=>setClientForm((p)=>({...p, telephoneSecondaire:e.target.value}))} maxLength={10} />
                         </div>
                         <div>
-                          <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Fax</label>
-                          <input className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.fax} onChange={(e)=>setClientForm((p)=>({...p, fax:e.target.value}))} maxLength={10} />
+                          <label className="form-responsive-label">Fax</label>
+                          <input className="form-responsive-input text-xs" value={clientForm.fax} onChange={(e)=>setClientForm((p)=>({...p, fax:e.target.value}))} maxLength={10} />
                         </div>
                         <div className="md:col-span-2">
-                          <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">Email</label>
-                          <input type="email" className="w-full px-2 py-1.5 rounded-lg dark:bg-white/10 bg-white/80 border dark:border-white/20 border-gray-300 dark:text-white text-gray-900 text-xs" value={clientForm.email} onChange={(e)=>setClientForm((p)=>({...p, email:e.target.value}))} />
+                          <label className="form-responsive-label">Email</label>
+                          <input type="email" className="form-responsive-input text-xs" value={clientForm.email} onChange={(e)=>setClientForm((p)=>({...p, email:e.target.value}))} />
                         </div>
                         <div>
                           <label className="block text-xs dark:text-gray-400 text-gray-600 mb-1">N° pièce d'identité</label>
@@ -1219,6 +1251,8 @@ const DemandeForm = ({ user, onCreated }) => {
         </form>
       </div>
     </div>
+  </div>
+</div>
   );
 };
 
