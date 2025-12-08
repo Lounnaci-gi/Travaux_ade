@@ -5,12 +5,22 @@ import { fr } from 'date-fns/locale/fr';
 const TravauxCard = ({ travail, onClick }) => {
   const getStatusColor = (codeStatut) => {
     const colors = {
-      'EMIS': 'bg-primary-600',
-      'EN_COURS': 'bg-warning',
-      'TERMINE': 'bg-success',
-      'ANNULE': 'bg-error',
+      'EMIS': 'bg-blue-500',
+      'EN_COURS': 'bg-yellow-500',
+      'TERMINE': 'bg-green-500',
+      'ANNULE': 'bg-red-500',
     };
-    return colors[codeStatut] || 'bg-secondary-600';
+    return colors[codeStatut] || 'bg-gray-500';
+  };
+
+  const getStatusTextColor = (codeStatut) => {
+    const textColors = {
+      'EMIS': 'text-blue-500',
+      'EN_COURS': 'text-yellow-500',
+      'TERMINE': 'text-green-500',
+      'ANNULE': 'text-red-500',
+    };
+    return textColors[codeStatut] || 'text-gray-500';
   };
 
   const formatDate = (date) => {
@@ -33,7 +43,10 @@ const TravauxCard = ({ travail, onClick }) => {
             <h3 className="text-xl font-bold dark:text-white text-gray-900 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
               {travail.NumeroOrdre}
             </h3>
-            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(travail.CodeStatut)} text-white`}>
+            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(travail.CodeStatut)} text-white flex items-center gap-1`}>
+              <svg className="w-2 h-2 fill-current" viewBox="0 0 8 8">
+                <circle cx="4" cy="4" r="4"/>
+              </svg>
               {travail.Statut}
             </span>
           </div>

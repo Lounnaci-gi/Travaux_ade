@@ -250,7 +250,7 @@ BEGIN
         'Système',                  -- Prénom
         'admin',                    -- Email
         '0665847684',               -- Téléphone
-        'admin123',                 -- Mot de passe par défaut (À CHANGER en production!)
+        '$2b$12$G44avdH1DVW.RxLug515SuCco9kK7MKqWLrQ94oCoeq9EbxjaShc.',                 -- Mot de passe par défaut (À CHANGER en production!)
         NULL,                       -- Pas d'unité spécifique (accès global)
         NULL,                       -- Pas de centre spécifique
         NULL,                       -- Pas d'agence spécifique

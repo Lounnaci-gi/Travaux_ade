@@ -34,12 +34,12 @@ const TravauxDetail = ({ travail, onBack }) => {
 
   const getStatusColor = (codeStatut) => {
     const colors = {
-      'EMIS': 'bg-primary-600',
-      'EN_COURS': 'bg-yellow-600',
-      'TERMINE': 'bg-green-600',
-      'ANNULE': 'bg-red-600',
+      'EMIS': 'bg-blue-500',
+      'EN_COURS': 'bg-yellow-500',
+      'TERMINE': 'bg-green-500',
+      'ANNULE': 'bg-red-500',
     };
-    return colors[codeStatut] || 'bg-gray-600';
+    return colors[codeStatut] || 'bg-gray-500';
   };
 
   return (
@@ -63,7 +63,10 @@ const TravauxDetail = ({ travail, onBack }) => {
               <h1 className="text-3xl font-bold mb-2 text-gradient">
                 {travail.NumeroOrdre}
               </h1>
-              <span className={`inline-block px-4 py-1 rounded-full text-sm font-semibold ${getStatusColor(travail.CodeStatut)} text-white`}>
+              <span className={`inline-block px-4 py-1 rounded-full text-sm font-semibold ${getStatusColor(travail.CodeStatut)} text-white flex items-center gap-1`}>
+                <svg className="w-2 h-2 fill-current" viewBox="0 0 8 8">
+                  <circle cx="4" cy="4" r="4"/>
+                </svg>
                 {travail.Statut}
               </span>
             </div>

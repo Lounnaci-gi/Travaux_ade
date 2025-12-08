@@ -2,8 +2,8 @@ const express = require('express');
 const sql = require('mssql');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 require('dotenv').config();
-
 const app = express();
 app.set('trust proxy', 1);
 const PORT = process.env.PORT || 5000;
@@ -322,11 +322,10 @@ app.post('/api/auth/login', async (req, res) => {
 
     const user = result.recordset[0];
 
-    // Note: Dans un vrai système, vous devriez comparer avec bcrypt
-    // Pour l'instant, comparaison simple (à changer en production)
-    if (user.MotDePasse !== password) {
-      const attempts = existingRecord ? existingRecord.count + 1 : 1;
-      if (attempts >= MAX_LOGIN_ATTEMPTS) {
+    // Comparaison du mot de passe avec bcrypt
+    const isPasswordValid = await bcrypt.compare(password, user.MotDePasse);
+    if (!isPasswordValid) {
+      const attempts = existingRecord ? existingRecord.count + 1 : 1;      if (attempts >= MAX_LOGIN_ATTEMPTS) {
         const lockUntil = Date.now() + LOGIN_LOCK_DURATION_MS;
         loginAttemptStore.set(attemptKey, {
           count: attempts,
@@ -2332,7 +2331,8 @@ app.post('/api/utilisateurs', verifyToken, async (req, res) => {
       return res.status(400).json({ error: 'Cet email est déjà utilisé' });
     }
 
-    // Si l'utilisateur authentifié est CHEF DE CENTRE, il ne peut créer
+    // Hachage du mot de passe
+    const hashedPassword = await bcrypt.hash(MotDePasse, 12);    // Si l'utilisateur authentifié est CHEF DE CENTRE, il ne peut créer
     // des utilisateurs que dans son propre centre. On force IdCentre.
     const actorRoleRaw = (req.user?.role || '');
     const actorRoleLower = actorRoleRaw.toLowerCase();
@@ -2539,10 +2539,10 @@ app.put('/api/utilisateurs/:id', verifyToken, async (req, res) => {
     
     // Mettre à jour le mot de passe seulement s'il est fourni
     if (MotDePasse) {
-      updateRequest.input('MotDePasse', sql.NVarChar(255), MotDePasse);
+      const hashedPassword = await bcrypt.hash(MotDePasse, 12);
+      updateRequest.input('MotDePasse', sql.NVarChar(255), hashedPassword);
       updateFields.push('MotDePasse = @MotDePasse');
     }
-
     updateFields.push('Role = @Role');  // Changé de IdRole à Role
     updateFields.push('IdUnite = @IdUnite');
     updateFields.push('IdCentre = @IdCentre');

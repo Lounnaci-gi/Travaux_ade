@@ -595,26 +595,33 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
                   Statut
                 </label>
                 {editingId ? (
-                  <label className="flex items-start gap-3 h-full p-4 rounded-lg dark:bg-white/5 bg-gray-50 border dark:border-white/10 border-gray-200 cursor-pointer hover:bg-white/10 transition-colors">
+                  <label className="flex items-center gap-3 h-full p-3 rounded-lg dark:bg-white/5 bg-gray-50 border dark:border-white/10 border-gray-200 cursor-pointer hover:bg-white/10 transition-colors">
                     <input 
                       type="checkbox" 
                       name="Actif" 
                       checked={form.Actif} 
                       onChange={handleChange} 
-                      className="form-section-checkbox accent-green-500" 
+                      className="form-section-checkbox accent-green-500 w-4 h-4" 
                     />
-                    <div>
-                      <span className="text-sm font-medium dark:text-gray-300 text-gray-700">
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium flex items-center gap-1 ${
+                        form.Actif 
+                          ? 'bg-green-500/20 text-green-500 dark:text-green-400' 
+                          : 'bg-red-500/20 text-red-500 dark:text-red-400'
+                      }`}>
+                        <svg className="w-1.5 h-1.5 fill-current" viewBox="0 0 8 8">
+                          <circle cx="4" cy="4" r="4"/>
+                        </svg>
                         {form.Actif ? 'Actif' : 'Inactif'}
                       </span>
-                      <p className="text-xs text-gray-400 mt-1">
-                        {form.Actif ? 'Visible dans les listes' : 'Masqué des listes'}
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {form.Actif ? 'Visible' : 'Masqué'}
                       </p>
                     </div>
                   </label>
                 ) : (
-                  <div className="flex items-center h-full p-4 rounded-lg dark:bg-white/5 bg-gray-50 border dark:border-white/10 border-gray-200">
-                    <span className="text-sm text-gray-400">Défini lors de l'édition</span>
+                  <div className="flex items-center h-full p-3 rounded-lg dark:bg-white/5 bg-gray-50 border dark:border-white/10 border-gray-200">
+                    <span className="text-xs text-gray-400">Défini lors de l'édition</span>
                   </div>
                 )}
               </div>
@@ -1276,11 +1283,23 @@ const DemandeTypeForm = ({ user, onUnauthorized }) => {
                         </div>
                       </td>
                       <td className="py-3 px-4 text-sm">
-                        {t.Actif ? (
-                          <span className="px-2 py-1 rounded-full bg-green-500/20 text-green-400 text-xs">Actif</span>
-                        ) : (
-                          <span className="px-2 py-1 rounded-full bg-red-500/20 text-red-400 text-xs">Inactif</span>
-                        )}
+                        <div className="flex items-center gap-2">
+                          {t.Actif ? (
+                            <span className="px-2 py-0.5 rounded-full bg-green-500/20 text-green-500 dark:text-green-400 text-xs font-medium flex items-center gap-1">
+                              <svg className="w-1.5 h-1.5 fill-current" viewBox="0 0 8 8">
+                                <circle cx="4" cy="4" r="4"/>
+                              </svg>
+                              Actif
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded-full bg-red-500/20 text-red-500 dark:text-red-400 text-xs font-medium flex items-center gap-1">
+                              <svg className="w-1.5 h-1.5 fill-current" viewBox="0 0 8 8">
+                                <circle cx="4" cy="4" r="4"/>
+                              </svg>
+                              Inactif
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="py-3 px-4 text-sm">
                         <button

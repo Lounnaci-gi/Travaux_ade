@@ -17,7 +17,7 @@ AquaConnect est une application de gestion complète pour les demandes d'aide te
 
 - **Frontend** : React.js avec Tailwind CSS
 - **Backend** : Node.js avec Express
-- **Base de données** : MySQL
+- **Base de données** : SQL Server
 - **Authentification** : JWT (JSON Web Tokens)
 - **Styling** : OBAT-style design avec thème sombre/clair
 
@@ -25,7 +25,7 @@ AquaConnect est une application de gestion complète pour les demandes d'aide te
 
 1. Cloner le repository
 2. Installer les dépendances frontend et backend
-3. Configurer la base de données MySQL
+3. Configurer la base de données SQL Server
 4. Exécuter les scripts d'initialisation
 5. Démarrer les serveurs frontend et backend
 
