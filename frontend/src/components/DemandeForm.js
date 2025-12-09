@@ -55,7 +55,8 @@ const printStyles = `
 const DemandeForm = ({ user, onCreated, onUnauthorized }) => {
   console.log('[DEBUG] Utilisateur connecté:', user);
   console.log('[DEBUG] Rôle utilisateur:', user?.role || user?.codeRole || user?.Role || user?.CodeRole);
-  const [clients, setClients] = useState([]);  const [agences, setAgences] = useState([]);
+  const [clients, setClients] = useState([]);
+  const [agences, setAgences] = useState([]);
   const [types, setTypes] = useState([]);
   const [clientTypes, setClientTypes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -64,24 +65,9 @@ const DemandeForm = ({ user, onCreated, onUnauthorized }) => {
   const [error, setError] = useState('');
   const [selectedClient, setSelectedClient] = useState(null);
   
-  // Vérifier si l'utilisateur a le droit d'accéder à cette page
-  useEffect(() => {
-    // Seuls les admins et certains rôles spécifiques peuvent accéder à cette page
-    const userRole = user?.role?.toLowerCase() || '';
-    const allowedRoles = [
-      'admin',
-      'administrateur',
-      'chef_agence_commerciale',
-      'chef_service_technico_commercial',
-      'utilisateur_standard'
-    ];
-    
-    const isAllowed = allowedRoles.some(role => userRole.includes(role));
-    
-    if (!isAllowed && onUnauthorized) {
-      onUnauthorized();
-    }
-  }, [user, onUnauthorized]);
+  // Le formulaire Nouvelle Demande est accessible à tous les utilisateurs connectés
+  // Le filtrage se fait au niveau des types de travaux autorisés
+  
   // Add state for client search functionality
   const [clientSearch, setClientSearch] = useState('');
   const [showClientDropdown, setShowClientDropdown] = useState(false);
