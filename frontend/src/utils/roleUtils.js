@@ -41,12 +41,15 @@ export const rolesMatch = (role1, role2) => {
   const normalized1 = normalizeRole(role1);
   const normalized2 = normalizeRole(role2);
   
-  // 1. Comparaison exacte après normalisation
+  // 1. Comparaison exacte après normalisation (stratégie principale pour la sécurité)
   if (normalized1 === normalized2) {
     return true;
   }
   
-  // 2. Comparaison par mots-clés (si au moins 2 mots correspondent)
+  // 2. Ancienne logique de correspondance partielle - désactivée pour plus de sécurité
+  // La logique précédente était trop permissive et causait des problèmes de filtrage
+  /*
+  // Comparaison par mots-clés (si au moins 2 mots correspondent)
   const words1 = normalized1.split('_').filter(w => w.length > 2);
   const words2 = normalized2.split('_').filter(w => w.length > 2);
   
@@ -57,12 +60,13 @@ export const rolesMatch = (role1, role2) => {
     }
   }
   
-  // 3. Comparaison partielle (pour les chaînes longues)
+  // Comparaison partielle (pour les chaînes longues)
   if (normalized1.length >= 10 && normalized2.length >= 10) {
     if (normalized1.includes(normalized2) || normalized2.includes(normalized1)) {
       return true;
     }
   }
+  */
   
   return false;
 };
@@ -82,8 +86,8 @@ export const canUserCreateDemandeType = (user, demandeType) => {
   // Récupérer le rôle de l'utilisateur
   const userRoleRaw = user.role || user.codeRole || user.Role || user.CodeRole;
   if (!userRoleRaw) {
-    // Si pas de rôle, permettre par défaut (pour éviter de bloquer tous les types)
-    return true;
+    // Si pas de rôle, refuser par défaut (politique de sécurité stricte)
+    return false;
   }
   
   const userRole = normalizeRole(userRoleRaw);
@@ -100,26 +104,30 @@ export const canUserCreateDemandeType = (user, demandeType) => {
       const parsed = JSON.parse(demandeType.Description);
       rolesAutorises = parsed.r || parsed.roles || [];
     } catch (e) {
-      // Si ce n'est pas du JSON, c'est une description simple (tous les rôles autorisés)
-      rolesAutorises = [];
+      // Si ce n'est pas du JSON, c'est une description simple
+      // Dans ce cas, on considère que tous les rôles sont autorisés
+      return true;
     }
   }
   
-  // Si aucun rôle n'est spécifié, tous les utilisateurs peuvent créer
+  // Si aucun rôle n'est spécifié, tous les utilisateurs peuvent créer (comportement actuel)
+  // Mais pour plus de sécurité, on pourrait aussi refuser
   if (rolesAutorises.length === 0) {
     return true;
   }
   
   // Vérifier si le rôle de l'utilisateur est dans la liste des rôles autorisés
+  // Utiliser une comparaison stricte
   return rolesAutorises.some(roleAutorise => {
     // Si c'est un nombre (ID de rôle), on ne peut pas le comparer
     if (typeof roleAutorise === 'number') {
       return false;
     }
     
-    // Si c'est une string, utiliser la fonction de comparaison
+    // Si c'est une string, utiliser la fonction de comparaison stricte
     if (typeof roleAutorise === 'string') {
-      return rolesMatch(userRole, roleAutorise);
+      const normalizedRoleAutorise = normalizeRole(roleAutorise);
+      return userRole === normalizedRoleAutorise;
     }
     
     return false;

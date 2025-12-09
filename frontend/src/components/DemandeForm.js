@@ -53,8 +53,9 @@ const printStyles = `
 `;
 
 const DemandeForm = ({ user, onCreated, onUnauthorized }) => {
-  const [clients, setClients] = useState([]);
-  const [agences, setAgences] = useState([]);
+  console.log('[DEBUG] Utilisateur connecté:', user);
+  console.log('[DEBUG] Rôle utilisateur:', user?.role || user?.codeRole || user?.Role || user?.CodeRole);
+  const [clients, setClients] = useState([]);  const [agences, setAgences] = useState([]);
   const [types, setTypes] = useState([]);
   const [clientTypes, setClientTypes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -527,15 +528,14 @@ const DemandeForm = ({ user, onCreated, onUnauthorized }) => {
   const canUserCreateType = React.useCallback((type) => {
     const canCreate = canUserCreateDemandeType(user, type);
     
-    // Logs de débogage uniquement si nécessaire
+    // Logs de débogage pour identifier les problèmes de filtrage
     if (!canCreate && user) {
-      // Debug logging for access denied - can be removed in production
+      console.log(`[DEBUG] Utilisateur ${user.username || user.id} (rôle: ${user.role}) n'est pas autorisé à créer le type:`, type);
     }
     
+    console.log(`[DEBUG] canUserCreateDemandeType résultat pour "${type.LibelleType}":`, canCreate);
     return canCreate;
-  }, [user]);
-
-  // Fonction pour filtrer les agences selon l'utilisateur
+  }, [user]);  // Fonction pour filtrer les agences selon l'utilisateur
   const getFilteredAgences = useMemo(() => {
     // Si l'utilisateur est administrateur, afficher toutes les agences
     if (isAdmin(user)) {
@@ -587,8 +587,17 @@ const DemandeForm = ({ user, onCreated, onUnauthorized }) => {
         // Traiter les types de demande
         if (typesRes.status === 'fulfilled') {
           const typesData = typesRes.value || [];
-          // Process retrieved demand types
+          console.log('[DEBUG] Types de demande récupérés:', typesData);
           
+          // Afficher les détails de chaque type pour le débogage
+          typesData.forEach((type, index) => {
+            console.log(`[DEBUG] Type ${index + 1}:`, {
+              id: type.IdDemandeType,
+              libelle: type.LibelleType,
+              description: type.Description,
+              actif: type.Actif
+            });
+          });          
           // Filtrer les types selon le rôle de l'utilisateur
           const filteredTypes = typesData.filter(type => {
             // Filtrer par Actif (gérer les valeurs BIT de SQL Server: 0/1 ou true/false)
@@ -600,11 +609,12 @@ const DemandeForm = ({ user, onCreated, onUnauthorized }) => {
             
             // Vérifier les permissions
             const canCreate = canUserCreateType(type);
+            console.log(`[DEBUG] Permission pour "${type.LibelleType}":`, canCreate);
             if (!canCreate) {
-              // Filter out types based on permissions
+              console.log('[DEBUG] Type ignoré (permissions insuffisantes):', type);
+              return false;
             }
-            return canCreate;
-          });
+            return true;          });
           
           // Set filtered types for user
           setTypes(filteredTypes);
