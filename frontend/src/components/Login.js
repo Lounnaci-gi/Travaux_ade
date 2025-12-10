@@ -110,14 +110,14 @@ const Login = ({ onLogin }) => {
               </div>
             </div>
             <div className="space-y-2">
-              <h2 className="text-xl font-semibold text-white">Connexion temporairement verrouillée</h2>
-              <p className="text-sm text-gray-200/90">
+              <h2 className="text-xl font-semibold dark:text-white text-gray-900">Connexion temporairement verrouillée</h2>
+              <p className="text-sm dark:text-gray-300 text-gray-600">
                 Trop de tentatives infructueuses ont été détectées. Veuillez patienter avant de réessayer.
               </p>
             </div>
             <div className="mt-4">
-              <p className="text-xs uppercase tracking-widest text-gray-300">Temps restant</p>
-              <div className="mt-2 text-4xl font-bold text-white tabular-nums">{formatRemainingTime(lockTimer.remainingMs)}</div>
+              <p className="text-xs uppercase tracking-widest dark:text-gray-400 text-gray-500">Temps restant</p>
+              <div className="mt-2 text-4xl font-bold dark:text-white text-gray-900 tabular-nums">{formatRemainingTime(lockTimer.remainingMs)}</div>
             </div>
           </div>
         </div>
