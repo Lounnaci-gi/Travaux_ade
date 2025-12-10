@@ -4248,7 +4248,7 @@ app.post('/api/devis', verifyToken, async (req, res) => {
     await transaction.begin();
     const request = new sql.Request(transaction);
     
-    const { idDemande, idTypeDevis, commentaire, articles } = req.body;
+    const { idDemande, idTypeDevis, commentaire, articles, newArticles } = req.body;
     
     // Validation
     if (!idDemande) {
@@ -4296,7 +4296,7 @@ app.post('/api/devis', verifyToken, async (req, res) => {
       return res.status(404).json({ error: 'Type de devis introuvable ou inactif' });
     }
     
-    // Générer le numéro de devis (format: DV-AGENCE-YEAR-XXXX)
+    // Générer le numéro de devis
     const currentYear = new Date().getFullYear();
     const agenceCode = await request
       .input('idAgence', sql.Int, demande.IdAgence)
@@ -4312,18 +4312,30 @@ app.post('/api/devis', verifyToken, async (req, res) => {
     }
     
     const agencePrefix = agenceCode.recordset[0].CodeAgence;
-    const numeroBase = `DV-${agencePrefix}-${currentYear}`;
     
+    // Obtenir le prochain numéro de devis
     const maxNumberResult = await request
-      .input('numeroBase', sql.NVarChar, `${numeroBase}-%`)
+      .input('agencePrefix', sql.NVarChar, agencePrefix)
+      .input('currentYear', sql.Int, currentYear)
       .query(`
-        SELECT ISNULL(MAX(CAST(SUBSTRING(NumeroDevis, LEN(@numeroBase) + 2, LEN(NumeroDevis)) AS INT)), 0) as MaxNum
+        SELECT ISNULL(MAX(
+          CASE 
+            WHEN NumeroDevis LIKE 'Dev-%/' + @agencePrefix + '/' + CAST(@currentYear AS NVARCHAR(4))
+              AND LEN(NumeroDevis) >= 5
+              AND CHARINDEX('/', NumeroDevis) > 4
+              AND SUBSTRING(NumeroDevis, 1, 4) = 'Dev-'
+              AND ISNUMERIC(SUBSTRING(NumeroDevis, 5, CHARINDEX('/', NumeroDevis) - 5)) = 1
+            THEN CAST(SUBSTRING(NumeroDevis, 5, CHARINDEX('/', NumeroDevis) - 5) AS INT)
+            ELSE 0
+          END
+        ), 0) as MaxNum
         FROM Devis
-        WHERE NumeroDevis LIKE @numeroBase + '-%'
+        WHERE NumeroDevis LIKE 'Dev-%/' + @agencePrefix + '/' + CAST(@currentYear AS NVARCHAR(4))
       `);
     
     const nextNumber = maxNumberResult.recordset[0].MaxNum + 1;
-    const numeroDevis = `${numeroBase}-${String(nextNumber).padStart(4, '0')}`;
+    const formattedNumber = String(nextNumber).padStart(4, '0');
+    const numeroDevis = `Dev-${formattedNumber}/${agencePrefix}/${currentYear}`;
     
     // Insérer le devis
     const insertDevisResult = await request
@@ -4346,21 +4358,152 @@ app.post('/api/devis', verifyToken, async (req, res) => {
     
     const idDevis = insertDevisResult.recordset[0].IdDevis;
     
+    // Traiter les nouveaux articles s'ils existent
+    const createdArticlesMap = {};
+    if (newArticles && Array.isArray(newArticles) && newArticles.length > 0) {
+      for (const newArticle of newArticles) {
+        // Créer la famille d'article si elle n'existe pas
+        let idFamille = null;
+        const familleResult = await request
+          .input('libelleFamille', sql.NVarChar(100), 'DIVERS')
+          .query(`
+            SELECT IdFamille
+            FROM ArticleFamille
+            WHERE LibelleFamille = @libelleFamille AND Actif = 1
+          `);
+        
+        if (familleResult.recordset.length > 0) {
+          idFamille = familleResult.recordset[0].IdFamille;
+        } else {
+          // Créer la famille DIVERS si elle n'existe pas
+          const insertFamilleResult = await request
+            .input('libelleFamille', sql.NVarChar(100), 'DIVERS')
+            .query(`
+              INSERT INTO ArticleFamille (CodeFamille, LibelleFamille, Description, Actif, DateCreation)
+              OUTPUT INSERTED.IdFamille
+              VALUES ('FAM-DIVERS', @libelleFamille, 'Famille par défaut pour les articles créés dans les devis', 1, GETDATE())
+            `);
+          idFamille = insertFamilleResult.recordset[0].IdFamille;
+        }
+        
+        // Générer un code article unique
+        const maxArticleResult = await request.query(`
+          SELECT ISNULL(MAX(CAST(SUBSTRING(CodeArticle, 5, LEN(CodeArticle)) AS INT)), 0) as MaxNum
+          FROM Article
+          WHERE CodeArticle LIKE 'ART-%' AND ISNUMERIC(SUBSTRING(CodeArticle, 5, LEN(CodeArticle))) = 1
+        `);
+        const nextArticleNumber = (maxArticleResult.recordset[0].MaxNum || 0) + 1;
+        const codeArticle = `ART-${String(nextArticleNumber).padStart(7, '0')}`;
+        
+        // Créer l'article
+        const insertArticleResult = await request
+          .input('idFamille', sql.Int, idFamille)
+          .input('codeArticle', sql.NVarChar(50), codeArticle)
+          .input('designation', sql.NVarChar(200), newArticle.designation)
+          .input('unite', sql.NVarChar(50), newArticle.unite || 'U')
+          .query(`
+            INSERT INTO Article (IdFamille, CodeArticle, Designation, Unite, Actif, DateCreation)
+            OUTPUT INSERTED.IdArticle
+            VALUES (@idFamille, @codeArticle, @designation, @unite, 1, GETDATE())
+          `);
+        
+        const newArticleId = insertArticleResult.recordset[0].IdArticle;
+        createdArticlesMap[newArticle.designation] = newArticleId;
+        
+        // Créer l'historique de prix pour l'article
+        if (newArticle.prixUnitaireHT !== undefined && newArticle.prixUnitaireHT !== null) {
+          const prixHTValue = parseFloat(newArticle.prixUnitaireHT);
+          const tauxTVAValue = newArticle.tauxTVAApplique !== undefined ? parseFloat(newArticle.tauxTVAApplique) : 0;
+          
+          if (!isNaN(prixHTValue) && prixHTValue >= 0) {
+            // Déterminer le type de prix à utiliser
+            const typePrix = newArticle.typePrix || 'FOURNITURE';
+            
+            await request
+              .input('idArticle', sql.Int, newArticleId)
+              .input('typePrix', sql.NVarChar(20), typePrix)
+              .input('prixHT', sql.Decimal(18, 2), prixHTValue)
+              .input('tauxTVA', sql.Decimal(5, 2), tauxTVAValue)
+              .input('idUser', sql.Int, req.user?.id)
+              .query(`
+                INSERT INTO ArticlePrixHistorique (
+                  IdArticle, TypePrix, PrixHT, TauxTVA, DateDebutApplication, 
+                  EstActif, DateCreation, IdUtilisateurCreation
+                )
+                VALUES (
+                  @idArticle, @typePrix, @prixHT, @tauxTVA, GETDATE(),
+                  1, GETDATE(), @idUser
+                )
+              `);
+              
+            // Si le type est BOTH, créer aussi l'autre type de prix
+            if (typePrix === 'BOTH') {
+              // Créer le prix fourniture
+              await request
+                .input('idArticle', sql.Int, newArticleId)
+                .input('typePrix', sql.NVarChar(20), 'FOURNITURE')
+                .input('prixHT', sql.Decimal(18, 2), prixHTValue)
+                .input('tauxTVA', sql.Decimal(5, 2), tauxTVAValue)
+                .input('idUser', sql.Int, req.user?.id)
+                .query(`
+                  INSERT INTO ArticlePrixHistorique (
+                    IdArticle, TypePrix, PrixHT, TauxTVA, DateDebutApplication, 
+                    EstActif, DateCreation, IdUtilisateurCreation
+                  )
+                  VALUES (
+                    @idArticle, @typePrix, @prixHT, @tauxTVA, GETDATE(),
+                    1, GETDATE(), @idUser
+                  )
+                `);
+              
+              // Créer le prix pose
+              await request
+                .input('idArticle', sql.Int, newArticleId)
+                .input('typePrix', sql.NVarChar(20), 'POSE')
+                .input('prixHT', sql.Decimal(18, 2), prixHTValue)
+                .input('tauxTVA', sql.Decimal(5, 2), tauxTVAValue)
+                .input('idUser', sql.Int, req.user?.id)
+                .query(`
+                  INSERT INTO ArticlePrixHistorique (
+                    IdArticle, TypePrix, PrixHT, TauxTVA, DateDebutApplication, 
+                    EstActif, DateCreation, IdUtilisateurCreation
+                  )
+                  VALUES (
+                    @idArticle, @typePrix, @prixHT, @tauxTVA, GETDATE(),
+                    1, GETDATE(), @idUser
+                  )
+                `);
+            }
+          }
+        }
+      }
+    }
+    
     // Insérer les articles du devis
     let montantTotalHT = 0;
     let montantTotalTVA = 0;
     
-    for (const article of articles) {
+    // Combiner les articles existants et les nouveaux articles
+    const allArticles = [...articles];
+    
+    for (const article of allArticles) {
       const {
         idArticle,
         quantite,
         prixUnitaireHT,
         tauxTVAApplique,
-        typePrix // This is the new field we're adding
+        typePrix,
+        designation // Pour les nouveaux articles
       } = article;
       
+      // Pour les nouveaux articles, utiliser l'ID créé
+      let articleId = idArticle;
+      if (!articleId && designation && createdArticlesMap[designation]) {
+        articleId = createdArticlesMap[designation];
+      }
+      
       // Validation
-      if (!idArticle) {
+      if (!articleId) {
         await transaction.rollback();
         return res.status(400).json({ error: 'idArticle est requis pour chaque article' });
       }
@@ -4382,7 +4525,7 @@ app.post('/api/devis', verifyToken, async (req, res) => {
       
       // Vérifier que l'article existe et est actif
       const articleResult = await request
-        .input('idArticle', sql.Int, idArticle)
+        .input('idArticle', sql.Int, articleId)
         .query(`
           SELECT IdArticle, CodeArticle, Designation, Unite
           FROM Article
@@ -4391,7 +4534,7 @@ app.post('/api/devis', verifyToken, async (req, res) => {
       
       if (articleResult.recordset.length === 0) {
         await transaction.rollback();
-        return res.status(404).json({ error: `Article avec id ${idArticle} introuvable ou inactif` });
+        return res.status(404).json({ error: `Article avec id ${articleId} introuvable ou inactif` });
       }
       
       const articleData = articleResult.recordset[0];
@@ -4411,13 +4554,13 @@ app.post('/api/devis', verifyToken, async (req, res) => {
       // Insérer l'article dans DevisArticle
       await request
         .input('IdDevis', sql.Int, idDevis)
-        .input('IdArticle', sql.Int, idArticle)
+        .input('IdArticle', sql.Int, articleId)
         .input('Designation', sql.NVarChar(200), articleData.Designation)
         .input('Unite', sql.NVarChar(50), articleData.Unite)
         .input('Quantite', sql.Decimal(18, 3), quantiteValue)
         .input('PrixUnitaireHT', sql.Decimal(18, 2), prixUnitaireValue)
         .input('TauxTVAApplique', sql.Decimal(5, 2), tauxTVAValue)
-        .input('Remarque', sql.NVarChar(500), typePrix || null) // Store typePrix in Remarque field for now
+        .input('Remarque', sql.NVarChar(500), typePrix || null)
         .query(`
           INSERT INTO DevisArticle (
             IdDevis, IdArticle, Designation, Unite, Quantite, 
@@ -4482,7 +4625,6 @@ app.post('/api/devis', verifyToken, async (req, res) => {
     res.status(500).json({ error: error.message || 'Erreur serveur lors de la création du devis' });
   }
 });
-
 // Récupérer tous les devis
 app.get('/api/devis', verifyToken, async (req, res) => {
   try {
@@ -4749,6 +4891,121 @@ app.post('/api/articles', verifyToken, async (req, res) => {
 // ============================================================================
 
 // Get all global configurations
+
+// Create article with price (simplified endpoint for immediate article creation in devis form)
+app.post('/api/articles/with-price', verifyToken, async (req, res) => {
+  const transaction = new sql.Transaction(pool);
+  
+  try {
+    await transaction.begin();
+    const request = new sql.Request(transaction);
+    
+    const {
+      designation,
+      unite,
+      prixUnitaireHT,
+      tauxTVAApplique,
+      typePrix
+    } = req.body;
+    
+    // Validation
+    if (!designation || !unite) {
+      await transaction.rollback();
+      return res.status(400).json({ error: 'designation et unite sont requis' });
+    }
+    
+    if (prixUnitaireHT === undefined || prixUnitaireHT === null || isNaN(parseFloat(prixUnitaireHT)) || parseFloat(prixUnitaireHT) < 0) {
+      await transaction.rollback();
+      return res.status(400).json({ error: 'prixUnitaireHT doit être un nombre positif' });
+    }
+    
+    if (tauxTVAApplique === undefined || tauxTVAApplique === null || isNaN(parseFloat(tauxTVAApplique)) || parseFloat(tauxTVAApplique) < 0 || parseFloat(tauxTVAApplique) > 100) {
+      await transaction.rollback();
+      return res.status(400).json({ error: 'tauxTVAApplique doit être un nombre entre 0 et 100' });
+    }
+    
+    // Use default family "DIVERS" if it exists, otherwise create it
+    let idFamille = null;
+    const familleResult = await request
+      .input('libelleFamille', sql.NVarChar, 'DIVERS')
+      .query(`
+        SELECT IdFamille
+        FROM ArticleFamille
+        WHERE LibelleFamille = @libelleFamille AND Actif = 1
+      `);
+    
+    if (familleResult.recordset.length > 0) {
+      idFamille = familleResult.recordset[0].IdFamille;
+    } else {
+      // Create the DIVERS family if it doesn't exist
+      const insertFamilleResult = await request
+        .input('libelleFamille', sql.NVarChar, 'DIVERS')
+        .query(`
+          INSERT INTO ArticleFamille (CodeFamille, LibelleFamille, Description, Actif, DateCreation)
+          OUTPUT INSERTED.IdFamille
+          VALUES ('FAM-DIVERS', @libelleFamille, 'Famille par défaut pour les articles créés dans les devis', 1, GETDATE())
+        `);
+      idFamille = insertFamilleResult.recordset[0].IdFamille;
+    }
+    
+    // Generate unique article code
+    const maxArticleResult = await request.query(`
+      SELECT ISNULL(MAX(CAST(SUBSTRING(CodeArticle, 5, LEN(CodeArticle)) AS INT)), 0) as MaxNum
+      FROM Article
+      WHERE CodeArticle LIKE 'ART-%' AND ISNUMERIC(SUBSTRING(CodeArticle, 5, LEN(CodeArticle))) = 1
+    `);
+    const nextArticleNumber = (maxArticleResult.recordset[0].MaxNum || 0) + 1;
+    const codeArticle = `ART-${String(nextArticleNumber).padStart(7, '0')}`;
+    
+    // Create the article
+    const insertArticleResult = await request
+      .input('idFamille', sql.Int, idFamille)
+      .input('codeArticle', sql.NVarChar, codeArticle)
+      .input('designation', sql.NVarChar, designation)
+      .input('unite', sql.NVarChar, unite)
+      .query(`
+        INSERT INTO Article (IdFamille, CodeArticle, Designation, Unite, Actif, DateCreation)
+        OUTPUT INSERTED.*
+        VALUES (@idFamille, @codeArticle, @designation, @unite, 1, GETDATE())
+      `);
+    
+    const createdArticle = insertArticleResult.recordset[0];
+    
+    // Create price history for the article
+    const prixHTValue = parseFloat(prixUnitaireHT);
+    const tauxTVAValue = parseFloat(tauxTVAApplique);
+    
+    await request
+      .input('idArticle', sql.Int, createdArticle.IdArticle)
+      .input('typePrix', sql.NVarChar, typePrix || 'FOURNITURE')
+      .input('prixHT', sql.Decimal(18, 2), prixHTValue)
+      .input('tauxTVA', sql.Decimal(5, 2), tauxTVAValue)
+      .input('idUser', sql.Int, req.user?.id)
+      .query(`
+        INSERT INTO ArticlePrixHistorique (
+          IdArticle, TypePrix, PrixHT, TauxTVA, DateDebutApplication, 
+          EstActif, DateCreation, IdUtilisateurCreation
+        )
+        VALUES (
+          @idArticle, @typePrix, @prixHT, @tauxTVA, GETDATE(),
+          1, GETDATE(), @idUser
+        )
+      `);
+    
+    await transaction.commit();
+    
+    res.status(201).json(createdArticle);
+  } catch (error) {
+    try {
+      await transaction.rollback();
+    } catch (rollbackError) {
+      // Error during rollback
+    }
+    res.status(500).json({ error: error.message || 'Erreur serveur lors de la création de l\'article' });
+  }
+});
+
+
 app.get('/api/configurations', verifyToken, async (req, res) => {
   try {
     // Only admin users can access global configurations

@@ -26,7 +26,7 @@ function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showIdleWarning, setShowIdleWarning] = useState(false);
-  
+
   // Refs for tracking idle time
   const idleTimer = useRef(null);
   const idleWarningTimer = useRef(null);
@@ -47,6 +47,9 @@ function App() {
 
   // Reset idle timers on user activity
   const resetIdleTimer = React.useCallback(() => {
+    // Masquer l'avertissement lorsque l'utilisateur est actif
+    setShowIdleWarning(false);
+    
     if (idleTimer.current) clearTimeout(idleTimer.current);
     if (idleWarningTimer.current) clearTimeout(idleWarningTimer.current);
     

@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect, useRef } from 'react';
-import { getDemandes, getDevisTypes, getArticles, getFamilles, createDevis, getTVADefault, getAgenceById, getCentreById, getNextDevisNumber } from '../services/api';
+import { getDemandes, getDevisTypes, getArticles, getFamilles, createDevis, getTVADefault, getAgenceById, getCentreById, getNextDevisNumber, createArticleWithPrice } from '../services/api';
 import { alertSuccess, alertError } from '../ui/alerts';
 import { formatNumberWithThousands } from '../utils/numberFormat';
 import { isPreviewAccessAllowed } from '../utils/previewAccess';
@@ -491,6 +491,94 @@ const DevisForm = ({ user }) => {
     }
   };
 
+  // Function to create a new article
+  const handleCreateNewArticle = (index, articleName) => {
+    // Create a temporary article object
+    const newArticle = {
+      IdArticle: `temp-${Date.now()}`,
+      Designation: articleName,
+      Unite: '',
+      PrixFournitureHT: '',
+      PrixPoseHT: '',
+      PrixServiceHT: '',
+      PrixPrestationHT: '',
+      PrixCautionnementHT: '',
+      TauxTVAFourniture: globalTVA,
+      TauxTVAPose: globalTVA,
+      TauxTVAService: globalTVA,
+      TauxTVAPrestation: globalTVA,
+      TauxTVACautionnement: globalTVA
+    };
+    
+    // Add to available articles temporarily
+    setAvailableArticles(prev => [...prev, newArticle]);
+    
+    // Select this new article
+    handleArticleSelect(index, newArticle.IdArticle);
+    setShowArticleDropdown(prev => ({ ...prev, [index]: false }));
+  };
+
+  // Function to create a new article immediately (when clicking the "+" button)
+  const createNewArticleImmediately = async (index) => {
+    try {
+      const article = formData.articles[index];
+      
+      // Validation
+      if (!article.designation) {
+        alertError('Erreur', 'Veuillez saisir une désignation pour l\'article');
+        return;
+      }
+      
+      if (!article.unite) {
+        alertError('Erreur', 'Veuillez saisir une unité pour l\'article');
+        return;
+      }
+      
+      if (!article.prixUnitaireHT || parseFloat(article.prixUnitaireHT) < 0) {
+        alertError('Erreur', 'Veuillez saisir un prix unitaire valide');
+        return;
+      }
+      
+      if (parseFloat(article.tauxTVAApplique) < 0 || parseFloat(article.tauxTVAApplique) > 100) {
+        alertError('Erreur', 'Veuillez saisir un taux de TVA valide (0-100%)');
+        return;
+      }
+      
+      // Create the article payload
+      const articlePayload = {
+        designation: article.designation,
+        unite: article.unite,
+        prixUnitaireHT: parseFloat(article.prixUnitaireHT),
+        tauxTVAApplique: parseFloat(article.tauxTVAApplique),
+        typePrix: article.typePrix || 'FOURNITURE'
+      };
+      
+      // Call the API to create the article
+      const createdArticle = await createArticleWithPrice(articlePayload);
+      
+      // Update the article in the form with the real ID from the database
+      const updatedArticles = [...formData.articles];
+      updatedArticles[index] = {
+        ...updatedArticles[index],
+        idArticle: createdArticle.IdArticle,
+        isNewArticle: false // Mark as no longer a new article
+      };
+      
+      setFormData(prev => ({
+        ...prev,
+        articles: updatedArticles
+      }));
+      
+      // Also update the available articles list
+      setAvailableArticles(prev => [...prev, createdArticle]);
+      
+      alertSuccess('Succès', 'Article créé avec succès');
+    } catch (error) {
+      console.error('Error creating article:', error);
+      alertError('Erreur', error.response?.data?.message || 'Erreur lors de la création de l\'article');
+    }
+  };
+
   // New function to duplicate an article
   const duplicateArticle = (index) => {
     const articleToDuplicate = formData.articles[index];
@@ -514,6 +602,12 @@ const DevisForm = ({ user }) => {
     const selectedArticle = availableArticles.find(a => a.IdArticle === articleId);
     if (selectedArticle) {
       const updatedArticles = [...formData.articles];
+      
+      // Check if this is a temporary article (newly created)
+      const isNewArticle = typeof articleId === 'string' && articleId.startsWith('temp-');
+      
+      // For newly created articles, we want to allow price modification
+      // For existing articles, we want to lock the price field
       
       // Determine the best typePrix based on available prices
       let bestTypePrix = updatedArticles[index].typePrix || 'FOURNITURE';
@@ -558,7 +652,8 @@ const DevisForm = ({ user }) => {
         unite: selectedArticle.Unite,
         typePrix: bestTypePrix,
         prixUnitaireHT: prixUnitaireHT,
-        tauxTVAApplique: tauxTVAApplique
+        tauxTVAApplique: tauxTVAApplique,
+        isNewArticle: isNewArticle // Mark as new article
       };
       
       setFormData(prev => ({
@@ -582,7 +677,8 @@ const DevisForm = ({ user }) => {
           prixUnitaireHT: '',
           tauxTVAApplique: globalTVA,
           unite: '',
-          typePrix: 'FOURNITURE' // Add this field - default to Fourniture
+          typePrix: 'FOURNITURE', // Add this field - default to Fourniture
+          isNewArticle: false // Not a new article initially
         }
       ]
     }));
@@ -796,17 +892,22 @@ const DevisForm = ({ user }) => {
     
     try {
       setLoading(true);
+      
+      // Prepare articles data for submission
+      // All articles should now have real IDs since new articles are created immediately
+      const articlesData = formData.articles.map(article => ({
+        idArticle: article.idArticle,
+        quantite: parseFloat(article.quantite),
+        prixUnitaireHT: parseFloat(article.prixUnitaireHT),
+        tauxTVAApplique: parseFloat(article.tauxTVAApplique),
+        typePrix: article.typePrix
+      }));
+      
       const devisData = {
         idDemande: formData.idDemande,
         idTypeDevis: formData.idTypeDevis,
         commentaire: formData.commentaire,
-        articles: formData.articles.map(article => ({
-          idArticle: article.idArticle,
-          quantite: parseFloat(article.quantite),
-          prixUnitaireHT: parseFloat(article.prixUnitaireHT),
-          tauxTVAApplique: parseFloat(article.tauxTVAApplique),
-          typePrix: article.typePrix // Include the typePrix field
-        }))
+        articles: articlesData
       };
       
       await createDevis(devisData);
@@ -836,7 +937,8 @@ const DevisForm = ({ user }) => {
           prixUnitaireHT: '',
           tauxTVAApplique: globalTVA,
           unite: '',
-          typePrix: 'FOURNITURE' // Add this field - default to Fourniture
+          typePrix: 'FOURNITURE', // Add this field - default to Fourniture
+          isNewArticle: false // Not a new article initially
         }
       ]
     });
@@ -1248,6 +1350,18 @@ const DevisForm = ({ user }) => {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                                       </svg>
                                       <h3 className="mt-1 text-xs font-medium">Aucun article trouvé</h3>
+                                      {articleSearch[index] && (
+                                        <button 
+                                          type="button"
+                                          onClick={() => handleCreateNewArticle(index, articleSearch[index])}
+                                          className="mt-2 inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                                        >
+                                          <svg className="-ml-0.5 mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                          </svg>
+                                          Créer "{articleSearch[index]}"
+                                        </button>
+                                      )}
                                     </div>
                                   );
                                 }
@@ -1374,7 +1488,7 @@ const DevisForm = ({ user }) => {
                               onChange={(e) => handleArticleChange(index, 'prixUnitaireHT', e.target.value)}
                               className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-center"
                               placeholder="Prix HT"
-                              readOnly
+                              readOnly={!article.isNewArticle}
                             />
                             <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-gray-500 dark:text-gray-400 text-xs">
                               {/* Currency symbol removed as per user request */}
@@ -1431,7 +1545,14 @@ const DevisForm = ({ user }) => {
                           </button>
                           <button
                             type="button"
-                            onClick={addArticle}
+                            onClick={() => {
+                              // If this is a new article (without a real ID), create it immediately
+                              if (article.isNewArticle && article.idArticle && article.idArticle.toString().startsWith('temp-')) {
+                                createNewArticleImmediately(index);
+                              } else {
+                                addArticle();
+                              }
+                            }}
                             className="px-2 py-1 bg-green-100 dark:bg-green-900/50 border border-gray-300 dark:border-gray-600 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800 text-xs rounded"
                             title="Ajouter"
                           >

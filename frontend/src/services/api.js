@@ -681,6 +681,17 @@ export const createArticle = async (payload) => {
   }
 };
 
+// Simplified article creation with price (for immediate creation in devis form)
+export const createArticleWithPrice = async (payload) => {
+  try {
+    const response = await api.post('/articles/with-price', payload);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating article with price:', error);
+    throw error;
+  }
+};
+
 export const updateArticle = async (id, payload) => {
   try {
     const response = await api.put(`/articles/${id}`, payload);
