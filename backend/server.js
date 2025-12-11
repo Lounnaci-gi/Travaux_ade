@@ -683,8 +683,10 @@ app.get('/api/clients/:id', async (req, res) => {
         c.DiametreBranchement,
         c.Actif,
         c.DateCreation,
-        c.DateModification
+        c.DateModification,
+        ct.LibelleType as TypeClientLibelle
       FROM Client c
+      LEFT JOIN ClientType ct ON c.IdClientType = ct.IdClientType
       WHERE c.IdClient = @id
     `);
     if (result.recordset.length === 0) return res.status(404).json({ error: 'Client introuvable' });
@@ -694,7 +696,6 @@ app.get('/api/clients/:id', async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
-
 // (supprimé: doublon déplacé au-dessus de la route :id)
 
 // Debug/health endpoint for client types
