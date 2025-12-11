@@ -362,7 +362,7 @@ const DemandeList = ({ user }) => {
 
             <div class="info-box">
               <p><strong>Dans le cadre d'un branchement lié à un besoin pour la construction d'un immeuble, à des besoins industriels ou de chantier, veuillez préciser les informations suivantes :</strong></p>
-              <p>Diamètre de branchement _____________ mm</p>
+              <p>Diamètre de branchement _____________${clientData?.DiametreBranchement || ''}_____ </p>
               <p>Débit moyen horaire _____________ m³/h</p>
             </div>
 
