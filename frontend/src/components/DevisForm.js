@@ -1350,22 +1350,11 @@ const DevisForm = ({ user }) => {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                                       </svg>
                                       <h3 className="mt-1 text-xs font-medium">Aucun article trouvé</h3>
-                                      {articleSearch[index] && (
-                                        <button 
-                                          type="button"
-                                          onClick={() => handleCreateNewArticle(index, articleSearch[index])}
-                                          className="mt-2 inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-                                        >
-                                          <svg className="-ml-0.5 mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                          </svg>
-                                          Créer "{articleSearch[index]}"
-                                        </button>
-                                      )}
-                                    </div>
+                                      <p className="mt-2 text-xs text-gray-400 dark:text-gray-500">
+                                        Aucun article ne correspond à votre recherche
+                                      </p>                                    </div>
                                   );
-                                }
-                                
+                                }                                
                                 return familyKeys.map(familleKey => (
                                   <div key={familleKey}>
                                     {/* Family Header */}
