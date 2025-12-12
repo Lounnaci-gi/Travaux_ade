@@ -22,19 +22,15 @@ api.interceptors.response.use(
       );
     }
     
-    // Si l'erreur est une erreur 401 avec le message "Session expirée", 
-    // déconnecter l'utilisateur et le rediriger vers la page de login
+    // Si l'erreur est une erreur 401, déconnecter l'utilisateur automatiquement
     if (error.response && error.response.status === 401) {
-      const message = error.response.data?.error || '';
-      if (message.includes('Session expirée')) {
-        // Supprimer les données de session
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        
-        // Rediriger vers la page de login
-        if (typeof window !== 'undefined') {
-          window.location.href = '/'; // Redirige vers la racine qui affichera le login
-        }
+      // Supprimer les données de session
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
+      // Rediriger vers la page de login
+      if (typeof window !== 'undefined') {
+        window.location.href = '/'; // Redirige vers la racine qui affichera le login
       }
     }
     

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ThemeProvider } from './contexts/ThemeContext';
 import Navbar from './components/Navbar';
 import Login from './components/Login';
@@ -30,12 +30,42 @@ function App() {
   // Refs for tracking idle time
   const idleTimer = useRef(null);
   const idleWarningTimer = useRef(null);
+  const tokenCheckInterval = useRef(null);
   const IDLE_TIMEOUT = 10 * 60 * 1000; // 10 minutes in milliseconds
   const WARNING_TIME = 60 * 1000; // 1 minute warning before logout
+  const TOKEN_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
+
+  // Function to check token validity
+  const checkTokenValidity = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      handleLogout();
+      return;
+    }
+
+    try {
+      const response = await fetch(process.env.REACT_APP_API_URL || 'http://localhost:5000/api/auth/verify', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+      if (!data.valid) {
+        handleLogout();
+      }
+    } catch (error) {
+      // En cas d'erreur de vérification, déconnecter l'utilisateur
+      handleLogout();
+    }
+  }, []);
 
   const handleLogout = React.useCallback(() => {
     if (idleTimer.current) clearTimeout(idleTimer.current);
     if (idleWarningTimer.current) clearTimeout(idleWarningTimer.current);
+    if (tokenCheckInterval.current) clearInterval(tokenCheckInterval.current);
     
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -75,10 +105,11 @@ function App() {
       });
       if (idleTimer.current) clearTimeout(idleTimer.current);
       if (idleWarningTimer.current) clearTimeout(idleWarningTimer.current);
+      if (tokenCheckInterval.current) clearInterval(tokenCheckInterval.current);
     };
   }, [resetIdleTimer]);
 
-  // Check for existing authentication on app load
+  // Check for existing authentication on app load and set up token validation interval
   useEffect(() => {
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
@@ -88,6 +119,9 @@ function App() {
         const parsedUser = JSON.parse(userData);
         setUser(parsedUser);
         setIsAuthenticated(true);
+        
+        // Démarrer la vérification périodique du token
+        tokenCheckInterval.current = setInterval(checkTokenValidity, TOKEN_CHECK_INTERVAL);
       } catch (e) {
         // Error parsing user data
         localStorage.removeItem('token');
@@ -97,7 +131,11 @@ function App() {
     
     // Always set loading to false after checking
     setLoading(false);
-  }, []);
+    
+    return () => {
+      if (tokenCheckInterval.current) clearInterval(tokenCheckInterval.current);
+    };
+  }, [checkTokenValidity]);
 
   const handleLogin = (userData) => {
     setUser(userData);

@@ -178,6 +178,7 @@ const DemandeList = ({ user }) => {
               font-size: 12pt;
               margin: 0;
               padding: 0;
+              text-transform: uppercase;
             }
             .unit-name {
               position: absolute;
@@ -227,12 +228,18 @@ const DemandeList = ({ user }) => {
             .branchement-diameter {
               position: absolute;
               top: 18.5cm;
-              left: 4cm;
+              left: 5cm;
+              text-transform: lowercase;
             }
             .agency-commune {
               position: absolute;
               top: 22cm;
               left: 1.5cm;
+            }
+            .creation-date {
+              position: absolute;
+              top: 22cm;
+              left: 5cm;
             }
           </style>
         </head>
@@ -248,6 +255,7 @@ const DemandeList = ({ user }) => {
           <div class="branchement-address">${clientData?.AdresseBranchement || ''}, ${clientData?.CommuneBranchement || ''}</div>
           <div class="branchement-diameter">${clientData?.DiametreBranchement || ''}</div>
           <div class="agency-commune">${agence?.Commune || ''}</div>
+          <div class="creation-date">${demandeData?.DateCreation ? new Date(demandeData.DateCreation).toLocaleDateString('fr-FR') : ''}</div>
         </body>
         </html>
       `);
