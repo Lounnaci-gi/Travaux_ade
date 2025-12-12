@@ -229,6 +229,7 @@ const DemandeList = ({ user }) => {
               position: absolute;
               top: 18.5cm;
               left: 4cm;
+              text-transform: lowercase;
             }
             .agency-commune {
               position: absolute;
@@ -261,6 +262,12 @@ const DemandeList = ({ user }) => {
               width: 100px; /* Ajustez cette valeur selon la longueur souhaitée */
               border-bottom: 1px solid black;
             }
+            .checkmark {
+              position: absolute;
+              top: 12cm;
+              left: 1cm;
+              font-size: 12pt;
+            }
           </style>
         </head>
         <body>
@@ -272,7 +279,7 @@ const DemandeList = ({ user }) => {
           <div class="client-address">${clientData?.AdresseResidence || ''}</div>
           <div class="client-commune">${clientData?.CommuneResidence || ''}</div>
           <div class="client-telephone">${clientData?.TelephonePrincipal || ''} ${clientData?.TelephoneSecondaire ? '/ ' + clientData.TelephoneSecondaire : ''}</div>
-          <div class="branchement-address">${clientData?.AdresseBranchement || ''}, ${clientData?.CommuneBranchement || ''}</div>
+          <div class="branchement-address">${demandeData?.TypeDemande || ''}</div>
           <div class="branchement-diameter">${clientData?.DiametreBranchement || ''}</div>
           <div class="agency-commune">${agence?.Commune || ''}</div>
           <div class="creation-date">${demandeData?.DateCreation ? new Date(demandeData.DateCreation).toLocaleDateString('fr-FR') : ''}</div>
