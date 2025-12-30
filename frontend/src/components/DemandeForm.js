@@ -82,7 +82,32 @@ const DemandeForm = ({ user, onCreated, onUnauthorized }) => {
     // Load client details
     if (clientId) {
       getClientById(clientId)
-        .then((data) => setSelectedClient(data))
+        .then((data) => {
+          setSelectedClient(data);
+          // Pré-remplir le formulaire client avec les données du client sélectionné
+          setClientForm({
+            idClientType: data.IdClientType || '',
+            nom: data.Nom || '',
+            prenom: data.Prenom || '',
+            adresseResidence: data.AdresseResidence || '',
+            communeResidence: data.CommuneResidence || '',
+            codePostalResidence: data.CodePostalResidence || '',
+            adresseBranchement: data.AdresseBranchement || '',
+            communeBranchement: data.CommuneBranchement || '',
+            codePostalBranchement: data.CodePostalBranchement || '',
+            telephonePrincipal: data.TelephonePrincipal || '',
+            telephoneSecondaire: data.TelephoneSecondaire || '',
+            fax: data.Fax || '',
+            email: data.Email || '',
+            numeroPieceIdentite: data.NumeroPieceIdentite || '',
+            pieceDelivrePar: data.PieceDelivrePar || '',
+            dateDelivrancePiece: data.DateDelivrancePiece || '',
+            statutOccupation: data.StatutOccupation || '',
+            diametreBranchement: data.DiametreBranchement || '',
+          });
+          // Passer en mode création pour permettre les modifications
+          setNewClientMode(true);
+        })
         .catch(() => setSelectedClient(null));
     }
   };
@@ -1178,49 +1203,7 @@ const DemandeForm = ({ user, onCreated, onUnauthorized }) => {
                   )}
                 </div>
 
-                {selectedClient && (
-                  <div className="glass-card p-3">
-                    <h3 className="text-base font-semibold mb-2 dark:text-white text-gray-900">Informations client</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                      <div>
-                        <p className="dark:text-gray-400 text-gray-600">Nom complet</p>
-                        <p className="dark:text-white text-gray-900 font-medium">{selectedClient.Nom} {selectedClient.Prenom || ''}</p>
-                      </div>
-                      <div>
-                        <p className="dark:text-gray-400 text-gray-600">Téléphone</p>
-                        <p className="dark:text-white text-gray-900 font-medium">{selectedClient.TelephonePrincipal}{selectedClient.TelephoneSecondaire ? ` / ${selectedClient.TelephoneSecondaire}` : ''}</p>
-                      </div>
-                      <div>
-                        <p className="dark:text-gray-400 text-gray-600">Email</p>
-                        <p className="dark:text-white text-gray-900 font-medium">{selectedClient.Email || '—'}</p>
-                      </div>
-                      <div className="md:col-span-3">
-                        <p className="dark:text-gray-400 text-gray-600">Adresse de branchement</p>
-                        <p className="dark:text-white text-gray-900 font-medium">{selectedClient.AdresseBranchement}</p>
-                      </div>
-                      <div className="md:col-span-3">
-                        <p className="dark:text-gray-400 text-gray-600">Adresse de résidence</p>
-                        <p className="dark:text-white text-gray-900 font-medium">{selectedClient.AdresseResidence}</p>
-                      </div>
-                      <div>
-                        <p className="dark:text-gray-400 text-gray-600">Commune de résidence</p>
-                        <p className="dark:text-white text-gray-900 font-medium">{selectedClient.CommuneResidence || '—'}</p>
-                      </div>
-                      <div>
-                        <p className="dark:text-gray-400 text-gray-600">Code postal de résidence</p>
-                        <p className="dark:text-white text-gray-900 font-medium">{selectedClient.CodePostalResidence || '—'}</p>
-                      </div>
-                      <div>
-                        <p className="dark:text-gray-400 text-gray-600">Statut d'occupation</p>
-                        <p className="dark:text-white text-gray-900 font-medium">{selectedClient.StatutOccupation || '—'}</p>
-                      </div>
-                      <div>
-                        <p className="dark:text-gray-400 text-gray-600">Diamètre</p>
-                        <p className="dark:text-white text-gray-900 font-medium">{selectedClient.DiametreBranchement || '—'}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
+
 
                 <div>
                   <label className="block text-xs dark:text-gray-300 text-gray-700 mb-1">Commentaire</label>

@@ -178,6 +178,7 @@ const DemandeList = ({ user }) => {
               font-size: 12pt;
               margin: 0;
               padding: 0;
+              text-transform: uppercase;
             }
             .unit-name {
               position: absolute;
@@ -228,11 +229,44 @@ const DemandeList = ({ user }) => {
               position: absolute;
               top: 18.5cm;
               left: 4cm;
+              text-transform: lowercase;
             }
             .agency-commune {
               position: absolute;
               top: 22cm;
               left: 1.5cm;
+            }
+            .creation-date {
+              position: absolute;
+              top: 22cm;
+              left: 6.5cm;
+            }
+            .owner-underline {
+              position: absolute;
+              top: 9.5cm;
+              left: 5cm;
+              width: 100px; /* Ajustez cette valeur selon la longueur souhaitée */
+              border-bottom: 1px solid black;
+            }
+            .tenant-underline {
+              position: absolute;
+              top: 9.5cm;
+              left: 7cm;
+              width: 80px; /* Ajustez cette valeur selon la longueur souhaitée */
+              border-bottom: 1px solid black;
+            }
+            .mandataire-underline {
+              position: absolute;
+              top: 9.5cm;
+              left: 8.5cm;
+              width: 100px; /* Ajustez cette valeur selon la longueur souhaitée */
+              border-bottom: 1px solid black;
+            }
+            .checkmark {
+              position: absolute;
+              top: 12cm;
+              left: 1cm;
+              font-size: 12pt;
             }
           </style>
         </head>
@@ -245,9 +279,13 @@ const DemandeList = ({ user }) => {
           <div class="client-address">${clientData?.AdresseResidence || ''}</div>
           <div class="client-commune">${clientData?.CommuneResidence || ''}</div>
           <div class="client-telephone">${clientData?.TelephonePrincipal || ''} ${clientData?.TelephoneSecondaire ? '/ ' + clientData.TelephoneSecondaire : ''}</div>
-          <div class="branchement-address">${clientData?.AdresseBranchement || ''}, ${clientData?.CommuneBranchement || ''}</div>
+          <div class="branchement-address">${demandeData?.TypeDemande || ''}</div>
           <div class="branchement-diameter">${clientData?.DiametreBranchement || ''}</div>
           <div class="agency-commune">${agence?.Commune || ''}</div>
+          <div class="creation-date">${demandeData?.DateCreation ? new Date(demandeData.DateCreation).toLocaleDateString('fr-FR') : ''}</div>
+          ${clientData?.StatutOccupation === 'PROPRIETAIRE' ? '<div class="owner-underline"></div>' : ''}
+          ${clientData?.StatutOccupation === 'LOCATAIRE' ? '<div class="tenant-underline"></div>' : ''}
+          ${clientData?.StatutOccupation === 'MANDATAIRE' ? '<div class="mandataire-underline"></div>' : ''}
         </body>
         </html>
       `);
