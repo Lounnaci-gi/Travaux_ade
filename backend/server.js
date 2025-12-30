@@ -458,6 +458,58 @@ const verifyToken = (req, res, next) => {
   }
 };
 
+// Route pour vérifier la validité d'un token existant
+app.post('/api/auth/verify-token', verifyToken, async (req, res) => {
+  try {
+    const user = req.user;
+    
+    // Récupérer les informations complètes de l'utilisateur depuis la base de données
+    const request = pool.request();
+    request.input('id', sql.Int, user.id);
+    const result = await request.query(`
+      SELECT 
+        u.IdUtilisateur,
+        u.Matricule,
+        u.Nom,
+        u.Prenom,
+        u.Email,
+        u.Telephone,
+        u.Role,
+        u.IdUnite,
+        u.IdCentre,
+        u.IdAgence
+      FROM Utilisateur u
+      WHERE u.IdUtilisateur = @id AND u.Actif = 1
+    `);
+    
+    if (result.recordset.length === 0) {
+      return res.status(401).json({ error: 'Utilisateur invalide ou désactivé' });
+    }
+    
+    const userInfo = result.recordset[0];
+    
+    res.json({
+      valid: true,
+      user: {
+        id: userInfo.IdUtilisateur,
+        matricule: userInfo.Matricule,
+        nom: userInfo.Nom,
+        prenom: userInfo.Prenom,
+        email: userInfo.Email,
+        telephone: userInfo.Telephone,
+        role: userInfo.Role,
+        codeRole: userInfo.Role,
+        idUnite: userInfo.IdUnite,
+        idCentre: userInfo.IdCentre,
+        idAgence: userInfo.IdAgence,
+      }
+    });
+  } catch (error) {
+    console.error('Erreur lors de la vérification du token:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
 // Get statistics
 app.get('/api/stats', verifyToken, async (req, res) => {
   try {

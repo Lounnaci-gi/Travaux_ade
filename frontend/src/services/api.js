@@ -499,6 +499,16 @@ export const login = async (credentials) => {
   }
 };
 
+export const verifyToken = async () => {
+  try {
+    const response = await api.post('/auth/verify-token');
+    return response.data;
+  } catch (error) {
+    console.error('Error verifying token:', error);
+    throw error;
+  }
+};
+
 export const logout = async () => {
   const token = localStorage.getItem('token');
   if (token) {

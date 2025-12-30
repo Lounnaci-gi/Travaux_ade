@@ -19,6 +19,7 @@ import DevisForm from './components/DevisForm';
 import DevisList from './components/DevisList';
 import DevisTypeForm from './components/DevisTypeForm';
 import ParametresForm from './components/ParametresForm';
+import { verifyToken } from './services/api';
 
 function App() {
   const [currentView, setCurrentView] = useState('dashboard');
@@ -80,23 +81,37 @@ function App() {
 
   // Check for existing authentication on app load
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-    
-    if (token && userData) {
-      try {
-        const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
-        setIsAuthenticated(true);
-      } catch (e) {
-        // Error parsing user data
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+    const checkAuth = async () => {
+      const token = localStorage.getItem('token');
+      
+      if (token) {
+        try {
+          // Vérifier la validité du token avec le serveur
+          const response = await verifyToken();
+          
+          if (response.valid && response.user) {
+            setUser(response.user);
+            setIsAuthenticated(true);
+            
+            // Mettre à jour les données utilisateur dans le localStorage
+            localStorage.setItem('user', JSON.stringify(response.user));
+          } else {
+            // Token invalide, déconnecter l'utilisateur
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+          }
+        } catch (error) {
+          // Token invalide ou erreur serveur, déconnecter l'utilisateur
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        }
       }
-    }
+      
+      // Toujours terminer le chargement
+      setLoading(false);
+    };
     
-    // Always set loading to false after checking
-    setLoading(false);
+    checkAuth();
   }, []);
 
   const handleLogin = (userData) => {
