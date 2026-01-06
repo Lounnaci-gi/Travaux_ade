@@ -17,7 +17,7 @@ import RoleForm from './components/RoleForm';
 import ArticlesList from './components/ArticlesList';
 import DevisForm from './components/DevisForm';
 import DevisList from './components/DevisList';
-import DevisTypeForm from './components/DevisTypeForm';
+// import DevisTypeForm from './components/DevisTypeForm'; // Composant désactivé car la table TypeDevis n'existe plus dans la base de données
 import ParametresForm from './components/ParametresForm';
 import { verifyToken } from './services/api';
 
@@ -171,7 +171,7 @@ function App() {
       case 'devis-list':
         return <DevisList user={user} />;
       case 'devis-types':
-        return <DevisTypeForm user={user} onUnauthorized={() => setCurrentView('dashboard')} />;
+        return <div className="p-6 text-center text-gray-500 dark:text-gray-400">La gestion des types de devis a été désactivée car la table TypeDevis n'existe plus dans la base de données.</div>;
       case 'devis-create':
         return <DevisForm user={user} onUnauthorized={() => setCurrentView('dashboard')} />;
       case 'parametres':

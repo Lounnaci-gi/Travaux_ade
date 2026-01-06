@@ -586,15 +586,17 @@ export const deleteDevis = async (id) => {
   }
 };
 
-export const getDevisTypes = async () => {
-  try {
-    const response = await api.get('/devis/types');
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching devis types:', error);
-    throw error;
-  }
-};
+// Ancienne fonction pour récupérer les types de devis - plus nécessaire
+// car la table TypeDevis n'existe plus dans la base de données
+// export const getDevisTypes = async () => {
+//   try {
+//     const response = await api.get('/devis/types');
+//     return response.data;
+//   } catch (error) {
+//     console.error('Error fetching devis types:', error);
+//     throw error;
+//   }
+// };
 
 export const createDevisType = async (payload) => {
   try {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getDevisTypes, createDevisType, updateDevisType, deleteDevisType } from '../services/api';
+import { createDevisType, updateDevisType, deleteDevisType } from '../services/api';
 
 const DevisTypeForm = ({ user, onUnauthorized }) => {
   const [devisTypes, setDevisTypes] = useState([]);
@@ -16,17 +16,13 @@ const DevisTypeForm = ({ user, onUnauthorized }) => {
   const [success, setSuccess] = useState('');
 
   useEffect(() => {
-    loadDevisTypes();
+    // Plus de chargement des types de devis car la table TypeDevis n'existe plus dans la base de données
+    // setDevisTypes([]); // Initialiser avec un tableau vide
   }, []);
 
   const loadDevisTypes = async () => {
-    try {
-      const data = await getDevisTypes();
-      setDevisTypes(data);
-    } catch (err) {
-      // Error loading devis types
-      setError('Erreur lors du chargement des types de devis');
-    }
+    // Fonction désactivée car la table TypeDevis n'existe plus dans la base de données
+    setDevisTypes([]); // Retourner un tableau vide
   };
 
   const handleInputChange = (e) => {

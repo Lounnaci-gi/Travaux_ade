@@ -107,9 +107,9 @@ const Navbar = ({ currentView, setCurrentView, onLogout, user }) => {
         </svg>
       ),
       submenu: [
+        { id: 'demandes-create', label: 'Nouvelle Demande' },
         { id: 'demandes-list', label: 'Liste des Demandes' },
         { id: 'demandes-statuts', label: 'Statuts' },
-        { id: 'demandes-create', label: 'Nouvelle Demande' },
       ],
     },
     devis: {

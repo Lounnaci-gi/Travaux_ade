@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { getConfigurations, updateConfiguration } from '../services/api';
 import Swal from 'sweetalert2';
+import { useTheme } from '../contexts/ThemeContext';
 
 const ParametresForm = ({ user }) => {
+  const { theme, toggleTheme, isDark } = useTheme();
   const [settings, setSettings] = useState({
-    theme: 'light',
     notifications: true,
     language: 'fr',
     autoSave: true
@@ -68,6 +69,12 @@ const ParametresForm = ({ user }) => {
   };
 
   const handleChange = (field, value) => {
+    if (field === 'theme') {
+      // Le thème est géré par le contexte, donc on ne le stocke pas dans les settings locaux
+      toggleTheme();
+      return;
+    }
+    
     const newSettings = { ...settings, [field]: value };
     setSettings(newSettings);
     // Save to localStorage
@@ -161,20 +168,20 @@ const ParametresForm = ({ user }) => {
                 </p>
               </div>
               <div className="flex items-center space-x-2">
-                <span className={`px-3 py-1 rounded-lg ${settings.theme === 'light' ? 'bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'}`}>
+                <span className={`px-3 py-1 rounded-lg ${!isDark ? 'bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'}`}>
                   Clair
                 </span>
                 <button
-                  onClick={() => handleChange('theme', settings.theme === 'light' ? 'dark' : 'light')}
+                  onClick={() => handleChange('theme', null)}
                   className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-300 dark:bg-gray-600 transition-colors focus:outline-none"
                 >
                   <span
                     className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      settings.theme === 'dark' ? 'translate-x-6' : 'translate-x-1'
+                      isDark ? 'translate-x-6' : 'translate-x-1'
                     }`}
                   />
                 </button>
-                <span className={`px-3 py-1 rounded-lg ${settings.theme === 'dark' ? 'bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'}`}>
+                <span className={`px-3 py-1 rounded-lg ${isDark ? 'bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'}`}>
                   Sombre
                 </span>
               </div>
@@ -300,15 +307,6 @@ const ParametresForm = ({ user }) => {
               {loading ? 'Enregistrement...' : 'Enregistrer Configurations'}
             </button>
           )}
-          <button
-            onClick={() => {
-              // Reload page to apply settings
-              window.location.reload();
-            }}
-            className="px-6 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors duration-300 font-medium"
-          >
-            Appliquer les changements
-          </button>
         </div>
       </div>
     </div>

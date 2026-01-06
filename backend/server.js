@@ -4092,69 +4092,10 @@ app.get('/api/articles/:id', verifyToken, async (req, res) => {
 // DEVIS TYPES (DOIT ÊTRE AVANT /api/devis/:id pour éviter les conflits)
 // ============================================================================
 
-// Récupérer tous les types de devis
+// Récupérer tous les types de devis - FONCTIONNALITÉ SUPPRIMÉE - Table TypeDevis n'existe plus dans la base de données
 app.get('/api/devis/types', async (req, res) => {
-  try {
-    // Vérifier que le pool est disponible
-    if (!pool) {
-      return res.status(503).json({ error: 'Service temporairement indisponible. Connexion à la base de données non établie.' });
-    }
-    
-    let result;
-    try {
-      result = await pool.request().query(`
-        SELECT 
-          IdTypeDevis, 
-          CodeTypeDevis, 
-          LibelleTypeDevis,
-          ValidationChefServiceTechnicoCommercialRequise,
-          ValidationChefCentreRequise,
-          ValidationChefAgenceRequise,
-          Actif,
-          DateCreation
-        FROM TypeDevis
-        WHERE Actif = 1
-        ORDER BY LibelleTypeDevis
-      `);
-    } catch (sqlError) {
-      // Si la table n'existe pas
-      if (sqlError.number === 208 || sqlError.message?.includes('Invalid object name') || sqlError.message?.includes('TypeDevis')) {
-        return res.status(500).json({ 
-          error: 'Table TypeDevis introuvable dans la base de données. Veuillez contacter l\'administrateur.',
-          details: process.env.NODE_ENV === 'development' ? sqlError.message : undefined
-        });
-      }
-      
-      // Relancer l'erreur pour qu'elle soit gérée par le catch principal
-      throw sqlError;
-    }
-    
-    res.json(result.recordset);
-  } catch (error) {
-    // Gérer les erreurs spécifiques
-    if (error.code === 'ETIMEOUT' || error.code === 'ESOCKET') {
-      return res.status(503).json({ error: 'Service temporairement indisponible. Problème de connexion à la base de données.' });
-    }
-    
-    if (error.number === 208 || error.message?.includes('Invalid object name')) {
-      return res.status(500).json({ 
-        error: 'Table TypeDevis introuvable dans la base de données. Veuillez contacter l\'administrateur.',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
-    }
-    
-    // Retourner l'erreur avec le message détaillé
-    const errorMessage = error.message || 'Erreur serveur lors de la récupération des types de devis';
-    res.status(500).json({ 
-      error: errorMessage,
-      details: process.env.NODE_ENV === 'development' ? {
-        message: error.message,
-        number: error.number,
-        state: error.state,
-        code: error.code
-      } : undefined
-    });
-  }
+  // Retourne un tableau vide pour éviter les erreurs dans le frontend
+  res.json([]);
 });
 
 // Récupérer un devis par ID
@@ -4170,13 +4111,12 @@ app.get('/api/devis/:id', verifyToken, async (req, res) => {
           d.IdDevis,
           d.NumeroDevis,
           d.IdDemande,
-          d.IdTypeDevis,
+          d.EstQuantitatifEstimatif,
           d.MontantTotalHT,
           d.MontantTotalTVA,
           d.MontantTotalTTC,
           d.Commentaire,
           d.DateCreation,
-          dt.LibelleTypeDevis,
           dem.NumeroDemande,
           c.Nom + ' ' + ISNULL(c.Prenom, '') as Client,
           c.AdresseResidence,
@@ -4185,7 +4125,6 @@ app.get('/api/devis/:id', verifyToken, async (req, res) => {
           c.TelephonePrincipal,
           u.Nom + ' ' + ISNULL(u.Prenom, '') as UtilisateurCreation
         FROM Devis d
-        INNER JOIN TypeDevis dt ON d.IdTypeDevis = dt.IdTypeDevis
         INNER JOIN DemandeTravaux dem ON d.IdDemande = dem.IdDemande
         INNER JOIN Client c ON dem.IdClient = c.IdClient
         INNER JOIN Utilisateur u ON d.IdUtilisateurCreation = u.IdUtilisateur
@@ -4309,11 +4248,6 @@ app.post('/api/devis', verifyToken, async (req, res) => {
       return res.status(400).json({ error: 'idDemande est requis' });
     }
     
-    if (!idTypeDevis) {
-      await transaction.rollback();
-      return res.status(400).json({ error: 'idTypeDevis est requis' });
-    }
-    
     if (!articles || !Array.isArray(articles) || articles.length === 0) {
       await transaction.rollback();
       return res.status(400).json({ error: 'articles est requis et doit être un tableau non vide' });
@@ -4335,19 +4269,7 @@ app.post('/api/devis', verifyToken, async (req, res) => {
     
     const demande = demandeResult.recordset[0];
     
-    // Vérifier que le type de devis existe et est actif
-    const typeDevisResult = await request
-      .input('idTypeDevis', sql.Int, idTypeDevis)
-      .query(`
-        SELECT IdTypeDevis, CodeTypeDevis, LibelleTypeDevis
-        FROM TypeDevis
-        WHERE IdTypeDevis = @idTypeDevis AND Actif = 1
-      `);
-    
-    if (typeDevisResult.recordset.length === 0) {
-      await transaction.rollback();
-      return res.status(404).json({ error: 'Type de devis introuvable ou inactif' });
-    }
+    // idTypeDevis n'est plus utilisé car la table TypeDevis n'existe plus
     
     // Générer le numéro de devis
     const currentYear = new Date().getFullYear();
@@ -4394,17 +4316,17 @@ app.post('/api/devis', verifyToken, async (req, res) => {
     const insertDevisResult = await request
       .input('NumeroDevis', sql.NVarChar(50), numeroDevis)
       .input('IdDemande', sql.Int, idDemande)
-      .input('IdTypeDevis', sql.Int, idTypeDevis)
       .input('IdUtilisateurCreation', sql.Int, req.user?.id)
       .input('Commentaire', sql.NVarChar(sql.MAX), commentaire || null)
+      .input('EstQuantitatifEstimatif', sql.Bit, 0) // Valeur par défaut
       .query(`
         INSERT INTO Devis (
-          NumeroDevis, IdDemande, IdTypeDevis, IdUtilisateurCreation, 
+          NumeroDevis, IdDemande, EstQuantitatifEstimatif, IdUtilisateurCreation, 
           MontantTotalHT, MontantTotalTVA, MontantTotalTTC, Commentaire
         )
         OUTPUT INSERTED.IdDevis
         VALUES (
-          @NumeroDevis, @IdDemande, @IdTypeDevis, @IdUtilisateurCreation,
+          @NumeroDevis, @IdDemande, @EstQuantitatifEstimatif, @IdUtilisateurCreation,
           0, 0, 0, @Commentaire
         )
       `);
@@ -4653,16 +4575,14 @@ app.post('/api/devis', verifyToken, async (req, res) => {
           d.IdDevis,
           d.NumeroDevis,
           d.IdDemande,
-          d.IdTypeDevis,
+          d.EstQuantitatifEstimatif,
           d.MontantTotalHT,
           d.MontantTotalTVA,
           d.MontantTotalTTC,
           d.Commentaire,
           d.DateCreation,
-          dt.LibelleTypeDevis,
           dem.NumeroDemande
         FROM Devis d
-        INNER JOIN TypeDevis dt ON d.IdTypeDevis = dt.IdTypeDevis
         INNER JOIN DemandeTravaux dem ON d.IdDemande = dem.IdDemande
         WHERE d.IdDevis = @idDevis
       `);
@@ -4686,17 +4606,15 @@ app.get('/api/devis', verifyToken, async (req, res) => {
         d.IdDevis,
         d.NumeroDevis,
         d.IdDemande,
-        d.IdTypeDevis,
+        d.EstQuantitatifEstimatif,
         d.MontantTotalHT,
         d.MontantTotalTVA,
         d.MontantTotalTTC,
         d.Commentaire,
         d.DateCreation,
-        dt.LibelleTypeDevis,
         dem.NumeroDemande,
         c.Nom + ' ' + ISNULL(c.Prenom, '') as Client
       FROM Devis d
-      INNER JOIN TypeDevis dt ON d.IdTypeDevis = dt.IdTypeDevis
       INNER JOIN DemandeTravaux dem ON d.IdDemande = dem.IdDemande
       INNER JOIN Client c ON dem.IdClient = c.IdClient
       ORDER BY d.DateCreation DESC
@@ -5207,219 +5125,12 @@ const startServer = async () => {
   });
 };
 
-// Création d'un type de devis (CodeTypeDevis auto TDV-XXXX)
-app.post('/api/devis/types', verifyToken, async (req, res) => {
-  try {
-    // Vérifier que l'utilisateur est admin
-    const actorRoleLower = (req.user?.role || '').toLowerCase();
-    const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin');
-    if (!isAdminRole) {
-      return res.status(403).json({ error: 'Seuls les administrateurs peuvent créer des types de devis.' });
-    }
 
-    const {
-      LibelleTypeDevis,
-      ValidationChefServiceTechnicoCommercialRequise,
-      ValidationChefCentreRequise,
-      ValidationChefAgenceRequise
-    } = req.body;
 
-    if (!LibelleTypeDevis) {
-      return res.status(400).json({ error: 'LibelleTypeDevis est requis' });
-    }
 
-    // Validation des longueurs de champs
-    const lengthConstraints = [
-      { field: 'LibelleTypeDevis', value: LibelleTypeDevis, max: 100, label: 'Libellé Type Devis' }
-    ];
 
-    for (const { field, value, max, label } of lengthConstraints) {
-      if (value && typeof value === 'string' && value.trim().length > max) {
-        return res.status(400).json({ error: `Le champ ${label} ne doit pas dépasser ${max} caractères.` });
-      }
-    }
 
-    // Vérifier si un type avec le même libellé existe déjà
-    const existingType = await pool.request()
-      .input('LibelleTypeDevis', sql.NVarChar(100), LibelleTypeDevis.trim())
-      .query(`
-        SELECT IdTypeDevis, LibelleTypeDevis
-        FROM TypeDevis
-        WHERE LOWER(LTRIM(RTRIM(LibelleTypeDevis))) = LOWER(LTRIM(RTRIM(@LibelleTypeDevis)))
-          AND Actif = 1
-      `);
 
-    if (existingType.recordset.length > 0) {
-      return res.status(409).json({ error: 'Un type de devis avec ce libellé existe déjà.' });
-    }
-
-    // Générer CodeTypeDevis format TDV-XXXX
-    const maxResult = await pool.request().query(`
-      SELECT ISNULL(MAX(CAST(SUBSTRING(CodeTypeDevis, 5, LEN(CodeTypeDevis)) AS INT)), 0) as MaxNum
-      FROM TypeDevis
-      WHERE CodeTypeDevis LIKE 'TDV-%' AND ISNUMERIC(SUBSTRING(CodeTypeDevis, 5, LEN(CodeTypeDevis))) = 1
-    `);
-    const nextNumber = (maxResult.recordset[0].MaxNum || 0) + 1;
-    const CodeTypeDevis = `TDV-${String(nextNumber).padStart(4, '0')}`;
-
-    const insert = await pool.request()
-      .input('CodeTypeDevis', sql.NVarChar(20), CodeTypeDevis)
-      .input('LibelleTypeDevis', sql.NVarChar(100), LibelleTypeDevis.trim())
-      .input('ValidationChefServiceTechnicoCommercialRequise', sql.Bit, ValidationChefServiceTechnicoCommercialRequise ? 1 : 0)
-      .input('ValidationChefCentreRequise', sql.Bit, ValidationChefCentreRequise ? 1 : 0)
-      .input('ValidationChefAgenceRequise', sql.Bit, ValidationChefAgenceRequise ? 1 : 0)
-      .query(`
-        INSERT INTO TypeDevis (
-          CodeTypeDevis, 
-          LibelleTypeDevis, 
-          ValidationChefServiceTechnicoCommercialRequise,
-          ValidationChefCentreRequise,
-          ValidationChefAgenceRequise,
-          Actif
-        )
-        OUTPUT INSERTED.*
-        VALUES (
-          @CodeTypeDevis, 
-          @LibelleTypeDevis, 
-          @ValidationChefServiceTechnicoCommercialRequise,
-          @ValidationChefCentreRequise,
-          @ValidationChefAgenceRequise,
-          1
-        )
-      `);
-
-    res.status(201).json(insert.recordset[0]);
-  } catch (error) {
-    // Error creating devis type
-    if (error.number === 2627 || error.number === 2601) {
-      return res.status(409).json({ error: 'Un type de devis avec ce code existe déjà.' });
-    }
-    res.status(500).json({ error: error.message || 'Erreur serveur' });
-  }
-});
-
-// Modification d'un type de devis
-app.put('/api/devis/types/:id', verifyToken, async (req, res) => {
-  try {
-    // Vérifier que l'utilisateur est admin
-    const actorRoleLower = (req.user?.role || '').toLowerCase();
-    const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin');
-    if (!isAdminRole) {
-      return res.status(403).json({ error: 'Seuls les administrateurs peuvent modifier des types de devis.' });
-    }
-
-    const id = parseInt(req.params.id);
-    if (!id) return res.status(400).json({ error: 'Id invalide' });
-
-    const {
-      LibelleTypeDevis,
-      ValidationChefServiceTechnicoCommercialRequise,
-      ValidationChefCentreRequise,
-      ValidationChefAgenceRequise
-    } = req.body;
-
-    if (!LibelleTypeDevis) {
-      return res.status(400).json({ error: 'LibelleTypeDevis est requis' });
-    }
-
-    // Validation des longueurs de champs
-    const lengthConstraints = [
-      { field: 'LibelleTypeDevis', value: LibelleTypeDevis, max: 100, label: 'Libellé Type Devis' }
-    ];
-
-    for (const { field, value, max, label } of lengthConstraints) {
-      if (value && typeof value === 'string' && value.trim().length > max) {
-        return res.status(400).json({ error: `Le champ ${label} ne doit pas dépasser ${max} caractères.` });
-      }
-    }
-
-    // Vérifier si un type avec le même libellé existe déjà (autre que celui en cours de modification)
-    const existingType = await pool.request()
-      .input('id', sql.Int, id)
-      .input('LibelleTypeDevis', sql.NVarChar(100), LibelleTypeDevis.trim())
-      .query(`
-        SELECT IdTypeDevis, LibelleTypeDevis
-        FROM TypeDevis
-        WHERE LOWER(LTRIM(RTRIM(LibelleTypeDevis))) = LOWER(LTRIM(RTRIM(@LibelleTypeDevis)))
-          AND IdTypeDevis != @id
-          AND Actif = 1
-      `);
-
-    if (existingType.recordset.length > 0) {
-      return res.status(409).json({ error: 'Un type de devis avec ce libellé existe déjà.' });
-    }
-
-    const update = await pool.request()
-      .input('id', sql.Int, id)
-      .input('LibelleTypeDevis', sql.NVarChar(100), LibelleTypeDevis.trim())
-      .input('ValidationChefServiceTechnicoCommercialRequise', sql.Bit, ValidationChefServiceTechnicoCommercialRequise ? 1 : 0)
-      .input('ValidationChefCentreRequise', sql.Bit, ValidationChefCentreRequise ? 1 : 0)
-      .input('ValidationChefAgenceRequise', sql.Bit, ValidationChefAgenceRequise ? 1 : 0)
-      .query(`
-        UPDATE TypeDevis SET
-          LibelleTypeDevis = @LibelleTypeDevis,
-          ValidationChefServiceTechnicoCommercialRequise = @ValidationChefServiceTechnicoCommercialRequise,
-          ValidationChefCentreRequise = @ValidationChefCentreRequise,
-          ValidationChefAgenceRequise = @ValidationChefAgenceRequise
-        OUTPUT INSERTED.*
-        WHERE IdTypeDevis = @id
-      `);
-
-    if (update.recordset.length === 0) {
-      return res.status(404).json({ error: 'Type de devis introuvable' });
-    }
-
-    res.json(update.recordset[0]);
-  } catch (error) {
-    // Error updating devis type
-    if (error.number === 2627 || error.number === 2601) {
-      return res.status(409).json({ error: 'Un type de devis avec ce libellé existe déjà.' });
-    }
-    res.status(500).json({ error: error.message || 'Erreur serveur' });
-  }
-});
-
-// Suppression d'un type de devis
-app.delete('/api/devis/types/:id', verifyToken, async (req, res) => {
-  try {
-    // Vérifier que l'utilisateur est admin
-    const actorRoleLower = (req.user?.role || '').toLowerCase();
-    const isAdminRole = actorRoleLower === 'admin' || actorRoleLower.includes('admin');
-    if (!isAdminRole) {
-      return res.status(403).json({ error: 'Seuls les administrateurs peuvent supprimer des types de devis.' });
-    }
-
-    const id = parseInt(req.params.id);
-    if (!id) return res.status(400).json({ error: 'Id invalide' });
-
-    // Vérifier si le type est utilisé par des devis
-    const devisCount = await pool.request()
-      .input('id', sql.Int, id)
-      .query(`
-        SELECT COUNT(*) as Count
-        FROM Devis
-        WHERE IdTypeDevis = @id
-      `);
-
-    if (devisCount.recordset[0].Count > 0) {
-      return res.status(400).json({ error: 'Impossible de supprimer ce type de devis car il est utilisé par des devis existants.' });
-    }
-
-    // Supprimer le type (soft delete)
-    await pool.request()
-      .input('id', sql.Int, id)
-      .query(`
-        UPDATE TypeDevis
-        SET Actif = 0
-        WHERE IdTypeDevis = @id
-      `);
-
-    res.json({ message: 'Type de devis supprimé avec succès' });
-  } catch (error) {
-    // Error deleting devis type
-    res.status(500).json({ error: error.message || 'Erreur serveur' });
-  }
-});
 
 // ============================================================================
 // ARTICLE PRIX HISTORIQUE

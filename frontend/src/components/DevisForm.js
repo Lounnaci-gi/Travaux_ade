@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect, useRef } from 'react';
-import { getDemandes, getDevisTypes, getArticles, getFamilles, createDevis, getTVADefault, getAgenceById, getCentreById, getNextDevisNumber, createArticleWithPrice } from '../services/api';
+import { getDemandes, getArticles, getFamilles, createDevis, getTVADefault, getAgenceById, getCentreById, getNextDevisNumber, createArticleWithPrice } from '../services/api';
 import { alertSuccess, alertError } from '../ui/alerts';
 import { formatNumberWithThousands } from '../utils/numberFormat';
 import { isPreviewAccessAllowed } from '../utils/previewAccess';
@@ -183,7 +183,7 @@ const DevisForm = ({ user }) => {
   // Nouvelle structure : grouper par famille
   const [formData, setFormData] = useState({
     idDemande: '',
-    idTypeDevis: '',
+    estQuantitatifEstimatif: false,
     commentaire: '',
     articles: [
       {
@@ -199,7 +199,6 @@ const DevisForm = ({ user }) => {
   });
 
   const [demandes, setDemandes] = useState([]);
-  const [devisTypes, setDevisTypes] = useState([]);
   const [availableArticles, setAvailableArticles] = useState([]);
   const [familles, setFamilles] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -207,12 +206,8 @@ const DevisForm = ({ user }) => {
   const [success, setSuccess] = useState('');
   const [demande, setDemande] = useState(null);
   
-  // Fonction pour obtenir le nom du type de devis à partir de l'ID
-  const getDevisTypeName = (idTypeDevis) => {
-    if (!idTypeDevis || !devisTypes || devisTypes.length === 0) return '';
-    const type = devisTypes.find(t => t.IdTypeDevis === idTypeDevis);
-    return type ? type.LibelleTypeDevis : '';
-  };
+  // Ancienne fonction pour obtenir le nom du type de devis - plus nécessaire
+  // car la table TypeDevis n'existe plus
   const [demandeSearch, setDemandeSearch] = useState('');
   const [filteredDemandes, setFilteredDemandes] = useState([]);
   const [showDemandeDropdown, setShowDemandeDropdown] = useState(false);
@@ -246,26 +241,19 @@ const DevisForm = ({ user }) => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [demandesList, typesList, articlesList, famillesList] = await Promise.all([
+        const [demandesList, articlesList, famillesList] = await Promise.all([
           getDemandes(),
-          getDevisTypes(),
           getArticles(),
           getFamilles()
         ]);
         setDemandes(demandesList || []);
-        setDevisTypes(typesList || []);
         setAvailableArticles(articlesList || []);
         setFamilles(famillesList || []);
         
-        // Set default type if only one available
-        if (typesList && typesList.length === 1) {
-          setFormData(prev => ({
-            ...prev,
-            idTypeDevis: typesList[0].IdTypeDevis
-          }));
-        }
+        // Plus de gestion des types de devis car la table TypeDevis n'existe plus
       } catch (err) {
-        setError('Erreur lors du chargement des données');
+        console.error('Erreur lors du chargement des données:', err);
+        setError('Erreur lors du chargement des données: ' + (err.response?.data?.error || err.message || 'Erreur inconnue'));
       }
     };
 
@@ -857,10 +845,7 @@ const DevisForm = ({ user }) => {
       return;
     }
     
-    if (!formData.idTypeDevis) {
-      setError('Veuillez sélectionner un type de devis');
-      return;
-    }
+    // Plus de validation de type de devis car la table TypeDevis n'existe plus
     
     // Validate articles
     for (let i = 0; i < formData.articles.length; i++) {
@@ -905,7 +890,7 @@ const DevisForm = ({ user }) => {
       
       const devisData = {
         idDemande: formData.idDemande,
-        idTypeDevis: formData.idTypeDevis,
+        estQuantitatifEstimatif: formData.estQuantitatifEstimatif,
         commentaire: formData.commentaire,
         articles: articlesData
       };
@@ -927,7 +912,7 @@ const DevisForm = ({ user }) => {
   const resetForm = () => {
     setFormData({
       idDemande: '',
-      idTypeDevis: formData.idTypeDevis, // Keep the same type
+      estQuantitatifEstimatif: formData.estQuantitatifEstimatif, // Keep the same value
       commentaire: '',
       articles: [
         {
@@ -1302,6 +1287,9 @@ const DevisForm = ({ user }) => {
                           placeholder="Rechercher un article... *"
                           autoComplete="off"
                         />
+
+                        
+
                         
                         {/* Dropdown - Full width and no scrollbars */}
                         {showArticleDropdown[index] && (
@@ -1659,15 +1647,15 @@ const DevisForm = ({ user }) => {
             </div>
           </div>
         ) : (
-        <div id="devis-preview" className="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow p-6" style={{ fontFamily: 'Calibri, Arial, sans-serif', backgroundColor: '#f5f5f5', padding: '20px' }}>          <div className="container" style={{ maxWidth: '800px', margin: '0 auto', background: 'white', position: 'relative', overflow: 'hidden' }}>
+        <div id="devis-preview" className="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow p-6" style={{ fontFamily: 'Calibri, Arial, sans-serif', backgroundColor: '#f5f5f5', padding: '20px' }}>          <div className="container" style={{ width: '100%', maxWidth: 'none', margin: '0', background: 'white', position: 'relative', overflow: 'hidden', boxSizing: 'border-box' }}>
             <div className="background-design" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(135deg, rgba(173, 216, 230, 0.3) 0%, rgba(135, 206, 250, 0.2) 50%, rgba(176, 224, 230, 0.3) 100%)', clipPath: 'polygon(0 0, 45% 0, 35% 100%, 0 100%)', zIndex: 0 }}></div>
             
-            <div className="content" style={{ position: 'relative', zIndex: 1, padding: '40px' }}>
+            <div className="content" style={{ position: 'relative', zIndex: 1, padding: '35px' }}>
               <div className="header" style={{ position: 'relative' }}>
                 <img src="/ade.png" alt="Logo ADE" style={{ position: 'absolute', top: '10px', right: '10px', height: '132px', opacity: 0.3, zIndex: -1 }} />
-                <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1e90ff', textTransform: 'uppercase', marginBottom: '20px', textAlign: 'left' }}>DEVIS</h1>
+                <h1 style={{ fontSize: '36px', fontWeight: 'bold', color: '#1e90ff', textTransform: 'uppercase', marginBottom: '20px', textAlign: 'left' }}>DEVIS</h1>
                 {/* Three-column layout for header information */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', lineHeight: 1.6, color: '#555', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px', lineHeight: 1.6, color: '#555', marginBottom: '20px' }}>
                   {/* Left column - Enterprise information */}
                   <div style={{ width: '33%', textAlign: 'left' }}>
                     <p style={{ marginBottom: '3px' }}>{centreInfo?.NomCentre || 'ADE'}</p>
@@ -1708,7 +1696,7 @@ const DevisForm = ({ user }) => {
                   </div>
                 </div>
               </div>              <div className="main-section" style={{ marginTop: '50px' }}>
-                <div className="section-title" style={{ backgroundColor: '#d0e8f2', padding: '8px 12px', fontWeight: 'bold', fontSize: '12px', color: '#333', marginBottom: '15px' }}>
+                <div className="section-title" style={{ backgroundColor: '#d0e8f2', padding: '8px 12px', fontWeight: 'bold', fontSize: '17px', color: '#333', marginBottom: '15px' }}>
                   DESCRIPTION
                 </div>
                 
@@ -1765,20 +1753,20 @@ const DevisForm = ({ user }) => {
                       return (
                         <div>
                           {/* Global table header - shown only once */}
-                          <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '10px', fontSize: '11px' }}>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '10px', fontSize: '16px' }}>
                             <thead>
                               <tr>
-                                <th style={{ backgroundColor: '#e6f3fa', padding: '10px', textAlign: 'left', fontWeight: 'bold', fontSize: '10px', color: '#555', textTransform: 'uppercase', borderBottom: '2px solid #ccc', width: '35%' }}>ARTICLE</th>
-                                <th style={{ backgroundColor: '#e6f3fa', padding: '10px', textAlign: 'left', fontWeight: 'bold', fontSize: '10px', color: '#555', textTransform: 'uppercase', borderBottom: '2px solid #ccc', width: '10%' }}>UNITE</th>
-                                <th style={{ backgroundColor: '#e6f3fa', padding: '10px', textAlign: 'left', fontWeight: 'bold', fontSize: '10px', color: '#555', textTransform: 'uppercase', borderBottom: '2px solid #ccc', width: '10%' }}>QUANTITÉ</th>
-                                <th style={{ backgroundColor: '#e6f3fa', padding: '10px', textAlign: 'left', fontWeight: 'bold', fontSize: '10px', color: '#555', textTransform: 'uppercase', borderBottom: '2px solid #ccc', width: '20%' }}>PRIX UNITAIRE HT</th>
-                                <th style={{ backgroundColor: '#e6f3fa', padding: '10px', textAlign: 'right', fontWeight: 'bold', fontSize: '10px', color: '#555', textTransform: 'uppercase', borderBottom: '2px solid #ccc', width: '25%' }}>MONTANT HT</th>                              </tr>                            </thead>
+                                <th style={{ backgroundColor: '#e6f3fa', padding: '10px', textAlign: 'left', fontWeight: 'bold', fontSize: '15px', color: '#555', textTransform: 'uppercase', borderBottom: '2px solid #ccc', width: '35%' }}>ARTICLE</th>
+                                <th style={{ backgroundColor: '#e6f3fa', padding: '10px', textAlign: 'left', fontWeight: 'bold', fontSize: '15px', color: '#555', textTransform: 'uppercase', borderBottom: '2px solid #ccc', width: '10%' }}>UNITE</th>
+                                <th style={{ backgroundColor: '#e6f3fa', padding: '10px', textAlign: 'left', fontWeight: 'bold', fontSize: '15px', color: '#555', textTransform: 'uppercase', borderBottom: '2px solid #ccc', width: '10%' }}>QUANTITÉ</th>
+                                <th style={{ backgroundColor: '#e6f3fa', padding: '10px', textAlign: 'left', fontWeight: 'bold', fontSize: '15px', color: '#555', textTransform: 'uppercase', borderBottom: '2px solid #ccc', width: '20%' }}>PRIX UNITAIRE HT</th>
+                                <th style={{ backgroundColor: '#e6f3fa', padding: '10px', textAlign: 'right', fontWeight: 'bold', fontSize: '15px', color: '#555', textTransform: 'uppercase', borderBottom: '2px solid #ccc', width: '25%' }}>MONTANT HT</th>                              </tr>                            </thead>
                             <tbody>
                               {sortedFamilies.map((family) => (
                                 <React.Fragment key={family}>
                                   {/* Family Header */}
                                   <tr>
-                                    <td colSpan="5" style={{ backgroundColor: '#d0e8f2', padding: '8px 12px', fontWeight: 'bold', fontSize: '12px', color: '#333', marginTop: '10px' }}>
+                                    <td colSpan="5" style={{ backgroundColor: '#d0e8f2', padding: '8px 12px', fontWeight: 'bold', fontSize: '17px', color: '#333', marginTop: '10px' }}>
                                       {getFamilyRomanNumeral(family)}{getFamilyRomanNumeral(family) ? ' - ': ''}{family}
                                     </td>
                                   </tr>                                  {/* Family Articles */}
@@ -1788,7 +1776,7 @@ const DevisForm = ({ user }) => {
                                       <tr key={index}>
                                         <td style={{ padding: '10px', borderBottom: '1px solid #e0e0e0' }}>
                                           <div>{article.designation}</div>
-                                          <div style={{ fontSize: '10px', color: '#666', marginTop: '3px' }}>
+                                          <div style={{ fontSize: '15px', color: '#666', marginTop: '3px' }}>
                                             {article.typePrix === 'FOURNITURE' && 'Fourniture'}
                                             {article.typePrix === 'POSE' && 'Pose'}
                                             {article.typePrix === 'BOTH' && 'Fourniture + Pose'}
@@ -1814,24 +1802,24 @@ const DevisForm = ({ user }) => {
                 {/* Totals */}
                 {formData.articles.filter(article => article.idArticle && article.designation).length > 0 && (
                   <div className="totals-section" style={{ marginTop: '20px', textAlign: 'left' }}>
-                    <div className="total-row" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px', fontSize: '12px' }}>
+                    <div className="total-row" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px', fontSize: '17px' }}>
                       <div className="total-label" style={{ width: '150px', fontWeight: 'bold', textAlign: 'left', marginRight: '20px' }}>Total HT</div>
                       <div className="total-value" style={{ width: '120px', textAlign: 'right' }}>{totals.totalHT} DZD</div>
                     </div>
-                    <div className="total-row" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px', fontSize: '12px' }}>
+                    <div className="total-row" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px', fontSize: '17px' }}>
                       <div className="total-label" style={{ width: '150px', fontWeight: 'bold', textAlign: 'left', marginRight: '20px' }}>TVA {globalTVA}%</div>
                       <div className="total-value" style={{ width: '120px', textAlign: 'right' }}>{totals.totalTVA} DZD</div>
                     </div>
-                    <div className="total-row final-total" style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px', paddingTop: '10px', borderTop: '2px solid #333', fontSize: '12px' }}>
-                      <div className="total-label" style={{ width: '150px', fontWeight: 'bold', textAlign: 'left', marginRight: '20px', fontSize: '14px' }}>TOTAL TTC</div>
-                      <div className="total-value" style={{ width: '120px', textAlign: 'right', fontSize: '14px', fontWeight: 'bold' }}>{totals.totalTTC} DZD</div>
+                    <div className="total-row final-total" style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px', paddingTop: '10px', borderTop: '2px solid #333', fontSize: '17px' }}>
+                      <div className="total-label" style={{ width: '150px', fontWeight: 'bold', textAlign: 'left', marginRight: '20px', fontSize: '20px' }}>TOTAL TTC</div>
+                      <div className="total-value" style={{ width: '120px', textAlign: 'right', fontSize: '20px', fontWeight: 'bold' }}>{totals.totalTTC} DZD</div>
                     </div>
                   </div>
                 )}              </div>
 
               {/* Total in words */}
               {formData.articles.filter(article => article.idArticle && article.designation).length > 0 && (
-                <div style={{ marginTop: '20px', textAlign: 'left', fontSize: '12px' }}>
+                <div style={{ marginTop: '20px', textAlign: 'left', fontSize: '17px' }}>
                   <p>Arrêté ce présent devis à la somme de : <strong>{(() => {
                                       const totalNumeric = parseFloat(totals.totalTTC.replace(/\s/g, '').replace(',', '.'));
                                       return convertNumberToWords(totalNumeric);
@@ -1858,7 +1846,7 @@ const DevisForm = ({ user }) => {
                   </div>
                   <div>
                     <QRCodeCanvas 
-                      value={`Client: ${demande?.ClientNom || ''} ${demande?.ClientPrenom || ''}\nType: ${getDevisTypeName(formData.idTypeDevis) || ''}\nMontant: ${totals.totalTTC || '0,00'} DZD\nDate: ${new Date().toLocaleDateString('fr-FR')}`} 
+                      value={`Client: ${demande?.ClientNom || ''} ${demande?.ClientPrenom || ''}\nQuantitatif Estimatif: ${formData.estQuantitatifEstimatif ? 'Oui' : 'Non'}\nMontant: ${totals.totalTTC || '0,00'} DZD\nDate: ${new Date().toLocaleDateString('fr-FR')}`}
                       size={70} 
                       bgColor="transparent" 
                       fgColor="#000" 
@@ -1868,8 +1856,8 @@ const DevisForm = ({ user }) => {
                 </div>
               </div>
 
-              <div className="conditions" style={{ marginTop: '30px', backgroundColor: '#f9f9f9', padding: '15px', fontSize: '10px', lineHeight: 1.5, color: '#666' }}>
-                <h3 style={{ fontSize: '11px', marginBottom: '8px', color: '#5a8c5a' }}>CONDITIONS DE PAIEMENT</h3>
+              <div className="conditions" style={{ marginTop: '30px', backgroundColor: '#f9f9f9', padding: '15px', fontSize: '15px', lineHeight: 1.5, color: '#666' }}>
+                <h3 style={{ fontSize: '16px', marginBottom: '8px', color: '#5a8c5a' }}>CONDITIONS DE PAIEMENT</h3>
                 <p style={{ marginBottom: '3px' }}>Délai de paiement: 30 jours à réception de devis.</p>
                 <p style={{ marginBottom: '3px' }}>Tout dépassement du délai de paiement entraînera la réévaluation du montant de la facture. Une majoration sera appliquée en fonction de l'évolution des prix ou de la TVA, formalisée par une facture rectificative ou un devis complémentaire soumis à acceptation.</p>
               </div>
